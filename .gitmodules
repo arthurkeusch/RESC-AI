@@ -1,0 +1,3 @@
+[submodule "Skynet_Monitor/app/java-llama.cpp"]
+	path = Skynet_Monitor/app/java-llama.cpp
+	url = https://github.com/kherud/java-llama.cpp
