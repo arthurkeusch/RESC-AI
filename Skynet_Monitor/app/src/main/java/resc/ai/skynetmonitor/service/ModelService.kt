@@ -91,7 +91,7 @@ object ModelService {
         onProgress: (DownloadState) -> Unit
     ): File = withContext(Dispatchers.IO) {
         try {
-            val url = URL("$API_BASE/download/${model.name}")
+            val url = URL("$apiBase/download/${model.name}")
             val conn = (url.openConnection() as HttpsURLConnection).apply {
                 requestMethod = "GET"
                 connectTimeout = 10000
