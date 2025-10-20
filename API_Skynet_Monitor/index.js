@@ -69,7 +69,8 @@ app.post("/upload", upload.single("file"), async (req, res) => {
             [name, params, file.filename, size]
         )
         res.json({ message: "Model uploaded successfully", name, params, size })
-    } catch {
+    } catch (err) {
+        console.error(err)
         res.status(500).json({ error: "Upload failed" })
     }
 })
@@ -80,7 +81,8 @@ app.get("/models", async (req, res) => {
             "SELECT name, params, size, filename, created_at FROM models ORDER BY created_at DESC"
         )
         res.json(rows)
-    } catch {
+    } catch (err) {
+        console.error(err)
         res.status(500).json({ error: "Failed to fetch models" })
     }
 })
@@ -97,7 +99,8 @@ app.get("/download/:name", async (req, res) => {
         if (!fs.existsSync(filePath))
             return res.status(404).json({ error: "File not found on disk" })
         res.download(filePath, row.filename)
-    } catch {
+    } catch (err) {
+        console.error(err)
         res.status(500).json({ error: "Download failed" })
     }
 })
@@ -111,7 +114,8 @@ app.get("/model/:name", async (req, res) => {
         if (rows.length === 0)
             return res.status(404).json({ error: "Model not found" })
         res.json(rows[0])
-    } catch {
+    } catch (err) {
+        console.error(err)
         res.status(500).json({ error: "Failed to fetch model info" })
     }
 })

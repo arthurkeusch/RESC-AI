@@ -27,60 +27,99 @@
             margin-top: 20px;
             color: red;
         }
+        table {
+            border-spacing: 0;
+        }
+        th:not(:first-child), td:not(:first-child) {
+            border-left: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: center;
+        }
+        thead tr {
+            background-color: #ddd;
+        }
+        tr:nth-child(even) {
+            background-color: #eee;
+        }
     </style>
 </head>
 <body>
     <div style="display: flex;">
-        <div>
-            <h1>Uploader un modèle</h1>
-            <form id="uploadForm">
-                <input type="text" name="model_name" placeholder="Nom du modèle" required />
-                <input type="text" name="model_params" placeholder="Paramètres" />
-                <input type="file" name="file" required />
-                <button type="submit">Uploader</button>
-            </form>
-
-            <div id="result"></div>
-            <div id="error"></div>
+        <div style="display: flex; flex-direction: column;">
+            <h2>Uploader un modèle</h2>
+            <input type="text" id="model_name" placeholder="Nom du modèle" required>
+            <input type="text" id="model_params" placeholder="Paramètres (ex: JSON ou texte)" required>
+            <input type="file" id="fileInput" required>
+            <button id="uploadBtn">Uploader</button>
+            <progress style="width: 100%;" id="progressBar" value="0" max="100"></progress>
+            <div id="status"></div>
         </div>
 
         <div style="margin-left: 50px;">
             <h2>Modèles disponibles</h2>
-            <ul id="modelsUl"></ul>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Paramètres</th>
+                        <th>Taille (bytes)</th>
+                    </tr>
+                </thead>
+                <tbody id="modelsUl">
+                    <!-- Les modèles seront listés ici -->
+                </tbody>
+            </table>
         </div>
     </div>
 
     <script>
-        const resultDiv = document.getElementById('result')
-        const errorDiv = document.getElementById('error')
-        const form = document.getElementById('uploadForm')
+        const uploadBtn = document.getElementById('uploadBtn')
+        const progressBar = document.getElementById('progressBar')
+        const statusDiv = document.getElementById('status')
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault()
-            resultDiv.textContent = ''
-            errorDiv.textContent = ''
+        uploadBtn.addEventListener('click', () => {
+            const name = document.getElementById('model_name').value
+            const params = document.getElementById('model_params').value
+            const file = document.getElementById('fileInput').files[0]
 
-            const formData = new FormData(form)
-
-            try {
-                const response = await fetch(`${window.location.href}upload`, {
-                    method: 'POST',
-                    body: {
-                        name: formData.get('model_name'),
-                        params: formData.get('model_params') ?? '',
-                        file: formData.get('file')
-                    }
-                })
-
-                const data = await response.json()
-                if (response.ok) {
-                    resultDiv.textContent = `Succès ! Nom : ${data.name}, Paramètres : ${data.params}, Taille : ${data.size} bytes`
-                } else {
-                    errorDiv.textContent = `Erreur : ${data.error}`
-                }
-            } catch (err) {
-                errorDiv.textContent = 'Erreur : impossible de contacter le serveur'
+            if (!name || !params || !file) {
+                statusDiv.textContent = '❌ Veuillez remplir tous les champs.'
+                return
             }
+
+            const formData = new FormData()
+            formData.append('name', name)
+            formData.append('params', params)
+            formData.append('file', file)
+
+            const xhr = new XMLHttpRequest()
+            xhr.open('POST', `${window.location.origin}/upload`, true)
+
+            // Suivre la progression de l’upload
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    const percent = (e.loaded / e.total) * 100
+                    progressBar.value = percent
+                }
+            }
+
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    const res = JSON.parse(xhr.responseText)
+                    statusDiv.textContent = `✅ Upload réussi : ${res.name} (${res.size} octets)`
+                } else {
+                    const err = JSON.parse(xhr.responseText || '{}')
+                    statusDiv.textContent = `❌ Erreur : ${err.error || xhr.statusText}`
+                }
+            }
+
+            xhr.onerror = () => {
+                statusDiv.textContent = '❌ Erreur de connexion au serveur.'
+            }
+
+            xhr.send(formData)
         })
 
         function getModels() {
@@ -93,7 +132,9 @@
                     data.forEach(model => {
                         const li = document.createElement('li')
                         li.textContent = `Nom : ${model.name}, Paramètres : ${model.params}, Taille : ${model.size} bytes`
-                        modelsUl.appendChild(li)
+                        const row = document.createElement('tr')
+                        row.innerHTML = `<td>${model.name}</td><td>${model.params}</td><td>${model.size}</td>`
+                        modelsUl.appendChild(row)
                     })
                 })
                 .catch(err => {
