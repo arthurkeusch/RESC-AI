@@ -1,2 +1,23 @@
 tests/prompts/results.txt
 Skynet_Monitor/app/src/main/cpp/llama.cpp/
+
+# Build files
+Skynet_Monitor/build/
+Skynet_Monitor/app/build/
+
+# Gradle files
+Skynet_Monitor/.gradle/
+Skynet_Monitor/app/.cxx/
+
+# Local config properties
+Skynet_Monitor/local.properties
+
+# Local IDEA config
+# Skynet_Monitor/.idea/
+
+# Logs
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
