@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload de modèle</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            width: 300px;
+        }
+        input, button {
+            margin-bottom: 15px;
+            padding: 8px;
+            font-size: 14px;
+        }
+        #result {
+            margin-top: 20px;
+            color: green;
+        }
+        #error {
+            margin-top: 20px;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div style="display: flex;">
+        <div>
+            <h1>Uploader un modèle</h1>
+            <form id="uploadForm">
+                <input type="text" name="model_name" placeholder="Nom du modèle" required />
+                <input type="text" name="model_params" placeholder="Paramètres" />
+                <input type="file" name="file" required />
+                <button type="submit">Uploader</button>
+            </form>
+
+            <div id="result"></div>
+            <div id="error"></div>
+        </div>
+
+        <div style="margin-left: 50px;">
+            <h2>Modèles disponibles</h2>
+            <ul id="modelsUl"></ul>
+        </div>
+    </div>
+
+    <script>
+        const resultDiv = document.getElementById('result')
+        const errorDiv = document.getElementById('error')
+        const form = document.getElementById('uploadForm')
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault()
+            resultDiv.textContent = ''
+            errorDiv.textContent = ''
+
+            const formData = new FormData(form)
+
+            try {
+                const response = await fetch(`${window.location.href}upload`, {
+                    method: 'POST',
+                    body: {
+                        name: formData.get('model_name'),
+                        params: formData.get('model_params') ?? '',
+                        file: formData.get('file')
+                    }
+                })
+
+                const data = await response.json()
+                if (response.ok) {
+                    resultDiv.textContent = `Succès ! Nom : ${data.name}, Paramètres : ${data.params}, Taille : ${data.size} bytes`
+                } else {
+                    errorDiv.textContent = `Erreur : ${data.error}`
+                }
+            } catch (err) {
+                errorDiv.textContent = 'Erreur : impossible de contacter le serveur'
+            }
+        })
+
+        function getModels() {
+            const form = document.getElementById('uploadForm')
+            fetch(`${window.location.href}models`)
+                .then(response => response.json())
+                .then(data => {
+                    const modelsUl = document.getElementById('modelsUl')
+                    modelsUl.innerHTML = ''
+                    data.forEach(model => {
+                        const li = document.createElement('li')
+                        li.textContent = `Nom : ${model.name}, Paramètres : ${model.params}, Taille : ${model.size} bytes`
+                        modelsUl.appendChild(li)
+                    })
+                })
+                .catch(err => {
+                    console.error('Erreur :', err)
+                })
+
+            setTimeout(getModels, 5000)
+        }
+        getModels()
+    </script>
+</body>
+</html>

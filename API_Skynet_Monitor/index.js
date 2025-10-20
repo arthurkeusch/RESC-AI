@@ -116,6 +116,10 @@ app.get("/model/:name", async (req, res) => {
     }
 })
 
+app.get("/", (req, res) => {
+    res.sendFile(path.join(process.cwd(), "upload.html"))
+})
+
 app.listen(PORT, () =>
     console.log(`Server running on http://localhost:${PORT}`)
 )
