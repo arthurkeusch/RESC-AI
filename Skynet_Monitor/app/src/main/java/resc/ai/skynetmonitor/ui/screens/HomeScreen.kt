@@ -1,5 +1,6 @@
 package resc.ai.skynetmonitor.ui.screens
 
+import android.widget.EditText
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,6 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import resc.ai.skynetmonitor.service.ModelService
 import resc.ai.skynetmonitor.ui.components.InfoCard
 import resc.ai.skynetmonitor.ui.components.ModelChatDialog
 import resc.ai.skynetmonitor.ui.components.ModelInfo
@@ -30,6 +32,7 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vie
     var selectedModel by remember { mutableStateOf<ModelInfo?>(null) }
     var hardwareExpanded by remember { mutableStateOf(false) }
     var systemExpanded by remember { mutableStateOf(true) }
+    var apiUrl by remember { mutableStateOf(ModelService.API_BASE) }
 
     val models by viewModel.models.collectAsState()
     val downloadState by viewModel.downloadState.collectAsState()
@@ -70,30 +73,50 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vie
                 shadowElevation = 4.dp,
                 color = MaterialTheme.colorScheme.surface
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedButton(
-                        onClick = { showDialog = true },
-                        enabled = downloadState == null && !chatState.isRunning,
+                Column {
+                    // Row to select the API url
+                    Row(
                         modifier = Modifier
-                            .widthIn(min = 160.dp)
-                            .height(48.dp)
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(selectedModel?.name ?: "Select model", fontSize = 15.sp)
+                        TextField(
+                            value = apiUrl,
+                            onValueChange = { newValue ->
+                                apiUrl = newValue
+                                viewModel.setApiUrl(newValue) // ici on envoie le contenu actuel
+                            },
+                            modifier = Modifier.weight(1f),
+                            label = { Text("API:") },
+                        )
                     }
-                    Button(
-                        onClick = { selectedModel?.let { viewModel.startBenchmarkFor(it) } },
-                        enabled = selectedModel != null && downloadState == null && !chatState.isRunning,
+
+                    Row(
                         modifier = Modifier
-                            .widthIn(min = 160.dp)
-                            .height(48.dp)
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Start Benchmark", fontSize = 15.sp)
+                        OutlinedButton(
+                            onClick = { showDialog = true },
+                            enabled = downloadState == null && !chatState.isRunning,
+                            modifier = Modifier
+                                .widthIn(min = 160.dp)
+                                .height(48.dp)
+                        ) {
+                            Text(selectedModel?.name ?: "Select model", fontSize = 15.sp)
+                        }
+                        Button(
+                            onClick = { selectedModel?.let { viewModel.startBenchmarkFor(it) } },
+                            enabled = selectedModel != null && downloadState == null && !chatState.isRunning,
+                            modifier = Modifier
+                                .widthIn(min = 160.dp)
+                                .height(48.dp)
+                        ) {
+                            Text("Start Benchmark", fontSize = 15.sp)
+                        }
                     }
                 }
             }

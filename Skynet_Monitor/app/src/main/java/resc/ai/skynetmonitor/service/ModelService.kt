@@ -27,13 +27,14 @@ data class DownloadState(
 )
 
 object ModelService {
-    private const val API_BASE = "https://resc-ai.arthur-keusch.fr:3000"
-    private const val MODELS_URL = "$API_BASE/models"
+    const val API_BASE = "https://resc-ai.arthur-keusch.fr:3000"
     private const val TAG = "ModelService"
+
+    private var apiBase = API_BASE
 
     suspend fun fetchRemoteModels(): List<RemoteModel> = withContext(Dispatchers.IO) {
         try {
-            val conn = (URL(MODELS_URL).openConnection() as HttpsURLConnection).apply {
+            val conn = (URL(apiBase + "/models").openConnection() as HttpsURLConnection).apply {
                 requestMethod = "GET"
                 connectTimeout = 7000
                 readTimeout = 15000
@@ -68,6 +69,11 @@ object ModelService {
         val dir = context.getDir("models", Context.MODE_PRIVATE)
         if (!dir.exists()) dir.mkdirs()
         return File(dir, filename)
+    }
+
+    fun setApiUrl(newUrl: String) {
+        apiBase = newUrl
+        Log.d(TAG, "API base URL set to $apiBase")
     }
 
     fun isModelDownloaded(context: Context, filename: String): Boolean {

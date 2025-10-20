@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -72,18 +73,26 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
+    fun setApiUrl(url: String) {
+        ModelService.setApiUrl(url)
+        loadModels()
+    }
+
     fun loadModels() {
         viewModelScope.launch {
-            val remotes = ModelService.fetchRemoteModels()
-            metaByName.clear()
-            remotes.forEach { metaByName[it.name] = it }
-            _models.value = remotes.map {
-                ModelInfo(
-                    name = it.name,
-                    size = formatFileSize(it.sizeBytes),
-                    parameters = it.params
-                )
-            }
+            _models.value = emptyList()
+            try {
+                var remotes = ModelService.fetchRemoteModels()
+                metaByName.clear()
+                remotes.forEach { metaByName[it.name] = it }
+                _models.value = remotes.map {
+                    ModelInfo(
+                        name = it.name,
+                        size = formatFileSize(it.sizeBytes),
+                        parameters = it.params
+                    )
+                }
+            } catch (_: Exception) {}
         }
     }
 
