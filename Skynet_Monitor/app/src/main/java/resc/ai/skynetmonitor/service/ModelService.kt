@@ -1,21 +1,17 @@
 package resc.ai.skynetmonitor.service
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.CancellationException
 import org.json.JSONArray
 import java.io.File
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
-
-data class RemoteModel(
-    val name: String,
-    val params: String,
-    val sizeBytes: Long,
-    val filename: String
-)
 
 data class DownloadState(
     val name: String,
@@ -34,34 +30,48 @@ object ModelService {
 
     suspend fun fetchRemoteModels(): List<RemoteModel> = withContext(Dispatchers.IO) {
         try {
-            val conn = (URL(apiBase + "/models").openConnection() as HttpsURLConnection).apply {
+            val conn = (URL("$apiBase/models").openConnection() as HttpsURLConnection).apply {
                 requestMethod = "GET"
                 connectTimeout = 7000
                 readTimeout = 15000
             }
             val code = conn.responseCode
-
-            if (code != 200) {
-                val errorMsg = conn.errorStream?.bufferedReader()?.use { it.readText() }
-                    ?: "No server error message"
-                Log.e(TAG, "fetchRemoteModels() HTTP $code: $errorMsg")
-                return@withContext emptyList()
-            }
+            if (code != 200) return@withContext emptyList()
 
             val response = conn.inputStream.bufferedReader().use { it.readText() }
             val arr = JSONArray(response)
+
             List(arr.length()) { i ->
                 val o = arr.getJSONObject(i)
+                val id = o.getLong("id")
+                val name = o.getString("name")
+                val filename = o.getString("filename")
+                val size = o.optLong("size", -1L)
                 RemoteModel(
-                    name = o.getString("name"),
-                    params = o.getString("params"),
-                    sizeBytes = o.optLong("size", -1L),
-                    filename = o.getString("filename")
+                    id = id,
+                    name = name,
+                    filename = filename,
+                    sizeBytes = size,
+                    isLocal = false
                 )
             }
         } catch (e: Exception) {
             Log.e(TAG, "Exception in fetchRemoteModels()", e)
-            return@withContext emptyList()
+            emptyList()
+        }
+    }
+
+    @SuppressLint("DefaultLocale")
+    fun formatSize(bytes: Long): String {
+        if (bytes <= 0) return "Unknown"
+        val kb = bytes / 1024.0
+        val mb = kb / 1024.0
+        val gb = mb / 1024.0
+        return when {
+            gb >= 1 -> String.format("%.2f GB", gb)
+            mb >= 1 -> String.format("%.1f MB", mb)
+            kb >= 1 -> String.format("%.0f KB", kb)
+            else -> "$bytes B"
         }
     }
 
@@ -73,7 +83,6 @@ object ModelService {
 
     fun setApiUrl(newUrl: String) {
         apiBase = newUrl
-        Log.d(TAG, "API base URL set to $apiBase")
     }
 
     fun isModelDownloaded(context: Context, filename: String): Boolean {
@@ -90,12 +99,13 @@ object ModelService {
         model: RemoteModel,
         onProgress: (DownloadState) -> Unit
     ): File = withContext(Dispatchers.IO) {
+        var conn: HttpsURLConnection? = null
         try {
-            val url = URL("$apiBase/download/${model.name}")
-            val conn = (url.openConnection() as HttpsURLConnection).apply {
+            val url = URL("$apiBase/models/download/${model.id}")
+            conn = (url.openConnection() as HttpsURLConnection).apply {
                 requestMethod = "GET"
                 connectTimeout = 10000
-                readTimeout = 60000
+                readTimeout = 5000
             }
             val code = conn.responseCode
             if (code != 200) {
@@ -112,27 +122,32 @@ object ModelService {
                 conn.inputStream.use { ins ->
                     val buf = ByteArray(DEFAULT_BUFFER_SIZE)
                     var received = 0L
-                    val last = System.nanoTime()
                     var lastTick = System.nanoTime()
+                    val start = System.nanoTime()
+
                     while (true) {
+                        if (!coroutineContext.isActive) throw CancellationException("Cancelled by user")
                         val read = ins.read(buf)
                         if (read == -1) break
                         out.write(buf, 0, read)
                         received += read
+
                         val now = System.nanoTime()
+                        val elapsedSec = ((now - start) / 1_000_000_000.0).coerceAtLeast(0.001)
                         val tickMs = (now - lastTick) / 1_000_000
+
                         if (tickMs >= 500L) {
-                            val elapsedSec = ((now - last) / 1_000_000_000.0).coerceAtLeast(0.001)
                             val speed = (received / elapsedSec).toLong()
-                            val remain =
+                            val remaining =
                                 if (total > 0 && received <= total) total - received else -1L
-                            val eta = if (speed > 0 && remain > 0) (remain / speed) else -1L
+                            val eta = if (speed > 0 && remaining > 0) (remaining / speed) else -1L
                             val progress = if (total > 0) ((received * 100) / total).toInt() else 0
+
                             onProgress(
                                 DownloadState(
                                     name = model.name,
                                     bytesReceived = received,
-                                    totalBytes = if (total > 0) total else -1L,
+                                    totalBytes = total,
                                     speedBytesPerSec = speed,
                                     etaSeconds = eta,
                                     progress = progress.coerceIn(0, 100)
@@ -143,10 +158,17 @@ object ModelService {
                     }
                 }
             }
+
             if (target.exists()) target.delete()
             tmp.renameTo(target)
             delay(50)
             target
+        } catch (e: CancellationException) {
+            try {
+                conn?.disconnect()
+            } catch (_: Exception) {
+            }
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "Exception in downloadModel()", e)
             throw e

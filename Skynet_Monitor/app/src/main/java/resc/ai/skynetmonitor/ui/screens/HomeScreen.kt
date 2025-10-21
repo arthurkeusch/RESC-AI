@@ -1,6 +1,5 @@
 package resc.ai.skynetmonitor.ui.screens
 
-import android.widget.EditText
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,7 +19,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import resc.ai.skynetmonitor.service.ModelService
 import resc.ai.skynetmonitor.ui.components.InfoCard
 import resc.ai.skynetmonitor.ui.components.ModelChatDialog
-import resc.ai.skynetmonitor.ui.components.ModelInfo
 import resc.ai.skynetmonitor.ui.components.ModelSelectionDialog
 import resc.ai.skynetmonitor.ui.theme.SkynetMonitorTheme
 import resc.ai.skynetmonitor.viewmodel.DeviceInfoViewModel
@@ -29,30 +27,41 @@ import resc.ai.skynetmonitor.viewmodel.DeviceInfoViewModel
 @Composable
 fun HomeScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = viewModel()) {
     var showDialog by remember { mutableStateOf(false) }
-    var selectedModel by remember { mutableStateOf<ModelInfo?>(null) }
+    var selectedModel by remember { mutableStateOf<String?>(null) }
     var hardwareExpanded by remember { mutableStateOf(false) }
     var systemExpanded by remember { mutableStateOf(true) }
-    var apiUrl by remember { mutableStateOf(ModelService.API_BASE) }
 
-    val models by viewModel.models.collectAsState()
+    val models by viewModel.remoteModels.collectAsState()
     val downloadState by viewModel.downloadState.collectAsState()
     val chatState by viewModel.benchmarkState.collectAsState()
 
-    LaunchedEffect(Unit) { viewModel.loadModels() }
+    LaunchedEffect(Unit) { viewModel.loadModelsRemote() }
 
     val hardwareInfo = viewModel.hardwareInfo.value
     val systemState = viewModel.systemState.value
 
     if (showDialog) {
         ModelSelectionDialog(
-            models = models,
-            selectedModel = selectedModel,
+            models = models.map {
+                resc.ai.skynetmonitor.ui.components.ModelInfo(
+                    name = it.name,
+                    sizeBytes = it.sizeBytes,
+                    parameters = it.params
+                )
+            },
+            selectedModel = null,
             downloadState = downloadState,
             onDismiss = { showDialog = false },
-            onConfirm = { model ->
-                viewModel.selectModel(model) { done ->
-                    selectedModel = done
-                    showDialog = false
+            onConfirm = { info ->
+                val remote = models.find { it.name == info.name }
+                if (remote != null) {
+                    val isLocal = ModelService.isModelDownloaded(viewModel.ctx, remote.filename)
+                    if (isLocal) {
+                        selectedModel = remote.name
+                        showDialog = false
+                    } else {
+                        viewModel.downloadModel(remote)
+                    }
                 }
             }
         )
@@ -74,24 +83,6 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vie
                 color = MaterialTheme.colorScheme.surface
             ) {
                 Column {
-                    // Row to select the API url
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        TextField(
-                            value = apiUrl,
-                            onValueChange = { newValue ->
-                                apiUrl = newValue
-                                viewModel.setApiUrl(newValue) // ici on envoie le contenu actuel
-                            },
-                            modifier = Modifier.weight(1f),
-                            label = { Text("API:") },
-                        )
-                    }
-
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -106,10 +97,19 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vie
                                 .widthIn(min = 160.dp)
                                 .height(48.dp)
                         ) {
-                            Text(selectedModel?.name ?: "Select model", fontSize = 15.sp)
+                            Text(selectedModel ?: "Select model", fontSize = 15.sp)
                         }
                         Button(
-                            onClick = { selectedModel?.let { viewModel.startBenchmarkFor(it) } },
+                            onClick = {
+                                val remote = models.find { it.name == selectedModel }
+                                if (remote != null) {
+                                    val path = ModelService.getLocalModelPath(
+                                        viewModel.ctx,
+                                        remote.filename
+                                    )
+                                    viewModel.startBenchmark(path)
+                                }
+                            },
                             enabled = selectedModel != null && downloadState == null && !chatState.isRunning,
                             modifier = Modifier
                                 .widthIn(min = 160.dp)
@@ -176,18 +176,29 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vie
                         )
                     }
                     AnimatedVisibility(visible = systemExpanded) {
-                        val filteredState = systemState
                         Column(
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            filteredState.forEach { (label, value) ->
+                            systemState.forEach { (label, value) ->
                                 val history = viewModel.historyData.value[label] ?: emptyList()
                                 val bounds = viewModel.getBoundsFor(label)
                                 val color = when {
-                                    label.contains("RAM", ignoreCase = true) -> Color(0xFF42A5F5)
-                                    label.contains("Temp", ignoreCase = true) -> Color(0xFFFFA726)
-                                    label.contains("Battery", ignoreCase = true) -> Color(0xFF9CCC65)
+                                    label.contains(
+                                        "RAM",
+                                        ignoreCase = true
+                                    ) -> Color(0xFF42A5F5)
+
+                                    label.contains(
+                                        "Temp",
+                                        ignoreCase = true
+                                    ) -> Color(0xFFFFA726)
+
+                                    label.contains(
+                                        "Battery",
+                                        ignoreCase = true
+                                    ) -> Color(0xFF9CCC65)
+
                                     else -> Color(0xFFBA68C8)
                                 }
                                 InfoCard(

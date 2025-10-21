@@ -13,6 +13,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Token
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,6 +27,8 @@ import kotlinx.coroutines.launch
 import resc.ai.skynetmonitor.navigation.NavRoutes
 import resc.ai.skynetmonitor.ui.screens.HomeScreen
 import resc.ai.skynetmonitor.ui.screens.StatsScreen
+import resc.ai.skynetmonitor.ui.screens.ParamScreen
+import resc.ai.skynetmonitor.ui.screens.ModelScreen
 import resc.ai.skynetmonitor.ui.theme.SkynetMonitorTheme
 
 class MainActivity : ComponentActivity() {
@@ -42,7 +46,7 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun SkynetMonitorApp() {
-    val pages = listOf(NavRoutes.Home, NavRoutes.Stats)
+    val pages = listOf(NavRoutes.Home, NavRoutes.Model, NavRoutes.Stats, NavRoutes.Setting)
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { pages.size })
     val coroutineScope = rememberCoroutineScope()
 
@@ -52,11 +56,9 @@ fun SkynetMonitorApp() {
     val unselectedContentColor = colorScheme.onSurfaceVariant
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        bottomBar = {
+        modifier = Modifier.fillMaxSize(), bottomBar = {
             NavigationBar(
-                containerColor = colorScheme.surface,
-                tonalElevation = 4.dp
+                containerColor = colorScheme.surface, tonalElevation = 4.dp
             ) {
                 pages.forEachIndexed { index, page ->
                     val selected = pagerState.currentPage == index
@@ -71,7 +73,7 @@ fun SkynetMonitorApp() {
                             modifier = Modifier
                                 .clip(MaterialTheme.shapes.large)
                                 .background(if (selected) selectedColor else Color.Transparent)
-                                .padding(horizontal = 24.dp, vertical = 10.dp),
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             val iconColor =
@@ -79,7 +81,9 @@ fun SkynetMonitorApp() {
                             val textColor =
                                 if (selected) selectedContentColor else unselectedContentColor
 
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
                                 when (page) {
                                     NavRoutes.Home -> Icon(
                                         Icons.Filled.Home,
@@ -92,11 +96,25 @@ fun SkynetMonitorApp() {
                                         contentDescription = "Stats",
                                         tint = iconColor
                                     )
+
+                                    NavRoutes.Model -> Icon(
+                                        Icons.Filled.Token,
+                                        contentDescription = "Models",
+                                        tint = iconColor
+                                    )
+
+                                    NavRoutes.Setting -> Icon(
+                                        Icons.Filled.Settings,
+                                        contentDescription = "Parameters",
+                                        tint = iconColor
+                                    )
                                 }
                                 Text(
                                     when (page) {
                                         NavRoutes.Home -> "Home"
                                         NavRoutes.Stats -> "Statistics"
+                                        NavRoutes.Model -> "Models"
+                                        NavRoutes.Setting -> "Settings"
                                     },
                                     style = MaterialTheme.typography.labelMedium,
                                     color = textColor
@@ -111,20 +129,19 @@ fun SkynetMonitorApp() {
                                     coroutineScope.launch {
                                         pagerState.animateScrollToPage(index)
                                     }
-                                }
-                        )
+                                })
                     }
                 }
             }
-        }
-    ) { innerPadding ->
+        }) { innerPadding ->
         HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxSize()
+            state = pagerState, modifier = Modifier.fillMaxSize()
         ) { page ->
             when (pages[page]) {
                 NavRoutes.Home -> HomeScreen(innerPadding)
                 NavRoutes.Stats -> StatsScreen(innerPadding)
+                NavRoutes.Setting -> ParamScreen(innerPadding)
+                NavRoutes.Model -> ModelScreen(innerPadding)
             }
         }
     }

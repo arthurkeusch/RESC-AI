@@ -21,3 +21,4 @@ Skynet_Monitor/local.properties
 # System files
 .DS_Store
 Thumbs.db
+/.idea/
