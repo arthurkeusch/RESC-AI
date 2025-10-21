@@ -95,7 +95,7 @@
             formData.append('file', file)
 
             const xhr = new XMLHttpRequest()
-            xhr.open('POST', `${window.location.origin}/upload`, true)
+            xhr.open('POST', `${window.location.origin}models/upload`, true)
 
             // Suivre la progression de l’upload
             xhr.upload.onprogress = (e) => {
