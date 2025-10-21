@@ -28,6 +28,7 @@ import resc.ai.skynetmonitor.viewmodel.DeviceInfoViewModel
 fun HomeScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = viewModel()) {
     var showDialog by remember { mutableStateOf(false) }
     var selectedModel by remember { mutableStateOf<String?>(null) }
+    var pendingSelection by remember { mutableStateOf<String?>(null) }
     var hardwareExpanded by remember { mutableStateOf(false) }
     var systemExpanded by remember { mutableStateOf(true) }
 
@@ -39,6 +40,17 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vie
 
     val hardwareInfo = viewModel.hardwareInfo.value
     val systemState = viewModel.systemState.value
+
+    LaunchedEffect(downloadState?.progress) {
+        val st = downloadState
+        if (st != null && st.progress >= 100) {
+            val chosen = pendingSelection ?: st.name
+            selectedModel = chosen
+            pendingSelection = null
+            showDialog = false
+            viewModel.clearDownloadState()
+        }
+    }
 
     if (showDialog) {
         ModelSelectionDialog(
@@ -60,6 +72,7 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vie
                         selectedModel = remote.name
                         showDialog = false
                     } else {
+                        pendingSelection = remote.name
                         viewModel.downloadModel(remote)
                     }
                 }

@@ -5,7 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d6a21412-aa58-47b7-937d-b2a3c1ca2470" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/Skynet_Monitor/app/src/main/cpp/llama.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/API_Skynet_Monitor/routes/models.js" beforeDir="false" afterPath="$PROJECT_DIR$/API_Skynet_Monitor/routes/models.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Skynet_Monitor/app/src/main/java/resc/ai/skynetmonitor/service/ModelService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Skynet_Monitor/app/src/main/java/resc/ai/skynetmonitor/service/ModelService.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Skynet_Monitor/app/src/main/java/resc/ai/skynetmonitor/ui/components/ModelCard.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Skynet_Monitor/app/src/main/java/resc/ai/skynetmonitor/ui/components/ModelCard.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Skynet_Monitor/app/src/main/java/resc/ai/skynetmonitor/ui/screens/HomeScreen.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Skynet_Monitor/app/src/main/java/resc/ai/skynetmonitor/ui/screens/HomeScreen.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Skynet_Monitor/app/src/main/java/resc/ai/skynetmonitor/ui/screens/ModelScreen.kt" beforeDir="false" afterPath="$PROJECT_DIR$/Skynet_Monitor/app/src/main/java/resc/ai/skynetmonitor/ui/screens/ModelScreen.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -18,9 +22,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 2
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 2
+}</component>
   <component name="ProjectId" id="34MrSv0kQMLit1vvKmxQHtswq7m" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -36,8 +40,10 @@
     "RunOnceActivity.readMode.enableVisualFormatting": "true",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
+    "dart.analysis.tool.window.visible": "false",
     "git-widget-placeholder": "main",
-    "last_opened_file_path": "C:/Users/silar/OneDrive/Documents/GitHub/RESC-AI"
+    "last_opened_file_path": "C:/Users/silar/OneDrive/Documents/GitHub/RESC-AI",
+    "ts.external.directory.path": "C:\\Users\\arthu\\AppData\\Roaming\\JetBrains\\IntelliJIdea2025.2\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external"
   }
 }]]></component>
   <component name="TaskManager">

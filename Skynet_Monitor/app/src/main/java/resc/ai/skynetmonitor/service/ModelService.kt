@@ -2,16 +2,20 @@ package resc.ai.skynetmonitor.service
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.database.Cursor
+import android.net.Uri
+import android.provider.OpenableColumns
 import android.util.Log
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import java.io.File
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
+import kotlin.coroutines.coroutineContext
 
 data class DownloadState(
     val name: String,
@@ -47,11 +51,13 @@ object ModelService {
                 val name = o.getString("name")
                 val filename = o.getString("filename")
                 val size = o.optLong("size", -1L)
+                val params = o.optString("params", "")
                 RemoteModel(
                     id = id,
                     name = name,
                     filename = filename,
                     sizeBytes = size,
+                    params = params,
                     isLocal = false
                 )
             }
@@ -92,6 +98,20 @@ object ModelService {
 
     fun getLocalModelPath(ctx: Context, filename: String): String {
         return resolveLocalFile(ctx, filename).absolutePath
+    }
+
+    suspend fun deleteRemoteModel(model: RemoteModel) = withContext(Dispatchers.IO) {
+        val url = URL("$apiBase/models/${model.id}")
+        val conn = (url.openConnection() as HttpsURLConnection).apply {
+            requestMethod = "DELETE"
+            connectTimeout = 10000
+            readTimeout = 15000
+        }
+        val code = conn.responseCode
+        if (code !in 200..299) {
+            val msg = conn.errorStream?.bufferedReader()?.use { it.readText() } ?: "Delete failed"
+            throw IllegalStateException("Delete failed with HTTP $code: $msg")
+        }
     }
 
     suspend fun downloadModel(
@@ -173,5 +193,129 @@ object ModelService {
             Log.e(TAG, "Exception in downloadModel()", e)
             throw e
         }
+    }
+
+    data class UploadState(
+        val name: String,
+        val bytesSent: Long,
+        val totalBytes: Long,
+        val speedBytesPerSec: Long,
+        val etaSeconds: Long,
+        val progress: Int
+    )
+
+    suspend fun uploadModel(
+        context: Context,
+        name: String,
+        params: String,
+        fileUri: Uri,
+        onProgress: (UploadState) -> Unit
+    ) = withContext(Dispatchers.IO) {
+        val boundary = "----SkynetBoundary${System.currentTimeMillis()}"
+        val url = URL("$apiBase/models/upload")
+        val conn = (url.openConnection() as HttpsURLConnection).apply {
+            requestMethod = "POST"
+            connectTimeout = 15000
+            readTimeout = 60000
+            doOutput = true
+            doInput = true
+            useCaches = false
+            setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
+            setChunkedStreamingMode(64 * 1024)
+        }
+
+        val displayName = resolveDisplayName(context, fileUri) ?: "model.bin"
+        val totalBytes = resolveSize(context, fileUri) ?: -1L
+
+        val prefixName = "--$boundary\r\nContent-Disposition: form-data; name=\"name\"\r\n\r\n"
+        val suffix = "\r\n"
+        val prefixParams = "--$boundary\r\nContent-Disposition: form-data; name=\"params\"\r\n\r\n"
+        val prefixFile = buildString {
+            append("--$boundary\r\n")
+            append("Content-Disposition: form-data; name=\"file\"; filename=\"")
+            append(displayName)
+            append("\"\r\n")
+            append("Content-Type: application/octet-stream\r\n\r\n")
+        }
+        val endBoundary = "\r\n--$boundary--\r\n"
+
+        var sent = 0L
+        var lastTick = System.nanoTime()
+        val start = System.nanoTime()
+
+        conn.outputStream.use { os ->
+            os.write(prefixName.toByteArray())
+            os.write(name.toByteArray())
+            os.write(suffix.toByteArray())
+
+            os.write(prefixParams.toByteArray())
+            os.write(params.toByteArray())
+            os.write(suffix.toByteArray())
+
+            os.write(prefixFile.toByteArray())
+
+            context.contentResolver.openInputStream(fileUri).use { ins ->
+                val buf = ByteArray(DEFAULT_BUFFER_SIZE)
+                while (true) {
+                    if (!coroutineContext.isActive) throw CancellationException("Upload cancelled")
+                    val read = ins?.read(buf) ?: -1
+                    if (read == -1) break
+                    os.write(buf, 0, read)
+                    sent += read
+
+                    val now = System.nanoTime()
+                    val elapsedSec = ((now - start) / 1_000_000_000.0).coerceAtLeast(0.001)
+                    val tickMs = (now - lastTick) / 1_000_000
+                    if (tickMs >= 500L) {
+                        val speed = (sent / elapsedSec).toLong()
+                        val remaining =
+                            if (totalBytes > 0 && sent <= totalBytes) totalBytes - sent else -1L
+                        val eta = if (speed > 0 && remaining > 0) (remaining / speed) else -1L
+                        val progress =
+                            if (totalBytes > 0) ((sent * 100) / totalBytes).toInt() else 0
+                        onProgress(
+                            UploadState(
+                                name = name,
+                                bytesSent = sent,
+                                totalBytes = totalBytes,
+                                speedBytesPerSec = speed,
+                                etaSeconds = eta,
+                                progress = progress.coerceIn(0, 100)
+                            )
+                        )
+                        lastTick = now
+                    }
+                }
+            }
+
+            os.write(endBoundary.toByteArray())
+            os.flush()
+        }
+
+        val code = conn.responseCode
+        if (code !in 200..299) {
+            val msg = conn.errorStream?.bufferedReader()?.use { it.readText() } ?: "Upload failed"
+            throw IllegalStateException("Upload failed with HTTP $code: $msg")
+        }
+    }
+
+    fun resolveDisplayName(context: Context, uri: Uri): String? {
+        var name: String? = null
+        val cursor: Cursor? = context.contentResolver.query(uri, null, null, null, null)
+        cursor?.use {
+            val idx = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+            if (idx >= 0 && it.moveToFirst()) name = it.getString(idx)
+        }
+        return name
+    }
+
+    fun resolveSize(context: Context, uri: Uri): Long? {
+        var size: Long? = null
+        val cursor: Cursor? = context.contentResolver.query(uri, null, null, null, null)
+        cursor?.use {
+            val idx = it.getColumnIndex(OpenableColumns.SIZE)
+            if (idx >= 0 && it.moveToFirst()) size = it.getLong(idx)
+        }
+        return size
     }
 }

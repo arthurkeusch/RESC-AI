@@ -14,9 +14,7 @@ export default function modelsRouter({ db, MODELS_DIR }) {
 
     router.get("/", async (req, res) => {
         try {
-            const [rows] = await db.execute(
-                "SELECT * FROM models"
-            )
+            const [rows] = await db.execute("SELECT * FROM models")
             res.json(rows)
         } catch (err) {
             res.status(500).json({ error: "Failed to fetch models" })
@@ -63,6 +61,85 @@ export default function modelsRouter({ db, MODELS_DIR }) {
             })
         } catch (err) {
             res.status(500).json({ error: "Upload failed" })
+        }
+    })
+
+    router.put("/:id", upload.single("file"), async (req, res) => {
+        try {
+            const id = req.params.id
+            const [rows] = await db.execute("SELECT * FROM models WHERE id = ?", [id])
+            if (rows.length === 0) return res.status(404).json({ error: "Model not found" })
+            const current = rows[0]
+
+            const { name, params } = req.body
+            let newFilename = current.filename
+            let newSize = current.size
+
+            if (req.file) {
+                newFilename = req.file.filename
+                const newPath = path.join(MODELS_DIR, newFilename)
+                if (!fs.existsSync(newPath)) {
+                    return res.status(500).json({ error: "Uploaded file missing on disk" })
+                }
+                newSize = fs.statSync(newPath).size
+            }
+
+            const fields = []
+            const values = []
+            if (typeof name !== "undefined" && name !== current.name) {
+                fields.push("name = ?")
+                values.push(name)
+            }
+            if (typeof params !== "undefined" && params !== current.params) {
+                fields.push("params = ?")
+                values.push(params)
+            }
+            if (req.file) {
+                fields.push("filename = ?")
+                values.push(newFilename)
+                fields.push("size = ?")
+                values.push(newSize)
+            }
+
+            if (fields.length === 0) {
+                const [updated] = await db.execute("SELECT * FROM models WHERE id = ?", [id])
+                return res.json(updated[0])
+            }
+
+            values.push(id)
+            await db.execute(`UPDATE models SET ${fields.join(", ")} WHERE id = ?`, values)
+
+            if (req.file && current.filename !== newFilename) {
+                const oldPath = path.join(MODELS_DIR, current.filename)
+                if (fs.existsSync(oldPath)) {
+                    try { fs.unlinkSync(oldPath) } catch {}
+                }
+            }
+
+            const [updated] = await db.execute("SELECT * FROM models WHERE id = ?", [id])
+            res.json(updated[0])
+        } catch (err) {
+            res.status(500).json({ error: "Update failed" })
+        }
+    })
+
+    router.delete("/:id", async (req, res) => {
+        try {
+            const id = req.params.id
+            const [rows] = await db.execute("SELECT * FROM models WHERE id = ?", [id])
+            if (rows.length === 0) return res.status(404).json({ error: "Model not found" })
+            const row = rows[0]
+
+            const filePath = path.join(MODELS_DIR, row.filename)
+            if (fs.existsSync(filePath)) {
+                try { fs.unlinkSync(filePath) } catch {}
+            }
+
+            await db.execute("DELETE FROM models WHERE id = ?", [id])
+
+            res.json({ message: "Model deleted", id })
+        } catch (err) {
+            res.status(500).json({ error: "Delete failed" })
         }
     })
 
