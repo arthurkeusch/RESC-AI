@@ -12,6 +12,7 @@ materialIconsExtended = "1.7.8"
 navigationCompose = "2.9.5"
 benchmark = "1.0.0-alpha03"
 foundation = "1.9.3"
+media3CommonKtx = "1.8.0"
 
 [libraries]
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
@@ -32,6 +33,7 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-benchmark = { group = "androidx.benchmark", name = "benchmark", version.ref = "benchmark" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+androidx-media3-common-ktx = { group = "androidx.media3", name = "media3-common-ktx", version.ref = "media3CommonKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

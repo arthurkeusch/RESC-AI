@@ -1,5 +1,6 @@
 package resc.ai.skynetmonitor.viewmodel
 
+import android.util.Log
 import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.app.Application
@@ -176,28 +177,35 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
 
     fun startBenchmark(modelPath: String) {
         viewModelScope.launch {
-            _chat.value = ChatSessionState(
-                isRunning = true,
-                modelName = modelPath.substringAfterLast("/"),
-                output = emptyList()
-            )
-            ModelLauncherService.startModel(
-                context = ctx,
-                modelPath = modelPath,
-                onOutput = { line ->
-                    val list = _chat.value.output.toMutableList()
-                    list.add(line)
-                    _chat.value = _chat.value.copy(output = list)
-                },
-                onReady = {},
-                onError = {
-                    _chat.value = ChatSessionState(
-                        isRunning = false,
-                        modelName = _chat.value.modelName,
-                        output = _chat.value.output + "Error: $it"
-                    )
+            try {
+                _chat.value = ChatSessionState(
+                    isRunning = true,
+                    modelName = modelPath.substringAfterLast("/"),
+                    output = emptyList()
+                )
+                ModelLauncherService.startModel(
+                    context = ctx,
+                    modelPath = modelPath,
+                    onOutput = { line ->
+                        val list = _chat.value.output.toMutableList()
+                        list.add(line)
+                        _chat.value = _chat.value.copy(output = list)
+                    },
+                    onReady = {},
+                    onError = {
+                        _chat.value = ChatSessionState(
+                            isRunning = false,
+                            modelName = _chat.value.modelName,
+                            output = _chat.value.output + "Error: $it"
+                        )
+                    }
+                )
+            } catch (e: Error) {
+                e.stackTrace.forEach { stackTraceElement ->
+                    Log.e("Benchmark failed", "    $stackTraceElement")
                 }
-            )
+                throw e
+            }
         }
     }
 

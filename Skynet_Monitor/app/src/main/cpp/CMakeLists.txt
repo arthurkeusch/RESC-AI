@@ -1,63 +1,46 @@
-cmake_minimum_required(VERSION 3.22.1)
+# app/src/main/cpp/CMakeLists.txt
+cmake_minimum_required(VERSION 3.22)
+project(skynet_native LANGUAGES C CXX)
 
-project("llama_android")
-
-# Utilisation du C++17
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Dossier llama.cpp
-set(LLAMA_CPP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/llama.cpp)
+# Alléger la build llama.cpp pour Android
+set(LLAMA_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_SERVER OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_COMMON OFF CACHE BOOL "" FORCE)
+set(LLAMA_CURL OFF CACHE BOOL "" FORCE)
+set(LLAMA_OPENSSL OFF CACHE BOOL "" FORCE)
 
-# Désactiver tous les backends non ARM pour Android CPU
-add_definitions(
-        -DGGML_USE_CPU
-        -DGGML_NO_ACCELERATE
-        -DGGML_NO_AVX
-        -DGGML_NO_AVX2
-        -DGGML_NO_AVX512
-        -DGGML_NO_FMA
-        -DGGML_NO_SSE
-        -DGGML_NO_SSE2
-        -DGGML_NO_SSE3
-        -DGGML_NO_SSSE3
-        -DGGML_NO_SSE4_1
-        -DGGML_NO_SSE4_2
-        -DGGML_NO_F16C
-        -DGGML_NO_RISCV
-        -DGGML_NO_WASM
-        -DGGML_NO_LOONGARCH
+# Chemin vers le dossier source de llama.cpp (surchargeable depuis Gradle via -DLLAMA_DIR=...)
+if(NOT DEFINED LLAMA_DIR)
+    set(LLAMA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/llama.cpp CACHE PATH "Path to llama.cpp")
+endif()
+
+# Importe le projet CMake de llama.cpp
+add_subdirectory(${LLAMA_DIR})
+
+# Votre lib JNI
+add_library(native-lib SHARED
+        native-lib.cpp
 )
 
-# Sélection des fichiers nécessaires
-file(GLOB_RECURSE LLAMA_SOURCES
-        ${LLAMA_CPP_DIR}/ggml.c
-        ${LLAMA_CPP_DIR}/ggml-alloc.c
-        ${LLAMA_CPP_DIR}/ggml-backend.c
-        ${LLAMA_CPP_DIR}/ggml-quants.c
-        ${LLAMA_CPP_DIR}/llama.cpp
-        ${LLAMA_CPP_DIR}/unicode.cpp
+# Headers publics de llama.cpp -> permet #include "llama.h"
+target_include_directories(native-lib PRIVATE
+        ${LLAMA_DIR}/include
 )
 
-# Fichier JNI de ton projet
-set(PROJECT_SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/native-lib.cpp
-)
-
-# Créer la bibliothèque native
-add_library(
+# Lien contre la cible 'llama' et la lib 'log' Android
+target_link_libraries(native-lib PRIVATE
         llama
-        SHARED
-        ${LLAMA_SOURCES}
-        ${PROJECT_SOURCES}
+        log
 )
 
-# Inclure les fichiers headers
-target_include_directories(llama PUBLIC
-        ${LLAMA_CPP_DIR}
-)
-
-# Lier bibliothèque Android log
-find_library(log-lib log)
-target_link_libraries(llama ${log-lib})
+# ---------------------------------------------------------
+# app/src/main/cpp/native-lib.cpp (seulement la ligne d'include à corriger)
+# Remplacez:
+#   #include "llama.cpp/llama.h"
+# Par:
+#   #include "llama.h"
