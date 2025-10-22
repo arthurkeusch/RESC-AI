@@ -13,30 +13,30 @@ services:
     expose:
       - "3000"
     restart: unless-stopped
-    depends_on:
-      - mysql
+  #  depends_on:
+  #    - mysql
     networks:
       - WebSite
 
-  mysql:
-    image: mysql:8.0
-    container_name: SkynetMonitor_MySQL
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: skynet
-      MYSQL_USER: skynet
-      MYSQL_PASSWORD: skynet
-    volumes:
-      - skynet_db:/var/lib/mysql
-    expose:
-      - "3306"
-    networks:
-      - WebSite
+  #mysql:
+  #  image: mysql:8.0
+  #  container_name: SkynetMonitor_MySQL
+  #  restart: unless-stopped
+  #  environment:
+  #    MYSQL_ROOT_PASSWORD: root
+  #    MYSQL_DATABASE: skynet
+  #    MYSQL_USER: skynet
+  #    MYSQL_PASSWORD: skynet
+  #  volumes:
+  #    - skynet_db:/var/lib/mysql
+  #  expose:
+  #    - "3306"
+  #  networks:
+  #    - WebSite
 
 volumes:
   skynet_models:
-  skynet_db:
+  #skynet_db:
 
 networks:
   WebSite:

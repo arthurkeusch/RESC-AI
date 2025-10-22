@@ -47,7 +47,7 @@ object ModelService {
 
             List(arr.length()) { i ->
                 val o = arr.getJSONObject(i)
-                val id = o.getLong("id")
+                val id = o.getLong("id_model")
                 val name = o.getString("name")
                 val filename = o.getString("filename")
                 val size = o.optLong("size", -1L)
