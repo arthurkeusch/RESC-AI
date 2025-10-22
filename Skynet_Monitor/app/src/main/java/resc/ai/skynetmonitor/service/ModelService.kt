@@ -9,9 +9,11 @@ import android.util.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
+import resc.ai.skynetmonitor.config.AppConfig
 import java.io.File
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
@@ -27,13 +29,15 @@ data class DownloadState(
 )
 
 object ModelService {
-    const val API_BASE = "https://resc-ai.arthur-keusch.fr:3000"
     private const val TAG = "ModelService"
 
-    private var apiBase = API_BASE
+    private suspend fun getApiBase(context: Context): String {
+        return AppConfig.apiUrl.first()
+    }
 
-    suspend fun fetchRemoteModels(): List<RemoteModel> = withContext(Dispatchers.IO) {
+    suspend fun fetchRemoteModels(context: Context): List<RemoteModel> = withContext(Dispatchers.IO) {
         try {
+            val apiBase = getApiBase(context)
             val conn = (URL("$apiBase/models").openConnection() as HttpsURLConnection).apply {
                 requestMethod = "GET"
                 connectTimeout = 7000
@@ -47,17 +51,12 @@ object ModelService {
 
             List(arr.length()) { i ->
                 val o = arr.getJSONObject(i)
-                val id = o.getLong("id_model")
-                val name = o.getString("name")
-                val filename = o.getString("filename")
-                val size = o.optLong("size", -1L)
-                val params = o.optString("params", "")
                 RemoteModel(
-                    id = id,
-                    name = name,
-                    filename = filename,
-                    sizeBytes = size,
-                    params = params,
+                    id = o.getLong("id_model"),
+                    name = o.getString("name"),
+                    filename = o.getString("filename"),
+                    sizeBytes = o.optLong("size", -1L),
+                    params = o.optString("params", ""),
                     isLocal = false
                 )
             }
@@ -87,10 +86,6 @@ object ModelService {
         return File(dir, filename)
     }
 
-    fun setApiUrl(newUrl: String) {
-        apiBase = newUrl
-    }
-
     fun isModelDownloaded(context: Context, filename: String): Boolean {
         val f = resolveLocalFile(context, filename)
         return f.exists() && f.length() > 0
@@ -100,7 +95,8 @@ object ModelService {
         return resolveLocalFile(ctx, filename).absolutePath
     }
 
-    suspend fun deleteRemoteModel(model: RemoteModel) = withContext(Dispatchers.IO) {
+    suspend fun deleteRemoteModel(context: Context, model: RemoteModel) = withContext(Dispatchers.IO) {
+        val apiBase = getApiBase(context)
         val url = URL("$apiBase/models/${model.id}")
         val conn = (url.openConnection() as HttpsURLConnection).apply {
             requestMethod = "DELETE"
@@ -121,6 +117,7 @@ object ModelService {
     ): File = withContext(Dispatchers.IO) {
         var conn: HttpsURLConnection? = null
         try {
+            val apiBase = getApiBase(context)
             val url = URL("$apiBase/models/download/${model.id}")
             conn = (url.openConnection() as HttpsURLConnection).apply {
                 requestMethod = "GET"
@@ -158,8 +155,7 @@ object ModelService {
 
                         if (tickMs >= 500L) {
                             val speed = (received / elapsedSec).toLong()
-                            val remaining =
-                                if (total > 0 && received <= total) total - received else -1L
+                            val remaining = if (total > 0 && received <= total) total - received else -1L
                             val eta = if (speed > 0 && remaining > 0) (remaining / speed) else -1L
                             val progress = if (total > 0) ((received * 100) / total).toInt() else 0
 
@@ -186,8 +182,7 @@ object ModelService {
         } catch (e: CancellationException) {
             try {
                 conn?.disconnect()
-            } catch (_: Exception) {
-            }
+            } catch (_: Exception) {}
             throw e
         } catch (e: Exception) {
             Log.e(TAG, "Exception in downloadModel()", e)
@@ -211,6 +206,7 @@ object ModelService {
         fileUri: Uri,
         onProgress: (UploadState) -> Unit
     ) = withContext(Dispatchers.IO) {
+        val apiBase = getApiBase(context)
         val boundary = "----SkynetBoundary${System.currentTimeMillis()}"
         val url = URL("$apiBase/models/upload")
         val conn = (url.openConnection() as HttpsURLConnection).apply {
@@ -268,11 +264,9 @@ object ModelService {
                     val tickMs = (now - lastTick) / 1_000_000
                     if (tickMs >= 500L) {
                         val speed = (sent / elapsedSec).toLong()
-                        val remaining =
-                            if (totalBytes > 0 && sent <= totalBytes) totalBytes - sent else -1L
+                        val remaining = if (totalBytes > 0 && sent <= totalBytes) totalBytes - sent else -1L
                         val eta = if (speed > 0 && remaining > 0) (remaining / speed) else -1L
-                        val progress =
-                            if (totalBytes > 0) ((sent * 100) / totalBytes).toInt() else 0
+                        val progress = if (totalBytes > 0) ((sent * 100) / totalBytes).toInt() else 0
                         onProgress(
                             UploadState(
                                 name = name,

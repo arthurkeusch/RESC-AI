@@ -3,23 +3,30 @@ package resc.ai.skynetmonitor.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import resc.ai.skynetmonitor.service.ModelService
+import kotlinx.coroutines.launch
+import resc.ai.skynetmonitor.config.AppConfig
 import resc.ai.skynetmonitor.ui.theme.SkynetMonitorTheme
-import resc.ai.skynetmonitor.viewmodel.DeviceInfoViewModel
 
 @Composable
-fun ParamScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = viewModel()) {
-    var apiUrl by remember { mutableStateOf(ModelService.API_BASE) }
+fun SettingScreen(innerPadding: PaddingValues) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val apiUrlFlow = AppConfig.apiUrl.collectAsState(initial = "")
+    var apiUrl by remember { mutableStateOf("") }
+
+    LaunchedEffect(apiUrlFlow.value) {
+        apiUrl = apiUrlFlow.value
+    }
+
+    LaunchedEffect(Unit) {
+        AppConfig.init(context)
+    }
 
     Box(
         modifier = Modifier
@@ -27,22 +34,20 @@ fun ParamScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vi
             .padding(innerPadding),
         contentAlignment = Alignment.Center
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             TextField(
                 value = apiUrl,
                 onValueChange = { newValue ->
                     apiUrl = newValue
-                    viewModel.setApiUrl(newValue)
+                    scope.launch { AppConfig.setApiUrl(context, newValue) }
                 },
-                modifier = Modifier.weight(1f),
-                label = {
-                    Text("API:")
-                },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("API URL") }
             )
         }
     }
@@ -52,6 +57,6 @@ fun ParamScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vi
 @Composable
 fun ParamScreenPreview() {
     SkynetMonitorTheme {
-        ParamScreen(PaddingValues())
+        SettingScreen(PaddingValues())
     }
 }

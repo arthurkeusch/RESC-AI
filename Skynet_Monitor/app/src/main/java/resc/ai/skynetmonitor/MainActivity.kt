@@ -12,9 +12,9 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Token
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,8 +27,8 @@ import kotlinx.coroutines.launch
 import resc.ai.skynetmonitor.navigation.NavRoutes
 import resc.ai.skynetmonitor.ui.screens.HomeScreen
 import resc.ai.skynetmonitor.ui.screens.StatsScreen
-import resc.ai.skynetmonitor.ui.screens.ParamScreen
-import resc.ai.skynetmonitor.ui.screens.ModelScreen
+import resc.ai.skynetmonitor.ui.screens.SettingScreen
+import resc.ai.skynetmonitor.ui.screens.DatabaseScreen
 import resc.ai.skynetmonitor.ui.theme.SkynetMonitorTheme
 
 class MainActivity : ComponentActivity() {
@@ -46,7 +46,7 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun SkynetMonitorApp() {
-    val pages = listOf(NavRoutes.Home, NavRoutes.Model, NavRoutes.Stats, NavRoutes.Setting)
+    val pages = listOf(NavRoutes.Home, NavRoutes.Database, NavRoutes.Stats, NavRoutes.Setting)
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { pages.size })
     val coroutineScope = rememberCoroutineScope()
 
@@ -97,9 +97,9 @@ fun SkynetMonitorApp() {
                                         tint = iconColor
                                     )
 
-                                    NavRoutes.Model -> Icon(
-                                        Icons.Filled.Token,
-                                        contentDescription = "Models",
+                                    NavRoutes.Database -> Icon(
+                                        Icons.Filled.Folder,
+                                        contentDescription = "Database",
                                         tint = iconColor
                                     )
 
@@ -113,7 +113,7 @@ fun SkynetMonitorApp() {
                                     when (page) {
                                         NavRoutes.Home -> "Home"
                                         NavRoutes.Stats -> "Statistics"
-                                        NavRoutes.Model -> "Models"
+                                        NavRoutes.Database -> "Database"
                                         NavRoutes.Setting -> "Settings"
                                     },
                                     style = MaterialTheme.typography.labelMedium,
@@ -140,8 +140,8 @@ fun SkynetMonitorApp() {
             when (pages[page]) {
                 NavRoutes.Home -> HomeScreen(innerPadding)
                 NavRoutes.Stats -> StatsScreen(innerPadding)
-                NavRoutes.Setting -> ParamScreen(innerPadding)
-                NavRoutes.Model -> ModelScreen(innerPadding)
+                NavRoutes.Setting -> SettingScreen(innerPadding)
+                NavRoutes.Database -> DatabaseScreen(innerPadding)
             }
         }
     }
