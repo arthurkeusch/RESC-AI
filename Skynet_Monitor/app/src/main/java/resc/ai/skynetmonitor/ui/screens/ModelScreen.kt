@@ -44,15 +44,17 @@ fun ModelScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vi
     var newName by remember { mutableStateOf("") }
     var newParams by remember { mutableStateOf("") }
     var newFileUri by remember { mutableStateOf<Uri?>(null) }
-    var newFileLabel by remember { mutableStateOf<String>("No file selected") }
+    var newFileLabel by remember { mutableStateOf("No file selected") }
     var uploadState by remember { mutableStateOf<ModelService.UploadState?>(null) }
 
-    val pickFile = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) {
-            newFileUri = uri
-            newFileLabel = ModelService.resolveDisplayName(viewModel.ctx, uri) ?: uri.lastPathSegment ?: "selected.file"
+    val pickFile =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            if (uri != null) {
+                newFileUri = uri
+                newFileLabel = ModelService.resolveDisplayName(viewModel.ctx, uri)
+                    ?: uri.lastPathSegment ?: "selected.file"
+            }
         }
-    }
 
     LaunchedEffect(Unit) {
         viewModel.loadModelsRemote()
@@ -150,7 +152,11 @@ fun ModelScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vi
                                     .padding(12.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                                Icon(
+                                    Icons.Filled.Delete,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error
+                                )
                                 Spacer(Modifier.width(12.dp))
                                 Text("Delete local", color = MaterialTheme.colorScheme.error)
                             }
@@ -181,10 +187,10 @@ fun ModelScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vi
                             showMenu = false
                             scope.launch {
                                 try {
-                                    ModelService.deleteRemoteModel(current)
+                                    ModelService.fetchRemoteModels(viewModel.ctx)
                                 } catch (_: Exception) {
                                 } finally {
-                                    viewModel.deleteLocalModel(current)
+                                    ModelService.deleteRemoteModel(viewModel.ctx, current)
                                     viewModel.loadModelsRemote()
                                 }
                             }
@@ -196,7 +202,11 @@ fun ModelScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vi
                                 .padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                            Icon(
+                                Icons.Filled.Delete,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
                             Spacer(Modifier.width(12.dp))
                             Text("Delete from server", color = MaterialTheme.colorScheme.error)
                         }
@@ -218,7 +228,12 @@ fun ModelScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vi
                 TextButton(
                     onClick = { viewModel.deleteLocalModel(modelToDelete) },
                     enabled = !isDeleting
-                ) { Text(if (isDeleting) "Deleting…" else "Delete", color = MaterialTheme.colorScheme.error) }
+                ) {
+                    Text(
+                        if (isDeleting) "Deleting…" else "Delete",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             },
             dismissButton = {
                 TextButton(
@@ -294,10 +309,14 @@ fun ModelScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vi
                 } else {
                     val progress = (ust.progress / 100f).coerceIn(0f, 1f)
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
+                        LinearProgressIndicator(
+                            progress = { progress },
+                            modifier = Modifier.fillMaxWidth()
+                        )
                         val totalStr = ModelService.formatSize(ust.totalBytes)
                         val sentStr = ModelService.formatSize(ust.bytesSent)
-                        val speedStr = if (ust.speedBytesPerSec > 0) "${ModelService.formatSize(ust.speedBytesPerSec)}/s" else "—"
+                        val speedStr =
+                            if (ust.speedBytesPerSec > 0) "${ModelService.formatSize(ust.speedBytesPerSec)}/s" else "—"
                         val etaStr = if (ust.etaSeconds >= 0) formatEta(ust.etaSeconds) else "—"
                         Text("$sentStr / $totalStr")
                         Text("Speed: $speedStr")
@@ -307,7 +326,8 @@ fun ModelScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vi
             },
             confirmButton = {
                 if (ust == null) {
-                    val canSend = newName.isNotBlank() && newParams.isNotBlank() && newFileUri != null
+                    val canSend =
+                        newName.isNotBlank() && newParams.isNotBlank() && newFileUri != null
                     TextButton(
                         onClick = {
                             val uri = newFileUri ?: return@TextButton

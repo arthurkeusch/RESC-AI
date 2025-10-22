@@ -80,15 +80,10 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    fun setApiUrl(url: String) {
-        ModelService.setApiUrl(url)
-        loadModelsRemote()
-    }
-
     fun loadModelsRemote() {
         viewModelScope.launch {
             try {
-                val remotes = ModelService.fetchRemoteModels().map { remote ->
+                val remotes = ModelService.fetchRemoteModels(ctx).map { remote ->
                     remote.copy(isLocal = ModelService.isModelDownloaded(ctx, remote.filename))
                 }
                 metaByName.clear()

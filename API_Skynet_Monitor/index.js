@@ -4,6 +4,8 @@ import fs from "fs"
 import path from "path"
 import dotenv from "dotenv"
 import modelsRouter from "./routes/models.js"
+import promptsRouter from "./routes/prompts.js";
+import datasetsRouter from "./routes/datasets.js";
 
 dotenv.config()
 
@@ -57,6 +59,8 @@ if (fs.existsSync(sqlPath)) {
 }
 
 app.use("/models", modelsRouter({db, MODELS_DIR}))
+app.use("/datasets", datasetsRouter({db}))
+app.use("/prompts", promptsRouter({db}))
 
 app.get("/", (req, res) => {
     res.sendFile(path.join(process.cwd(), "upload.html"))
