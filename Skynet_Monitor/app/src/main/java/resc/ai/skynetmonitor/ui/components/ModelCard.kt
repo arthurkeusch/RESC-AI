@@ -55,26 +55,20 @@ fun ModelCard(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
                 )
-                Spacer(Modifier.width(12.dp))
                 Text(
                     text = ModelService.formatSize(model.sizeBytes),
                     fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1
+                    color = Color.White
                 )
             }
-
-            Spacer(Modifier.height(4.dp))
 
             Text(
                 text = model.params,
                 fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.White,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
-
-            Spacer(Modifier.height(10.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -84,7 +78,7 @@ fun ModelCard(
                 Icon(
                     imageVector = if (isLocal) Icons.Filled.PhoneAndroid else Icons.Filled.CloudDownload,
                     contentDescription = if (isLocal) "Local" else "Not downloaded",
-                    tint = if (isLocal) MaterialTheme.colorScheme.primary else Color.Gray,
+                    tint = if (isLocal) MaterialTheme.colorScheme.primary else Color.White,
                     modifier = Modifier.size(20.dp)
                 )
             }

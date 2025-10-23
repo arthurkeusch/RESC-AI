@@ -120,6 +120,7 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                     etaSeconds = 0,
                     speedBytesPerSec = 0
                 )
+                loadModelsRemote()
             } catch (ce: CancellationException) {
                 currentDownload?.let {
                     val target = ModelService.resolveLocalFile(ctx, it.filename)
@@ -160,6 +161,7 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                 val f = ModelService.resolveLocalFile(ctx, remote.filename)
                 if (f.exists()) f.delete()
                 _lastDeleteCompleted.value = remote.filename
+                loadModelsRemote()
             } finally {
                 _isDeleting.value = false
             }
