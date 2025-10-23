@@ -33,6 +33,7 @@ fun PromptScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = v
     var isSubmitting by remember { mutableStateOf(false) }
 
     var datasets by remember { mutableStateOf<List<DatasetItem>>(emptyList()) }
+    var refreshTrigger by remember { mutableStateOf(0) }
 
     val pickJson =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -42,7 +43,7 @@ fun PromptScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = v
             }
         }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(refreshTrigger) {
         val result = PromptService.fetchDatasets(context)
         if (result != null) datasets = result
     }
@@ -67,12 +68,15 @@ fun PromptScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = v
                         dataset = datasets[index],
                         onDelete = { datasetToDelete ->
                             scope.launch {
-                                val success = PromptService.deleteDataset(context, datasetToDelete.id)
+                                val success =
+                                    PromptService.deleteDataset(context, datasetToDelete.id)
                                 if (success) {
-                                    val updated = PromptService.fetchDatasets(context)
-                                    if (updated != null) datasets = updated
+                                    refreshTrigger++
                                 }
                             }
+                        },
+                        onUpdated = {
+                            refreshTrigger++
                         }
                     )
                 }
@@ -181,8 +185,7 @@ fun PromptScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = v
                                 isSubmitting = false
                                 if (success) {
                                     showDialog = false
-                                    val result = PromptService.fetchDatasets(context)
-                                    if (result != null) datasets = result
+                                    refreshTrigger++
                                 }
                             }
                         }

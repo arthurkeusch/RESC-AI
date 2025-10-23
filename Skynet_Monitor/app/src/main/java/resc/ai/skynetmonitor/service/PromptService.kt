@@ -8,12 +8,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
+import org.json.JSONObject
 import resc.ai.skynetmonitor.config.AppConfig
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
-import javax.net.ssl.HttpsURLConnection
 
 data class PromptItem(
     val id: Int,
@@ -63,7 +63,7 @@ object PromptService {
             for (i in 0 until jsonArray.length()) {
                 val obj = jsonArray.getJSONObject(i)
                 val promptText = obj.getString("prompt")
-                if (!createPrompt(context, apiBase, promptText, datasetId)) {
+                if (!createPromptInternal(context, apiBase, promptText, datasetId)) {
                     errorToast(context, "Failed to create prompt at index $i")
                     return@withContext false
                 }
@@ -85,19 +85,25 @@ object PromptService {
     ): Int? {
         return try {
             val url = URL("$apiBase/datasets")
-            val payload =
-                """{"name":"$name","description":"$description","is_conversational":$isConversational}""".toByteArray()
+            val payload = JSONObject().apply {
+                put("name", name)
+                put("description", description)
+                put("is_conversational", if (isConversational) 1 else 0)
+            }.toString().toByteArray()
 
-            val conn = url.openConnection() as HttpsURLConnection
-            conn.requestMethod = "POST"
-            conn.setRequestProperty("Content-Type", "application/json")
-            conn.doOutput = true
-            conn.outputStream.write(payload)
+            val conn = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "POST"
+                setRequestProperty("Content-Type", "application/json")
+                doOutput = true
+                connectTimeout = 10000
+                readTimeout = 15000
+                outputStream.use { it.write(payload) }
+            }
 
-            if (conn.responseCode == HttpURLConnection.HTTP_OK) {
+            if (conn.responseCode in 200..299) {
                 val response = conn.inputStream.bufferedReader().use { it.readText() }
-                val match = Regex("\"id_datatset\":(\\d+)").find(response)
-                match?.groupValues?.get(1)?.toInt()
+                val obj = JSONObject(response)
+                obj.optInt("id_datatset", -1).takeIf { it >= 0 }
             } else {
                 val errorMsg = conn.errorStream?.bufferedReader()?.use { it.readText() }
                 errorToast(context, "Dataset creation failed: $errorMsg")
@@ -109,7 +115,7 @@ object PromptService {
         }
     }
 
-    private fun createPrompt(
+    private fun createPromptInternal(
         context: Context,
         apiBase: String,
         prompt: String,
@@ -117,18 +123,37 @@ object PromptService {
     ): Boolean {
         return try {
             val url = URL("$apiBase/prompts")
-            val payload =
-                """{"prompt":"$prompt","id_datatset":$datasetId}""".toByteArray()
+            val payload = JSONObject().apply {
+                put("prompt", prompt)
+                put("id_datatset", datasetId)
+            }.toString().toByteArray()
 
-            val conn = url.openConnection() as HttpsURLConnection
-            conn.requestMethod = "POST"
-            conn.setRequestProperty("Content-Type", "application/json")
-            conn.doOutput = true
-            conn.outputStream.write(payload)
+            val conn = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "POST"
+                setRequestProperty("Content-Type", "application/json")
+                doOutput = true
+                connectTimeout = 10000
+                readTimeout = 15000
+                outputStream.use { it.write(payload) }
+            }
 
-            conn.responseCode == HttpURLConnection.HTTP_OK
+            conn.responseCode in 200..299
         } catch (e: Exception) {
             errorToast(context, "Prompt error: ${e.message}")
+            false
+        }
+    }
+
+    suspend fun addPrompt(
+        context: Context,
+        datasetId: Int,
+        promptText: String
+    ): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val apiBase = getApiBase(context)
+            createPromptInternal(context, apiBase, promptText, datasetId)
+        } catch (e: Exception) {
+            errorToast(context, "Add prompt error: ${e.message}")
             false
         }
     }
@@ -137,10 +162,13 @@ object PromptService {
         try {
             val apiBase = getApiBase(context)
             val url = URL("$apiBase/datasets")
-            val conn = url.openConnection() as HttpsURLConnection
-            conn.requestMethod = "GET"
+            val conn = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = 10000
+                readTimeout = 15000
+            }
 
-            if (conn.responseCode == HttpURLConnection.HTTP_OK) {
+            if (conn.responseCode in 200..299) {
                 val response = conn.inputStream.bufferedReader().use { it.readText() }
                 val jsonArray = JSONArray(response)
                 val output = mutableListOf<DatasetItem>()
@@ -181,21 +209,101 @@ object PromptService {
         }
     }
 
-    suspend fun deleteDataset(context: Context, datasetId: Int): Boolean = withContext(Dispatchers.IO) {
+    suspend fun updateDataset(
+        context: Context,
+        datasetId: Int,
+        name: String,
+        description: String?,
+        isConversational: Boolean
+    ): Boolean = withContext(Dispatchers.IO) {
         try {
             val apiBase = getApiBase(context)
             val url = URL("$apiBase/datasets/$datasetId")
-            val conn = url.openConnection() as HttpsURLConnection
-            conn.requestMethod = "DELETE"
-            conn.setRequestProperty("Content-Type", "application/json")
-            conn.connectTimeout = 10000
-            conn.readTimeout = 15000
+            val payload = JSONObject().apply {
+                put("name", name)
+                put("description", description ?: JSONObject.NULL)
+                put("is_conversational", if (isConversational) 1 else 0)
+            }.toString().toByteArray()
 
-            val responseCode = conn.responseCode
-            responseCode in 200..299
+            val conn = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "PUT"
+                setRequestProperty("Content-Type", "application/json")
+                doOutput = true
+                connectTimeout = 10000
+                readTimeout = 15000
+                outputStream.use { it.write(payload) }
+            }
+
+            conn.responseCode in 200..299
         } catch (e: Exception) {
-            Log.e(TAG, "Error deleting dataset", e)
+            errorToast(context, "Update dataset error: ${e.message}")
             false
         }
     }
+
+    suspend fun updatePrompt(
+        context: Context,
+        promptId: Int,
+        newText: String,
+        datasetId: Int
+    ): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val apiBase = getApiBase(context)
+            val url = URL("$apiBase/prompts/$promptId")
+            val payload = JSONObject().apply {
+                put("prompt", newText)
+                put("id_datatset", datasetId)
+            }.toString().toByteArray()
+
+            val conn = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "PUT"
+                setRequestProperty("Content-Type", "application/json")
+                doOutput = true
+                connectTimeout = 10000
+                readTimeout = 15000
+                outputStream.use { it.write(payload) }
+            }
+
+            conn.responseCode in 200..299
+        } catch (e: Exception) {
+            errorToast(context, "Update prompt error: ${e.message}")
+            false
+        }
+    }
+
+    suspend fun deleteDataset(context: Context, datasetId: Int): Boolean =
+        withContext(Dispatchers.IO) {
+            try {
+                val apiBase = getApiBase(context)
+                val url = URL("$apiBase/datasets/$datasetId")
+                val conn = (url.openConnection() as HttpURLConnection).apply {
+                    requestMethod = "DELETE"
+                    setRequestProperty("Content-Type", "application/json")
+                    connectTimeout = 10000
+                    readTimeout = 15000
+                }
+                conn.responseCode in 200..299
+            } catch (e: Exception) {
+                Log.e(TAG, "Error deleting dataset", e)
+                false
+            }
+        }
+
+    suspend fun deletePrompt(context: Context, promptId: Int): Boolean =
+        withContext(Dispatchers.IO) {
+            try {
+                val apiBase = getApiBase(context)
+                val url = URL("$apiBase/prompts/$promptId")
+                val conn = (url.openConnection() as HttpURLConnection).apply {
+                    requestMethod = "DELETE"
+                    setRequestProperty("Content-Type", "application/json")
+                    connectTimeout = 10000
+                    readTimeout = 15000
+                }
+                conn.responseCode in 200..299
+            } catch (e: Exception) {
+                errorToast(context, "Delete prompt error: ${e.message}")
+                false
+            }
+        }
 }
