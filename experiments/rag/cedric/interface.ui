@@ -55,7 +55,7 @@
         <item>
          <widget class="QComboBox" name="model_selector">
           <property name="enabled">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
