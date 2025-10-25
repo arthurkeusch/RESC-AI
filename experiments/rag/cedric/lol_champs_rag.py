@@ -1,12 +1,19 @@
-from api import main as api_main
+import os
+from api import prompt_str, select_model
+from rag import RAG
 import requests
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 
 BASE_URL = "https://wiki.leagueoflegends.com"
+RAG_MODEL_NAME = "intfloat/e5-large"
+OUT_FILE = "out/lol_champs_rag.pkl"
 
 
-def main():
+def create_rag():
+    """
+    Create and save a RAG instance for League of Legends champions' skills.
+    """
 
     def remove_attributes(tag):
         # Remove attributes from the current tag
@@ -68,9 +75,38 @@ def main():
             print(f"  -> Skill added. Total length: {len(text)} characters.")
         print("")
 
-    # Load the API's main with the champion pages as texts
-    api_main(content)
+    # Create the RAG instance
+    rag = RAG(content, model_name=RAG_MODEL_NAME)
 
+    # Save the RAG instance
+    os.makedirs("out", exist_ok=True)
+    rag.save(OUT_FILE)
+
+
+def main():
+    """
+    Main function to run the RAG-based assistant for League of Legends champions.
+    """
+
+    if not os.path.exists(OUT_FILE):
+        create_rag()
+    
+    # Initialize the instance
+    rag = RAG.load(OUT_FILE)
+    model = select_model()
+
+    # Process user queries
+    while True:
+        prompt = input("[User]  ")
+
+        response = prompt_str(model,
+            "You are an assistant that provides information about League of Legends champions and their skills based on the provided context.\n\n" + \
+            "<context>\n" + \
+            "\n\n".join(rag.search_texts(prompt, k=5)) + \
+            "\n</context>\n\n" +
+            prompt
+        )
+        print(f"\n[Assistant]  {response}\n")
 
 if __name__ == "__main__":
     main()

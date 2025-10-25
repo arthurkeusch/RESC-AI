@@ -49,6 +49,34 @@ def prompt_str(model_id: str, text: str, context: Dict[str, str] = {}) -> str:
     except Exception as e:
         return f"[Error] Could not get response from the LM server: {e}"
 
+def select_model() -> str:
+    """
+    Prompts the user to select a model from the available models.
+    Returns:
+        str: The selected model ID.
+    """
+
+    # Get and display available models
+    models = get_available_models()
+    print("Available models:")
+    for i, model in enumerate(models):
+        print(f"[{i + 1}]  {model}")
+
+    # Prompt user to select a model
+    while True:
+        selected = input("Selected model: ")
+        if selected in models:
+            model = selected
+            break
+        if selected.isdigit() and 1 <= int(selected) <= len(models):
+            model = models[int(selected) - 1]
+            break
+        # Handle invalid model selection
+        print("Invalid model selection.")
+    
+    # Return the selected model
+    return model
+
 
 def main(default_texts: list = []):
     """
@@ -67,34 +95,6 @@ def main(default_texts: list = []):
             "    /model - Change the current model\n"
             "    /add - Add a new text to the RAG system\n"
             "    /exit - Exit the program")
-
-    def select_model() -> str:
-        """
-        Prompts the user to select a model from the available models.
-        Returns:
-            str: The selected model ID.
-        """
-
-        # Get and display available models
-        models = get_available_models()
-        print("Available models:")
-        for i, model in enumerate(models):
-            print(f"[{i + 1}]  {model}")
-
-        # Prompt user to select a model
-        while True:
-            selected = input("Selected model: ")
-            if selected in models:
-                model = selected
-                break
-            if selected.isdigit() and 1 <= int(selected) <= len(models):
-                model = models[int(selected) - 1]
-                break
-            # Handle invalid model selection
-            print("Invalid model selection.")
-        
-        # Return the selected model
-        return model
     
     def add_text():
         """

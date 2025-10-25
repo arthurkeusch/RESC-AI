@@ -1,3 +1,5 @@
+import pickle
+from time import time_ns
 from typing import Dict, List
 from sentence_transformers import SentenceTransformer
 import faiss
@@ -18,23 +20,73 @@ class RAG:
         texts (list of str): The list of texts stored in the RAG system.
     """
 
-    def __init__(self, texts: List[str]):
+    def __init__(self, texts: List[str], model_name: str = MODEL_NAME):
         """
         Initializes the RAG class with a list of texts.
         Args:
             texts (list of str): The texts to be encoded and stored.
         """
 
+        timestamp = time_ns()
+
         # Initialize values
         self.model = SentenceTransformer(MODEL_NAME, device="cuda")
         self.texts = texts
+        self.embeddings = None
+        self.index = faiss.IndexFlatL2(self.model.get_sentence_embedding_dimension())
         
-        # Encode the texts to get their embeddings
-        embeddings = self.model.encode(texts, convert_to_numpy=True)
+        if texts:
+            # Encode the texts to get their embeddings
+            self.embeddings = self.model.encode(texts, convert_to_numpy=True)
 
-        # Create a FAISS index and add the embeddings
-        self.index = faiss.IndexFlatL2(embeddings.shape[1])
-        self.index.add(embeddings)
+            # Create a FAISS index and add the embeddings
+            self.index = faiss.IndexFlatL2(self.embeddings.shape[1])
+            self.index.add(self.embeddings)
+
+        print(f"RAG instance created with {len(texts)} texts in {int((time_ns() - timestamp) / 1_000_000) / 1_000} seconds.")
+    
+    def load(file_path: str) -> 'RAG':
+        """
+        Load a RAG instance from a file.
+        Args:
+            file_path (str): The path to the file containing the saved RAG instance.
+        Returns:
+            RAG: The loaded RAG instance.
+        """
+
+        timestamp = time_ns()
+
+        # Load the texts and embeddings using numpy
+        with open(file_path, "rb") as f:
+            data = pickle.load(f)
+            file_size = f.tell()
+        
+        # Create a new RAG instance and populate its attributes
+        rag = RAG([])
+        rag.texts = data["texts"]
+        rag.embeddings = data["embeddings"]
+        rag.index.add(rag.embeddings)
+
+        print(f"RAG instance loaded with {len(rag.texts)} texts in {int((time_ns() - timestamp) / 1_000_000) / 1_000} seconds. File size: {int(file_size / 1_000) / 1_000} MB.")
+        return rag
+
+    def save(self, file_path: str):
+        """
+        Save the RAG instance to a file.
+        Args:
+            file_path (str): The path to the file where the RAG instance will be saved.
+        """
+
+        timestamp = time_ns()
+
+        # Save the texts and embeddings using numpy
+        with open(file_path, "wb") as f:
+            pickle.dump({
+                "texts": self.texts,
+                "embeddings": self.embeddings
+            }, f)
+
+            print(f"RAG instance saved with {len(self.texts)} texts in {int((time_ns() - timestamp) / 1_000_000) / 1_000} seconds. File size: {int(f.tell() / 1_000) / 1_000} MB.")
 
     def add_text(self, new_text: str):
         """
