@@ -4,6 +4,8 @@ import faiss
 
 DEFAULT_K = 3
 MODEL_NAME = "all-MiniLM-L6-v2"
+# MODEL_NAME = "paraphrase-multilingual-mpnet-base-v2"
+# MODEL_NAME = "intfloat/e5-large"  # <= Very good, but requires more VRAM
 
 
 class RAG:
@@ -24,7 +26,7 @@ class RAG:
         """
 
         # Initialize values
-        self.model = SentenceTransformer(MODEL_NAME)
+        self.model = SentenceTransformer(MODEL_NAME, device="cuda")
         self.texts = texts
         
         # Encode the texts to get their embeddings
@@ -89,5 +91,15 @@ class RAG:
         """
 
         texts = self.search_texts(prompt, k)
+        print(f"Retrieved {len(texts)}/{k} relevant texts for the prompt.")
+        for i, text in enumerate(texts):
+            print(f"  [{i+1}] {text}\n")
         return {"system": text for text in texts}
-    
+
+
+# Check if CUDA is available for PyTorch
+import torch
+if not torch.cuda.is_available():
+    raise RuntimeError("CUDA is not available. Please ensure you have a compatible GPU and the correct drivers installed.")
+else:
+    print(f"CUDA is available. Using GPU {torch.cuda.get_device_name(0)} for computations.")

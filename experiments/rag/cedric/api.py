@@ -31,18 +31,23 @@ def prompt_str(model_id: str, text: str, context: Dict[str, str] = {}) -> str:
         str: The LM response string.
     """
 
-    response = requests.post(
-        f"{URL}{COMPLETION_ENDPOINT}",
-        json={
-            "model": model_id,
-            "messages": [
-                { "role": role, "content": content } for role, content in context.items()
-            ] + [{ "role": "user", "content": text }]
-        }
-    )
-    response.raise_for_status()
-    lm_result = response.json()["choices"][0]["message"]["content"].strip()
-    return lm_result
+    try:
+        response = requests.post(
+            f"{URL}{COMPLETION_ENDPOINT}",
+            json={
+                "model": model_id,
+                "messages": [
+                    { "role": role, "content": content.replace("\n", " ") } for role, content in context.items()
+                ] + [{ "role": "user", "content": text.replace("\n", " ") }]
+            }
+        )
+        response.raise_for_status()
+        lm_result = response.json()["choices"][0]["message"]["content"].strip()
+        return lm_result
+    
+    # Handle errors
+    except Exception as e:
+        return f"[Error] Could not get response from the LM server: {e}"
 
 
 def main(default_texts: list = []):
