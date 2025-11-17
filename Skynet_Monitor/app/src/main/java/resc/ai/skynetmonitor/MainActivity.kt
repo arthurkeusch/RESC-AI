@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Home
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import resc.ai.skynetmonitor.navigation.NavRoutes
 import resc.ai.skynetmonitor.ui.screens.HomeScreen
+import resc.ai.skynetmonitor.ui.screens.RagScreen
 import resc.ai.skynetmonitor.ui.screens.StatsScreen
 import resc.ai.skynetmonitor.ui.screens.SettingScreen
 import resc.ai.skynetmonitor.ui.screens.DatabaseScreen
@@ -46,7 +48,7 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun SkynetMonitorApp() {
-    val pages = listOf(NavRoutes.Home, NavRoutes.Database, NavRoutes.Stats, NavRoutes.Setting)
+    val pages = listOf(NavRoutes.Home, NavRoutes.Rag, NavRoutes.Database, NavRoutes.Stats, NavRoutes.Setting)
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { pages.size })
     val coroutineScope = rememberCoroutineScope()
 
@@ -91,6 +93,12 @@ fun SkynetMonitorApp() {
                                         tint = iconColor
                                     )
 
+                                    NavRoutes.Rag -> Icon(
+                                        Icons.Filled.AccountTree,
+                                        contentDescription = "RAG",
+                                        tint = iconColor
+                                    )
+
                                     NavRoutes.Stats -> Icon(
                                         Icons.Filled.BarChart,
                                         contentDescription = "Stats",
@@ -112,6 +120,7 @@ fun SkynetMonitorApp() {
                                 Text(
                                     when (page) {
                                         NavRoutes.Home -> "Home"
+                                        NavRoutes.Rag -> "RAG"
                                         NavRoutes.Stats -> "Statistics"
                                         NavRoutes.Database -> "Database"
                                         NavRoutes.Setting -> "Settings"
@@ -139,6 +148,7 @@ fun SkynetMonitorApp() {
         ) { page ->
             when (pages[page]) {
                 NavRoutes.Home -> HomeScreen(innerPadding)
+                NavRoutes.Rag -> RagScreen(innerPadding)
                 NavRoutes.Stats -> StatsScreen(innerPadding)
                 NavRoutes.Setting -> SettingScreen(innerPadding)
                 NavRoutes.Database -> DatabaseScreen(innerPadding)

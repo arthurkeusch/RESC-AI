@@ -13,6 +13,11 @@ navigationCompose = "2.9.5"
 benchmark = "1.0.0-alpha03"
 foundation = "1.9.3"
 media3CommonKtx = "1.8.0"
+constraintlayout = "2.2.1"
+ui = "1.9.4"
+material3 = "1.4.0"
+uiGraphics = "1.9.4"
+foundationVersion = "1.9.4"
 
 [libraries]
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
@@ -34,6 +39,11 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 androidx-benchmark = { group = "androidx.benchmark", name = "benchmark", version.ref = "benchmark" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 androidx-media3-common-ktx = { group = "androidx.media3", name = "media3-common-ktx", version.ref = "media3CommonKtx" }
+androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "uiGraphics" }
+androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundationVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
