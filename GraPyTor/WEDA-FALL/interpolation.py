@@ -5,6 +5,7 @@ from tqdm import tqdm
 IN_PATH = Path("") / "weda_all.csv"
 OUT_PATH = Path("") / "weda_all_interp.csv"
 
+
 def _count_lines(p: Path, buf=1024 * 1024):
     n = 0
     with p.open("rb") as f:
@@ -15,10 +16,12 @@ def _count_lines(p: Path, buf=1024 * 1024):
             n += b.count(b"\n")
     return max(0, n - 1)
 
+
 total_lines = _count_lines(IN_PATH)
 
 chunks = []
-for chunk in tqdm(pd.read_csv(IN_PATH, sep=None, engine="python", chunksize=5000), total=(total_lines // 5000 + 1), desc="Chargement CSV", unit="chunk"):
+for chunk in tqdm(pd.read_csv(IN_PATH, sep=None, engine="python", chunksize=5000), total=(total_lines // 5000 + 1),
+                  desc="Chargement CSV", unit="chunk"):
     chunk["timestamp"] = pd.to_numeric(chunk["timestamp"], errors="coerce")
     chunks.append(chunk)
 
@@ -32,6 +35,7 @@ exclude_cols = {
 }
 signal_cols = [c for c in df.columns if c not in exclude_cols and df[c].dtype.kind in "fc"]
 
+
 def _decimals_for_series(s: pd.Series) -> int:
     v = s.dropna().astype(float)
     if v.size < 2:
@@ -41,6 +45,7 @@ def _decimals_for_series(s: pd.Series) -> int:
         return 1
     step = float(diffs.median())
     return 2 if step < 0.05 else 1
+
 
 def _interp_and_round_group(g: pd.DataFrame) -> pd.DataFrame:
     g = g.sort_values("timestamp", kind="mergesort")
@@ -52,6 +57,7 @@ def _interp_and_round_group(g: pd.DataFrame) -> pd.DataFrame:
             nd = 2 if nd > 2 else (1 if nd < 1 else nd)
             g[c] = g[c].round(nd)
     return g
+
 
 with OUT_PATH.open("w", encoding="utf-8", newline=""):
     pass

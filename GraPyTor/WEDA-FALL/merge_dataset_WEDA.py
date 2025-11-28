@@ -23,6 +23,7 @@ COLS_ORDER = [
     "vertical_Accel_x", "vertical_Accel_y", "vertical_Accel_z"
 ]
 
+
 def _load_fall_timestamps() -> Dict[str, List[Tuple[float, float]]]:
     csv_path = ROOT / "fall_timestamps.csv"
     if not csv_path.exists():
@@ -38,7 +39,8 @@ def _load_fall_timestamps() -> Dict[str, List[Tuple[float, float]]]:
     for _, row in df.iterrows():
         fname = str(row[fn_col]).strip()
         try:
-            st = float(row[start_col]); et = float(row[end_col])
+            st = float(row[start_col]);
+            et = float(row[end_col])
         except Exception:
             continue
         if np.isnan(st) or np.isnan(et):
@@ -50,8 +52,10 @@ def _load_fall_timestamps() -> Dict[str, List[Tuple[float, float]]]:
         intervals[k].sort()
     return intervals
 
+
 FALL_INTERVALS = _load_fall_timestamps()
 _USERS_BY_ID: Dict[int, Dict[str, object]] = {}
+
 
 def _load_users_table() -> pd.DataFrame:
     candidates = [ROOT / "users.csv", Path.cwd() / "users.csv"]
@@ -68,6 +72,7 @@ def _load_users_table() -> pd.DataFrame:
                 df["User_id"] = pd.to_numeric(df["User_id"], errors="coerce").astype("Int64")
                 break
     return df
+
 
 def _ensure_users_loaded():
     global _USERS_BY_ID
@@ -87,8 +92,10 @@ def _ensure_users_loaded():
                 "Gender": r.get("Gender", np.nan),
             }
 
+
 def _read_csv(p: Path) -> pd.DataFrame:
     return pd.read_csv(p, sep=None, engine="python")
+
 
 def _detect_time_col(df: pd.DataFrame, prefer: List[str]) -> Optional[str]:
     for c in prefer:
@@ -98,6 +105,7 @@ def _detect_time_col(df: pd.DataFrame, prefer: List[str]) -> Optional[str]:
         if "time" in c.lower():
             return c
     return None
+
 
 def _detect_axes(df: pd.DataFrame, include_prefixes: List[str]) -> Tuple[Optional[str], Optional[str], Optional[str]]:
     def find_axis(ax: str) -> Optional[str]:
@@ -111,7 +119,9 @@ def _detect_axes(df: pd.DataFrame, include_prefixes: List[str]) -> Tuple[Optiona
             cands.sort(key=lambda s: (not s.lower().endswith("_list"), len(s)))
             return cands[0]
         return None
+
     return find_axis("x"), find_axis("y"), find_axis("z")
+
 
 def _prepare_sensor_df(df: pd.DataFrame, file_path: Optional[Path] = None) -> pd.DataFrame:
     if df is None or df.empty:
@@ -123,6 +133,7 @@ def _prepare_sensor_df(df: pd.DataFrame, file_path: Optional[Path] = None) -> pd
         duplicated = df[df["timestamp"].duplicated(keep=False)]
         df = df[~df["timestamp"].duplicated(keep="first")]
     return df.set_index("timestamp", drop=True)
+
 
 def _read_accel_like(p: Path, prefixes: List[str], time_pref: List[str], out_base: str) -> pd.DataFrame:
     if not p.exists():
@@ -148,20 +159,25 @@ def _read_accel_like(p: Path, prefixes: List[str], time_pref: List[str], out_bas
         if zcol is not None: out["vertical_Accel_z"] = pd.to_numeric(df[zcol], errors="coerce")
     return out
 
+
 def read_accel_main(p: Path) -> pd.DataFrame:
     d = _read_accel_like(p, ["accel", "accelerometer"], ["accel_time_list", "time", "accel_time"], "accel")
     keep = ["timestamp", "accel_x_list", "accel_y_list", "accel_z_list"]
     return d[keep] if not d.empty else d
 
+
 def read_accel_vertical(p: Path) -> pd.DataFrame:
-    d = _read_accel_like(p, ["vertical_accel", "vertical", "accel"], ["accel_time_list", "time", "accel_time"], "vertical_accel")
+    d = _read_accel_like(p, ["vertical_accel", "vertical", "accel"], ["accel_time_list", "time", "accel_time"],
+                         "vertical_accel")
     keep = ["timestamp", "vertical_Accel_x", "vertical_Accel_y", "vertical_Accel_z"]
     return d[keep] if not d.empty else d
+
 
 def read_gyro(p: Path) -> pd.DataFrame:
     d = _read_accel_like(p, ["gyro", "gyroscope"], ["gyro_time_list", "time", "gyro_time"], "gyro")
     keep = ["timestamp", "gyro_x_list", "gyro_y_list", "gyro_z_list"]
     return d[keep] if not d.empty else d
+
 
 def read_ori(p: Path) -> pd.DataFrame:
     if not p.exists():
@@ -177,10 +193,13 @@ def read_ori(p: Path) -> pd.DataFrame:
             out[c] = pd.to_numeric(df[c], errors="coerce")
     return out
 
+
 _ROOT_RE = re.compile(r"(?:_vertical)?_accel\.csv$", flags=re.IGNORECASE)
+
 
 def _root_from_filename(fname: str) -> str:
     return _ROOT_RE.sub("", fname)
+
 
 def parse_ur(base: str):
     u = re.search(r"u(\d+)", base, re.I)
@@ -188,6 +207,7 @@ def parse_ur(base: str):
     user_id = int(u.group(1)) if u else 0
     trial_id = int(r.group(1)) if r else 0
     return user_id, trial_id
+
 
 def _inject_user_attributes(df: pd.DataFrame, user_id: int) -> None:
     _ensure_users_loaded()
@@ -202,6 +222,7 @@ def _inject_user_attributes(df: pd.DataFrame, user_id: int) -> None:
     df["Height (m)"] = attr.get("Height (m)", np.nan)
     df["Weight (Kg)"] = attr.get("Weight (Kg)", np.nan)
     df["Gender"] = attr.get("Gender", np.nan)
+
 
 def process_trial(activity_code: str, accel_main_path: Path) -> pd.DataFrame:
     root = _root_from_filename(accel_main_path.name)
@@ -266,6 +287,7 @@ def process_trial(activity_code: str, accel_main_path: Path) -> pd.DataFrame:
     out = df.reindex(columns=COLS_ORDER, fill_value=np.nan)
     return out
 
+
 def _iter_roots(activity_code: str) -> Iterable[str]:
     d = FREQ_DIR / activity_code
     if not d.exists() or not d.is_dir():
@@ -273,6 +295,7 @@ def _iter_roots(activity_code: str) -> Iterable[str]:
     files = list(d.glob("*_accel.csv")) + list(d.glob("*_vertical_accel.csv"))
     roots = sorted({_root_from_filename(p.name) for p in files})
     return roots
+
 
 def process_activity(activity_code: str, progress_queue) -> None:
     d = FREQ_DIR / activity_code
@@ -305,15 +328,18 @@ def process_activity(activity_code: str, progress_queue) -> None:
             except Exception:
                 pass
 
+
 def _list_activities() -> List[str]:
     activities = [f"D{str(i).zfill(2)}" for i in range(1, 12)] + [f"F{str(i).zfill(2)}" for i in range(1, 9)]
     return [ac for ac in activities if (FREQ_DIR / ac).is_dir()]
+
 
 def _count_total_roots(activity_codes: List[str]) -> int:
     total = 0
     for ac in activity_codes:
         total += len(list(_iter_roots(ac)))
     return total
+
 
 def user_dataset():
     data = [
@@ -347,6 +373,7 @@ def user_dataset():
     df.to_csv("users.csv", index=False)
     print("✅ Fichier CSV créé : users.csv")
 
+
 def build_weda_all():
     out_csv = Path.cwd() / "weda_all.csv"
     pd.DataFrame(columns=COLS_ORDER).to_csv(out_csv, index=False)
@@ -359,6 +386,7 @@ def build_weda_all():
                 chunk.to_csv(out_csv, mode="a", header=False, index=False)
                 pbar.update(len(chunk))
     print("✅ Fichier CSV créé : weda_all.csv")
+
 
 def main():
     user_dataset()
@@ -398,6 +426,7 @@ def main():
                     except Exception as e:
                         print(f"[ERROR] activity failed: {e}")
     build_weda_all()
+
 
 if __name__ == "__main__":
     main()
