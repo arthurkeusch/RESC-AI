@@ -1,0 +1,354 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "/Users/silarbinunzio/Documents/GitHub/RESC-AI/Skynet_Monitor/app/build/intermediates/cxx/Debug/5a141b2u/obj/arm64-v8a/libllama.so"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"target_link_libraries",
+			"add_definitions",
+			"target_include_directories"
+		],
+		"files" : 
+		[
+			"CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 49,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 63,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 14,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 57,
+				"parent" : 0
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -O3 -DNDEBUG  -fPIC"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_ACCELERATE"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_AVX"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_AVX2"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_AVX512"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_F16C"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_FMA"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_LOONGARCH"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_RISCV"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_SSE"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_SSE2"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_SSE3"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_SSE4_1"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_SSE4_2"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_SSSE3"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_WASM"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_USE_CPU"
+				},
+				{
+					"define" : "llama_EXPORTS"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 4,
+					"path" : "/Users/silarbinunzio/Documents/GitHub/RESC-AI/Skynet_Monitor/app/src/main/cpp/llama.cpp"
+				}
+			],
+			"language" : "C",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3
+			],
+			"sysroot" : 
+			{
+				"path" : "/Users/silarbinunzio/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/sysroot"
+			}
+		},
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -O3 -DNDEBUG  -fPIC"
+				},
+				{
+					"fragment" : "-std=gnu++17"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_ACCELERATE"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_AVX"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_AVX2"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_AVX512"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_F16C"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_FMA"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_LOONGARCH"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_RISCV"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_SSE"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_SSE2"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_SSE3"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_SSE4_1"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_SSE4_2"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_SSSE3"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_NO_WASM"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "GGML_USE_CPU"
+				},
+				{
+					"define" : "llama_EXPORTS"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 4,
+					"path" : "/Users/silarbinunzio/Documents/GitHub/RESC-AI/Skynet_Monitor/app/src/main/cpp/llama.cpp"
+				}
+			],
+			"language" : "CXX",
+			"languageStandard" : 
+			{
+				"backtraces" : 
+				[
+					1
+				],
+				"standard" : "17"
+			},
+			"sourceIndexes" : 
+			[
+				4,
+				5,
+				6
+			],
+			"sysroot" : 
+			{
+				"path" : "/Users/silarbinunzio/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/sysroot"
+			}
+		}
+	],
+	"id" : "llama::@6890427a1f51a3e7e1df",
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "-Wl,--build-id=sha1 -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments  -Wl,--gc-sections",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "/Users/silarbinunzio/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/aarch64-linux-android/35/liblog.so",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-latomic -lm",
+				"role" : "libraries"
+			}
+		],
+		"language" : "CXX",
+		"sysroot" : 
+		{
+			"path" : "/Users/silarbinunzio/Library/Android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/darwin-x86_64/sysroot"
+		}
+	},
+	"name" : "llama",
+	"nameOnDisk" : "libllama.so",
+	"paths" : 
+	{
+		"build" : ".",
+		"source" : "."
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "llama.cpp/ggml-alloc.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "llama.cpp/ggml-backend.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "llama.cpp/ggml-quants.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "llama.cpp/ggml.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "llama.cpp/llama.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "llama.cpp/unicode.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "native-lib.cpp",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "SHARED_LIBRARY"
+}

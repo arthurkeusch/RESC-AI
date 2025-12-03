@@ -1,0 +1,3 @@
+/Users/silarbinunzio/Documents/GitHub/RESC-AI/Skynet_Monitor/app/.cxx/Debug/5a141b2u/arm64-v8a/CMakeFiles/llama.dir
+/Users/silarbinunzio/Documents/GitHub/RESC-AI/Skynet_Monitor/app/.cxx/Debug/5a141b2u/arm64-v8a/CMakeFiles/edit_cache.dir
+/Users/silarbinunzio/Documents/GitHub/RESC-AI/Skynet_Monitor/app/.cxx/Debug/5a141b2u/arm64-v8a/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,1 @@
+/Users/silarbinunzio/Documents/GitHub/RESC-AI/Skynet_Monitor/app/src/main/cpp/CMakeLists.txt

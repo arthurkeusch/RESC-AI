@@ -1,0 +1,9 @@
+# ninja log v5
+1	2962	1760976526180781397	CMakeFiles/llama.dir/llama.cpp/ggml-alloc.c.o	342877c8a8a02e7
+5	3526	1760976526749880059	CMakeFiles/llama.dir/llama.cpp/ggml-backend.c.o	7b2f607ca7cc864a
+8	5846	1760976529059953189	CMakeFiles/llama.dir/native-lib.cpp.o	dc866c81eebf3f4c
+6	23923	1760976547103568727	CMakeFiles/llama.dir/llama.cpp/ggml-quants.c.o	37c3210ad1b136c8
+7	25283	1760976548464147250	CMakeFiles/llama.dir/llama.cpp/unicode.cpp.o	7e8a6991b7d1b57c
+7	32219	1760976555401262037	CMakeFiles/llama.dir/llama.cpp/ggml.c.o	607f7ef5b8451cf6
+5	52775	1760976575903271706	CMakeFiles/llama.dir/llama.cpp/llama.cpp.o	137327c5409d6079
+52777	53389	1760976576579589981	/Users/silarbinunzio/Documents/GitHub/RESC-AI/Skynet_Monitor/app/build/intermediates/cxx/Debug/5a141b2u/obj/arm64-v8a/libllama.so	5e44efa549f2cc39
