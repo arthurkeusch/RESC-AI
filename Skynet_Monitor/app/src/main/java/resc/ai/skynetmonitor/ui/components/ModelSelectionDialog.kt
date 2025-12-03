@@ -1,5 +1,6 @@
 package resc.ai.skynetmonitor.ui.components
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,10 +15,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import resc.ai.skynetmonitor.service.DownloadState
+import resc.ai.skynetmonitor.service.ModelService
 
 data class ModelInfo(
     val name: String,
-    val size: String,
+    val sizeBytes: Long,
     val parameters: String
 )
 
@@ -43,12 +45,20 @@ fun ModelSelectionDialog(
         ) {
             if (!isDownloading) {
                 Column(
-                    modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("Select a model", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+                    Text(
+                        "Select a model",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    )
                     LazyColumn(
-                        modifier = Modifier.weight(1f, fill = false).fillMaxWidth().padding(bottom = 8.dp),
+                        modifier = Modifier
+                            .weight(1f, fill = false)
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(models) { model ->
@@ -56,42 +66,79 @@ fun ModelSelectionDialog(
                             Surface(
                                 shape = MaterialTheme.shapes.small,
                                 tonalElevation = if (isSelected) 4.dp else 1.dp,
-                                border = BorderStroke(if (isSelected) 2.dp else 1.dp, if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant),
-                                modifier = Modifier.fillMaxWidth().clickable { selected = model }
+                                border = BorderStroke(
+                                    if (isSelected) 2.dp else 1.dp,
+                                    if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { selected = model }
                             ) {
-                                Column(Modifier.padding(12.dp).fillMaxWidth()) {
+                                Column(
+                                    Modifier
+                                        .padding(12.dp)
+                                        .fillMaxWidth()
+                                ) {
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text(model.name, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-                                        Text(model.size, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text(
+                                            model.name,
+                                            fontSize = 18.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                        Text(
+                                            ModelService.formatSize(model.sizeBytes),
+                                            fontSize = 14.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
                                     }
                                     Spacer(Modifier.height(4.dp))
-                                    Text(model.parameters, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(
+                                        model.parameters,
+                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
                             }
                         }
                     }
                     Button(
                         onClick = { selected?.let { onConfirm(it) } },
-                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp),
                         enabled = selected != null
-                    ) { Text("Select") }
+                    ) {
+                        Text("Select")
+                    }
                 }
             } else {
-                val st = downloadState!!
+                val st = downloadState
                 val progress = (st.progress / 100f).coerceIn(0f, 1f)
                 Column(
-                    modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("Downloading ${st.name}", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
-                    LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth().height(8.dp))
-                    val totalStr = formatSize(st.totalBytes)
-                    val recvStr = formatSize(st.bytesReceived)
-                    val speedStr = if (st.speedBytesPerSec > 0) "${formatSize(st.speedBytesPerSec)}/s" else "—"
+                    Text(
+                        "Downloading ${st.name}",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    )
+                    LinearProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                    )
+                    val totalStr = ModelService.formatSize(st.totalBytes)
+                    val recvStr = ModelService.formatSize(st.bytesReceived)
+                    val speedStr = if (st.speedBytesPerSec > 0)
+                        "${ModelService.formatSize(st.speedBytesPerSec)}/s"
+                    else "—"
                     val etaStr = if (st.etaSeconds >= 0) formatEta(st.etaSeconds) else "—"
                     Text("$recvStr / $totalStr")
                     Text("Speed: $speedStr")
@@ -103,18 +150,7 @@ fun ModelSelectionDialog(
     }
 }
 
-private fun formatSize(bytes: Long): String {
-    if (bytes <= 0) return "—"
-    val kb = bytes / 1024.0
-    val mb = kb / 1024.0
-    val gb = mb / 1024.0
-    return when {
-        gb >= 1 -> String.format("%.2f GB", gb)
-        mb >= 1 -> String.format("%.2f MB", mb)
-        else -> String.format("%.2f KB", kb)
-    }
-}
-
+@SuppressLint("DefaultLocale")
 private fun formatEta(sec: Long): String {
     val h = sec / 3600
     val m = (sec % 3600) / 60

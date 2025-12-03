@@ -1,5 +1,6 @@
 package resc.ai.skynetmonitor.viewmodel
 
+import android.util.Log
 import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.app.Application
@@ -7,18 +8,15 @@ import android.content.Context
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import resc.ai.skynetmonitor.service.DeviceInfoService
-import resc.ai.skynetmonitor.service.DownloadState
-import resc.ai.skynetmonitor.service.ModelLauncherService
-import resc.ai.skynetmonitor.service.ModelService
-import resc.ai.skynetmonitor.service.RemoteModel
-import resc.ai.skynetmonitor.service.ModelService.isModelDownloaded
-import resc.ai.skynetmonitor.ui.components.ModelInfo
+import resc.ai.skynetmonitor.service.*
+import java.io.File
 
 data class ChatSessionState(
     val isRunning: Boolean = false,
@@ -27,13 +25,20 @@ data class ChatSessionState(
 )
 
 class DeviceInfoViewModel(application: Application) : AndroidViewModel(application) {
+
     val ctx: Context get() = getApplication<Application>().applicationContext
 
-    private val _models = MutableStateFlow<List<ModelInfo>>(emptyList())
-    val models: StateFlow<List<ModelInfo>> = _models
+    private val _remoteModels = MutableStateFlow<List<RemoteModel>>(emptyList())
+    val remoteModels: StateFlow<List<RemoteModel>> = _remoteModels.asStateFlow()
 
     private val _downloadState = MutableStateFlow<DownloadState?>(null)
-    val downloadState: StateFlow<DownloadState?> = _downloadState
+    val downloadState: StateFlow<DownloadState?> = _downloadState.asStateFlow()
+
+    private val _isDeleting = MutableStateFlow(false)
+    val isDeleting: StateFlow<Boolean> = _isDeleting.asStateFlow()
+
+    private val _lastDeleteCompleted = MutableStateFlow<String?>(null)
+    val lastDeleteCompleted: StateFlow<String?> = _lastDeleteCompleted.asStateFlow()
 
     private val metaByName = mutableMapOf<String, RemoteModel>()
 
@@ -46,6 +51,9 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
 
     private val _chat = MutableStateFlow(ChatSessionState())
     val benchmarkState: StateFlow<ChatSessionState> = _chat.asStateFlow()
+
+    private var downloadJob: Job? = null
+    private var currentDownload: RemoteModel? = null
 
     init {
         hardwareInfo.value = DeviceInfoService.getStaticHardwareInfo(ctx)
@@ -72,70 +80,129 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    fun loadModels() {
+    fun loadModelsRemote() {
         viewModelScope.launch {
-            val remotes = ModelService.fetchRemoteModels()
-            metaByName.clear()
-            remotes.forEach { metaByName[it.name] = it }
-            _models.value = remotes.map {
-                ModelInfo(
-                    name = it.name,
-                    size = formatFileSize(it.sizeBytes),
-                    parameters = it.params
-                )
+            try {
+                val remotes = ModelService.fetchRemoteModels(ctx).map { remote ->
+                    remote.copy(isLocal = ModelService.isModelDownloaded(ctx, remote.filename))
+                }
+                metaByName.clear()
+                remotes.forEach { metaByName[it.name] = it }
+                _remoteModels.value = remotes
+            } catch (_: Exception) {
             }
         }
     }
 
-    fun selectModel(model: ModelInfo, onSelected: (ModelInfo) -> Unit) {
-        val meta = metaByName[model.name] ?: return
-        if (isModelDownloaded(ctx, meta.filename)) {
-            onSelected(model)
-            return
-        }
-        viewModelScope.launch {
+    fun onUseRemote(remote: RemoteModel) {
+        val path = ModelService.getLocalModelPath(ctx, remote.filename)
+        startBenchmark(path)
+    }
+
+    fun downloadModel(remote: RemoteModel) {
+        downloadJob?.cancel()
+        currentDownload = remote
+        downloadJob = viewModelScope.launch {
             _downloadState.value = DownloadState(
-                name = meta.name,
+                name = remote.name,
                 bytesReceived = 0L,
-                totalBytes = meta.sizeBytes,
+                totalBytes = remote.sizeBytes,
                 speedBytesPerSec = 0L,
                 etaSeconds = -1L,
                 progress = 0
             )
             try {
-                ModelService.downloadModel(ctx, meta) { st ->
+                ModelService.downloadModel(ctx, remote) { st ->
                     _downloadState.value = st
                 }
+                _downloadState.value = _downloadState.value?.copy(
+                    progress = 100,
+                    etaSeconds = 0,
+                    speedBytesPerSec = 0
+                )
+                loadModelsRemote()
+            } catch (ce: CancellationException) {
+                currentDownload?.let {
+                    val target = ModelService.resolveLocalFile(ctx, it.filename)
+                    val tmp = File(target.parentFile, "${target.name}.part")
+                    if (tmp.exists()) tmp.delete()
+                }
                 _downloadState.value = null
-                onSelected(model)
+                throw ce
             } catch (_: Exception) {
-                _downloadState.value = null
+                _downloadState.value = _downloadState.value?.copy(etaSeconds = -1)
+            } finally {
+                currentDownload = null
+                downloadJob = null
             }
         }
     }
 
-    fun startBenchmarkFor(model: ModelInfo) {
-        val meta = metaByName[model.name] ?: return
-        val path = ModelService.getLocalModelPath(ctx, meta.filename)
-        startBenchmark(path)
+    fun cancelDownload() {
+        downloadJob?.cancel()
+        currentDownload?.let {
+            val target = ModelService.resolveLocalFile(ctx, it.filename)
+            val tmp = File(target.parentFile, "${target.name}.part")
+            if (tmp.exists()) tmp.delete()
+        }
+        _downloadState.value = null
+        currentDownload = null
+        downloadJob = null
+    }
+
+    fun clearDownloadState() {
+        _downloadState.value = null
+    }
+
+    fun deleteLocalModel(remote: RemoteModel) {
+        viewModelScope.launch {
+            try {
+                _isDeleting.value = true
+                val f = ModelService.resolveLocalFile(ctx, remote.filename)
+                if (f.exists()) f.delete()
+                _lastDeleteCompleted.value = remote.filename
+                loadModelsRemote()
+            } finally {
+                _isDeleting.value = false
+            }
+        }
+    }
+
+    fun consumeDeleteEvent() {
+        _lastDeleteCompleted.value = null
     }
 
     fun startBenchmark(modelPath: String) {
         viewModelScope.launch {
-            _chat.value = ChatSessionState(isRunning = true, modelName = modelPath.substringAfterLast("/"), output = emptyList())
-            ModelLauncherService.startModel(
-                context = ctx,
-                modelPath = modelPath,
-                onOutput = { line ->
-                    val list = _chat.value.output.toMutableList()
-                    list.add(line)
-                    _chat.value = _chat.value.copy(output = list)
-                },
-                onReady = {},
-                onError = {
-                    _chat.value = ChatSessionState(isRunning = false, modelName = _chat.value.modelName, output = _chat.value.output + "Error: $it")
+            try {
+                _chat.value = ChatSessionState(
+                    isRunning = true,
+                    modelName = modelPath.substringAfterLast("/"),
+                    output = emptyList()
+                )
+                ModelLauncherService.startModel(
+                    context = ctx,
+                    modelPath = modelPath,
+                    onOutput = { line ->
+                        val list = _chat.value.output.toMutableList()
+                        list.add(line)
+                        _chat.value = _chat.value.copy(output = list)
+                    },
+                    onReady = {},
+                    onError = {
+                        _chat.value = ChatSessionState(
+                            isRunning = false,
+                            modelName = _chat.value.modelName,
+                            output = _chat.value.output + "Error: $it"
+                        )
+                    }
+                )
+            } catch (e: Error) {
+                e.stackTrace.forEach { stackTraceElement ->
+                    Log.e("Benchmark failed", "    $stackTraceElement")
                 }
-            )
+                throw e
+            }
         }
     }
 
@@ -155,7 +222,7 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     @SuppressLint("DefaultLocale")
-    private fun formatFileSize(bytes: Long): String {
+    fun formatSize(bytes: Long): String {
         if (bytes <= 0) return "—"
         val kb = bytes / 1024.0
         val mb = kb / 1024.0
@@ -176,9 +243,10 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                 val am = ctx.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
                 val memInfo = ActivityManager.MemoryInfo()
                 am.getMemoryInfo(memInfo)
-                val total = (memInfo.totalMem.toDouble() / (1024 * 1024 * 1024)).toFloat()
+                val total = (memInfo.totalMem / (1024 * 1024 * 1024)).toFloat()
                 0f to total
             }
+
             else -> 0f to 100f
         }
     }

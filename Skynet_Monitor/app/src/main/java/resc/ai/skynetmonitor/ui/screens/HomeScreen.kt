@@ -16,9 +16,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import resc.ai.skynetmonitor.service.ModelService
 import resc.ai.skynetmonitor.ui.components.InfoCard
 import resc.ai.skynetmonitor.ui.components.ModelChatDialog
-import resc.ai.skynetmonitor.ui.components.ModelInfo
 import resc.ai.skynetmonitor.ui.components.ModelSelectionDialog
 import resc.ai.skynetmonitor.ui.theme.SkynetMonitorTheme
 import resc.ai.skynetmonitor.viewmodel.DeviceInfoViewModel
@@ -27,29 +27,54 @@ import resc.ai.skynetmonitor.viewmodel.DeviceInfoViewModel
 @Composable
 fun HomeScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = viewModel()) {
     var showDialog by remember { mutableStateOf(false) }
-    var selectedModel by remember { mutableStateOf<ModelInfo?>(null) }
+    var selectedModel by remember { mutableStateOf<String?>(null) }
+    var pendingSelection by remember { mutableStateOf<String?>(null) }
     var hardwareExpanded by remember { mutableStateOf(false) }
     var systemExpanded by remember { mutableStateOf(true) }
 
-    val models by viewModel.models.collectAsState()
+    val models by viewModel.remoteModels.collectAsState()
     val downloadState by viewModel.downloadState.collectAsState()
     val chatState by viewModel.benchmarkState.collectAsState()
 
-    LaunchedEffect(Unit) { viewModel.loadModels() }
+    LaunchedEffect(Unit) { viewModel.loadModelsRemote() }
 
     val hardwareInfo = viewModel.hardwareInfo.value
     val systemState = viewModel.systemState.value
 
+    LaunchedEffect(downloadState?.progress) {
+        val st = downloadState
+        if (st != null && st.progress >= 100) {
+            val chosen = pendingSelection ?: st.name
+            selectedModel = chosen
+            pendingSelection = null
+            showDialog = false
+            viewModel.clearDownloadState()
+        }
+    }
+
     if (showDialog) {
         ModelSelectionDialog(
-            models = models,
-            selectedModel = selectedModel,
+            models = models.map {
+                resc.ai.skynetmonitor.ui.components.ModelInfo(
+                    name = it.name,
+                    sizeBytes = it.sizeBytes,
+                    parameters = it.params
+                )
+            },
+            selectedModel = null,
             downloadState = downloadState,
             onDismiss = { showDialog = false },
-            onConfirm = { model ->
-                viewModel.selectModel(model) { done ->
-                    selectedModel = done
-                    showDialog = false
+            onConfirm = { info ->
+                val remote = models.find { it.name == info.name }
+                if (remote != null) {
+                    val isLocal = ModelService.isModelDownloaded(viewModel.ctx, remote.filename)
+                    if (isLocal) {
+                        selectedModel = remote.name
+                        showDialog = false
+                    } else {
+                        pendingSelection = remote.name
+                        viewModel.downloadModel(remote)
+                    }
                 }
             }
         )
@@ -70,30 +95,41 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vie
                 shadowElevation = 4.dp,
                 color = MaterialTheme.colorScheme.surface
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedButton(
-                        onClick = { showDialog = true },
-                        enabled = downloadState == null && !chatState.isRunning,
+                Column {
+                    Row(
                         modifier = Modifier
-                            .widthIn(min = 160.dp)
-                            .height(48.dp)
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(selectedModel?.name ?: "Select model", fontSize = 15.sp)
-                    }
-                    Button(
-                        onClick = { selectedModel?.let { viewModel.startBenchmarkFor(it) } },
-                        enabled = selectedModel != null && downloadState == null && !chatState.isRunning,
-                        modifier = Modifier
-                            .widthIn(min = 160.dp)
-                            .height(48.dp)
-                    ) {
-                        Text("Start Benchmark", fontSize = 15.sp)
+                        OutlinedButton(
+                            onClick = { showDialog = true },
+                            enabled = downloadState == null && !chatState.isRunning,
+                            modifier = Modifier
+                                .widthIn(min = 160.dp)
+                                .height(48.dp)
+                        ) {
+                            Text(selectedModel ?: "Select model", fontSize = 15.sp)
+                        }
+                        Button(
+                            onClick = {
+                                val remote = models.find { it.name == selectedModel }
+                                if (remote != null) {
+                                    val path = ModelService.getLocalModelPath(
+                                        viewModel.ctx,
+                                        remote.filename
+                                    )
+                                    viewModel.startBenchmark(path)
+                                }
+                            },
+                            enabled = selectedModel != null && downloadState == null && !chatState.isRunning,
+                            modifier = Modifier
+                                .widthIn(min = 160.dp)
+                                .height(48.dp)
+                        ) {
+                            Text("Start Benchmark", fontSize = 15.sp)
+                        }
                     }
                 }
             }
@@ -153,18 +189,29 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vie
                         )
                     }
                     AnimatedVisibility(visible = systemExpanded) {
-                        val filteredState = systemState
                         Column(
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            filteredState.forEach { (label, value) ->
+                            systemState.forEach { (label, value) ->
                                 val history = viewModel.historyData.value[label] ?: emptyList()
                                 val bounds = viewModel.getBoundsFor(label)
                                 val color = when {
-                                    label.contains("RAM", ignoreCase = true) -> Color(0xFF42A5F5)
-                                    label.contains("Temp", ignoreCase = true) -> Color(0xFFFFA726)
-                                    label.contains("Battery", ignoreCase = true) -> Color(0xFF9CCC65)
+                                    label.contains(
+                                        "RAM",
+                                        ignoreCase = true
+                                    ) -> Color(0xFF42A5F5)
+
+                                    label.contains(
+                                        "Temp",
+                                        ignoreCase = true
+                                    ) -> Color(0xFFFFA726)
+
+                                    label.contains(
+                                        "Battery",
+                                        ignoreCase = true
+                                    ) -> Color(0xFF9CCC65)
+
                                     else -> Color(0xFFBA68C8)
                                 }
                                 InfoCard(

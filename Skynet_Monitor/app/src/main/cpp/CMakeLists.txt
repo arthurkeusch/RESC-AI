@@ -1,63 +1,30 @@
 cmake_minimum_required(VERSION 3.22.1)
+project("llama-android")
 
-project("llama_android")
+include(FetchContent)
 
-# Utilisation du C++17
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_BUILD_TYPE Release)
+# --- Configuration de llama.cpp ---
+set(LLAMA_BUILD_COMMON ON CACHE BOOL "" FORCE)
+set(GGML_NATIVE_DEFAULT OFF CACHE BOOL "" FORCE)
+set(LLAMA_CURL OFF CACHE BOOL "" FORCE)
+set(GGML_CCACHE OFF CACHE BOOL "" FORCE)
 
-# Dossier llama.cpp
-set(LLAMA_CPP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/llama.cpp)
-
-# Désactiver tous les backends non ARM pour Android CPU
-add_definitions(
-        -DGGML_USE_CPU
-        -DGGML_NO_ACCELERATE
-        -DGGML_NO_AVX
-        -DGGML_NO_AVX2
-        -DGGML_NO_AVX512
-        -DGGML_NO_FMA
-        -DGGML_NO_SSE
-        -DGGML_NO_SSE2
-        -DGGML_NO_SSE3
-        -DGGML_NO_SSSE3
-        -DGGML_NO_SSE4_1
-        -DGGML_NO_SSE4_2
-        -DGGML_NO_F16C
-        -DGGML_NO_RISCV
-        -DGGML_NO_WASM
-        -DGGML_NO_LOONGARCH
-)
-
-# Sélection des fichiers nécessaires
-file(GLOB_RECURSE LLAMA_SOURCES
-        ${LLAMA_CPP_DIR}/ggml.c
-        ${LLAMA_CPP_DIR}/ggml-alloc.c
-        ${LLAMA_CPP_DIR}/ggml-backend.c
-        ${LLAMA_CPP_DIR}/ggml-quants.c
-        ${LLAMA_CPP_DIR}/llama.cpp
-        ${LLAMA_CPP_DIR}/unicode.cpp
-)
-
-# Fichier JNI de ton projet
-set(PROJECT_SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/native-lib.cpp
-)
-
-# Créer la bibliothèque native
-add_library(
+FetchContent_Declare(
         llama
-        SHARED
-        ${LLAMA_SOURCES}
-        ${PROJECT_SOURCES}
+        GIT_REPOSITORY https://github.com/ggml-org/llama.cpp
+        GIT_TAG master
 )
 
-# Inclure les fichiers headers
-target_include_directories(llama PUBLIC
-        ${LLAMA_CPP_DIR}
+FetchContent_MakeAvailable(llama)
+
+# --- Librairie Android ---
+add_library(${CMAKE_PROJECT_NAME} SHARED
+        llama-android.cpp
 )
 
-# Lier bibliothèque Android log
-find_library(log-lib log)
-target_link_libraries(llama ${log-lib})
+target_link_libraries(${CMAKE_PROJECT_NAME}
+        llama
+        common
+        android
+        log
+)
