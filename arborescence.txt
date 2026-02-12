@@ -1,0 +1,225 @@
+RESC-AI
+├── .gitattributes
+├── .gitignore
+├── .gitmodules
+├── API_Skynet_Monitor
+│   ├── .dockerignore
+│   ├── .env
+│   ├── Dockerfile
+│   ├── bdd.sql
+│   ├── index.js
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── routes
+│   │   ├── datasets.js
+│   │   ├── models.js
+│   │   └── prompts.js
+│   └── upload.html
+├── GraPyTor
+│   ├── README.md
+│   ├── WEDA-FALL
+│   │   ├── README.md
+│   │   ├── check_overfitting_models.py
+│   │   ├── dataset
+│   │   │   ├── 50Hz
+│   │   │   │   ├── D01
+│   │   │   │   │   └── [contenu ignoré : 246 éléments]
+│   │   │   │   ├── D02
+│   │   │   │   │   └── [contenu ignoré : 168 éléments]
+│   │   │   │   ├── D03
+│   │   │   │   │   └── [contenu ignoré : 198 éléments]
+│   │   │   │   ├── D04
+│   │   │   │   │   └── [contenu ignoré : 255 éléments]
+│   │   │   │   ├── D05
+│   │   │   │   │   └── [contenu ignoré : 168 éléments]
+│   │   │   │   ├── D06
+│   │   │   │   │   └── [contenu ignoré : 168 éléments]
+│   │   │   │   ├── D07
+│   │   │   │   │   └── [contenu ignoré : 168 éléments]
+│   │   │   │   ├── D08
+│   │   │   │   │   └── [contenu ignoré : 168 éléments]
+│   │   │   │   ├── D09
+│   │   │   │   │   └── [contenu ignoré : 261 éléments]
+│   │   │   │   ├── D10
+│   │   │   │   │   └── [contenu ignoré : 264 éléments]
+│   │   │   │   ├── D11
+│   │   │   │   │   └── [contenu ignoré : 255 éléments]
+│   │   │   │   ├── F01
+│   │   │   │   │   └── [contenu ignoré : 168 éléments]
+│   │   │   │   ├── F02
+│   │   │   │   │   └── [contenu ignoré : 168 éléments]
+│   │   │   │   ├── F03
+│   │   │   │   │   └── [contenu ignoré : 168 éléments]
+│   │   │   │   ├── F04
+│   │   │   │   │   └── [contenu ignoré : 168 éléments]
+│   │   │   │   ├── F05
+│   │   │   │   │   └── [contenu ignoré : 168 éléments]
+│   │   │   │   ├── F06
+│   │   │   │   │   └── [contenu ignoré : 168 éléments]
+│   │   │   │   ├── F07
+│   │   │   │   │   └── [contenu ignoré : 168 éléments]
+│   │   │   │   └── F08
+│   │   │   │       └── [contenu ignoré : 224 éléments]
+│   │   │   └── fall_timestamps.csv
+│   │   ├── dataset_stats.py
+│   │   ├── interpolation.py
+│   │   ├── merge_dataset_WEDA.py
+│   │   ├── models
+│   │   │   ├── xgboost.pkl
+│   │   │   ├── xgboost_activity_code.pkl
+│   │   │   ├── xgboost_hyper.pkl
+│   │   │   ├── xgboost_hyper_activity_code.pkl
+│   │   │   ├── xgboost_hyper_is_fall.pkl
+│   │   │   ├── xgboost_hyper_pond_activity_code.pkl
+│   │   │   ├── xgboost_hyper_pond_is_fall.pkl
+│   │   │   ├── xgboost_hyper_pond_trial_has_fall.pkl
+│   │   │   ├── xgboost_hyper_trial_has_fall.pkl
+│   │   │   ├── xgboost_hyper_weighted.pkl
+│   │   │   ├── xgboost_is_fall.pkl
+│   │   │   ├── xgboost_pond_activity_code.pkl
+│   │   │   ├── xgboost_pond_is_fall.pkl
+│   │   │   ├── xgboost_pond_trial_has_fall.pkl
+│   │   │   ├── xgboost_trial_has_fall.pkl
+│   │   │   └── xgboost_weighted.pkl
+│   │   ├── split_dataset.py
+│   │   ├── test_combinaison_poids_models.py
+│   │   ├── test_poids.py
+│   │   ├── test_poids_hyper.py
+│   │   ├── tests_best_mask_models.py
+│   │   ├── tests_combinaisons_models.py
+│   │   ├── tests_consumption_models.py
+│   │   ├── tests_ensemble_models.py
+│   │   ├── tests_features_models.py
+│   │   ├── tests_final_models.py
+│   │   ├── tests_mask_optuna_models.py
+│   │   ├── tests_meta_models.py
+│   │   ├── tests_models.py
+│   │   ├── tests_sensors_models.py
+│   │   ├── train_ensemble_models.py
+│   │   ├── train_models.py
+│   │   ├── train_models_hyper.py
+│   │   ├── xgboost_feature.csv
+│   │   └── xgboost_feature_poids.csv
+│   ├── datasets_info.md
+│   ├── images
+│   │   ├── compare.png
+│   │   ├── confusion_Activity.png
+│   │   ├── confusion_IsFall.png
+│   │   ├── confusion_TrialHasFall.png
+│   │   ├── data_distribution_activity.png
+│   │   └── fall_distribution.png
+│   └── requirements.txt
+├── README.md
+├── Skynet_Monitor
+│   ├── app
+│   │   ├── .gitignore
+│   │   ├── build.gradle.kts
+│   │   ├── proguard-rules.pro
+│   │   └── src
+│   │       ├── androidTest
+│   │       │   └── java
+│   │       │       └── resc
+│   │       │           └── ai
+│   │       │               └── skynetmonitor
+│   │       │                   └── ExampleInstrumentedTest.kt
+│   │       ├── main
+│   │       │   ├── AndroidManifest.xml
+│   │       │   ├── cpp
+│   │       │   │   ├── CMakeLists.txt
+│   │       │   │   └── llama-android.cpp
+│   │       │   ├── ic_launcher-playstore.png
+│   │       │   ├── java
+│   │       │   │   └── resc
+│   │       │   │       └── ai
+│   │       │   │           └── skynetmonitor
+│   │       │   │               ├── MainActivity.kt
+│   │       │   │               ├── config
+│   │       │   │               │   └── AppConfig.kt
+│   │       │   │               ├── navigation
+│   │       │   │               │   └── NavRoutes.kt
+│   │       │   │               ├── service
+│   │       │   │               │   ├── DeviceInfoService.kt
+│   │       │   │               │   ├── ModelLauncherService.kt
+│   │       │   │               │   ├── ModelService.kt
+│   │       │   │               │   ├── NativeLlama.kt
+│   │       │   │               │   ├── PromptService.kt
+│   │       │   │               │   └── RemoteModel.kt
+│   │       │   │               ├── ui
+│   │       │   │               │   ├── components
+│   │       │   │               │   │   ├── DatasetCard.kt
+│   │       │   │               │   │   ├── InfoCard.kt
+│   │       │   │               │   │   ├── ModelCard.kt
+│   │       │   │               │   │   ├── ModelChatDialog.kt
+│   │       │   │               │   │   └── ModelSelectionDialog.kt
+│   │       │   │               │   ├── screens
+│   │       │   │               │   │   ├── DatabaseScreen.kt
+│   │       │   │               │   │   ├── HomeScreen.kt
+│   │       │   │               │   │   ├── ModelScreen.kt
+│   │       │   │               │   │   ├── PromptScreen.kt
+│   │       │   │               │   │   ├── SettingsScreen.kt
+│   │       │   │               │   │   └── StatsScreen.kt
+│   │       │   │               │   └── theme
+│   │       │   │               │       ├── Color.kt
+│   │       │   │               │       ├── Theme.kt
+│   │       │   │               │       └── Type.kt
+│   │       │   │               └── viewmodel
+│   │       │   │                   └── DeviceInfoViewModel.kt
+│   │       │   └── res
+│   │       │       ├── drawable
+│   │       │       │   ├── ic_launcher_background.xml
+│   │       │       │   └── ic_launcher_foreground.xml
+│   │       │       ├── mipmap-anydpi-v26
+│   │       │       │   ├── ic_launcher.xml
+│   │       │       │   └── ic_launcher_round.xml
+│   │       │       ├── mipmap-hdpi
+│   │       │       │   ├── ic_launcher.webp
+│   │       │       │   ├── ic_launcher_foreground.webp
+│   │       │       │   └── ic_launcher_round.webp
+│   │       │       ├── mipmap-mdpi
+│   │       │       │   ├── ic_launcher.webp
+│   │       │       │   ├── ic_launcher_foreground.webp
+│   │       │       │   └── ic_launcher_round.webp
+│   │       │       ├── mipmap-xhdpi
+│   │       │       │   ├── ic_launcher.webp
+│   │       │       │   ├── ic_launcher_foreground.webp
+│   │       │       │   └── ic_launcher_round.webp
+│   │       │       ├── mipmap-xxhdpi
+│   │       │       │   ├── ic_launcher.webp
+│   │       │       │   ├── ic_launcher_foreground.webp
+│   │       │       │   └── ic_launcher_round.webp
+│   │       │       ├── mipmap-xxxhdpi
+│   │       │       │   ├── ic_launcher.webp
+│   │       │       │   ├── ic_launcher_foreground.webp
+│   │       │       │   └── ic_launcher_round.webp
+│   │       │       ├── values
+│   │       │       │   ├── colors.xml
+│   │       │       │   ├── strings.xml
+│   │       │       │   └── themes.xml
+│   │       │       └── xml
+│   │       │           ├── backup_rules.xml
+│   │       │           ├── data_extraction_rules.xml
+│   │       │           └── network_security_config.xml
+│   │       └── test
+│   │           └── java
+│   │               └── resc
+│   │                   └── ai
+│   │                       └── skynetmonitor
+│   │                           └── ExampleUnitTest.kt
+│   ├── build.gradle.kts
+│   ├── gradle
+│   │   ├── libs.versions.toml
+│   │   └── wrapper
+│   │       └── gradle-wrapper.properties
+│   ├── gradle.properties
+│   ├── local.properties
+│   └── settings.gradle.kts
+├── arborescence.txt
+├── docker-compose.yml
+├── parseur.py
+├── setup.bin
+├── setup.sh
+├── skynet_monitor_logo.png
+└── tests
+    └── prompts
+        ├── prompts.json
+        └── test_models.py
