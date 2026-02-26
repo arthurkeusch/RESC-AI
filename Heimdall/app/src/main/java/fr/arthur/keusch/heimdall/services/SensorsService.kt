@@ -16,6 +16,9 @@ import kotlin.math.sqrt
 
 const val SENSORS_BUFFER_MS: Long = 10_000L
 
+private const val ACCEL_LINEAR_GAIN = 1f
+private const val GYRO_GAIN = 1f
+
 data class SensorSnapshot(
     val wallTimeMillis: Long = 0L,
     val timeText: String = "—",
@@ -100,26 +103,23 @@ object SensorsBus {
                         ax = event.values.getOrNull(0)
                         ay = event.values.getOrNull(1)
                         az = event.values.getOrNull(2)
-                        updateVerticalFromAccelAndRotMat()
                     }
 
                     Sensor.TYPE_GYROSCOPE -> {
-                        gx = event.values.getOrNull(0)
-                        gy = event.values.getOrNull(1)
-                        gz = event.values.getOrNull(2)
+                        gx = event.values.getOrNull(0)?.times(GYRO_GAIN)
+                        gy = event.values.getOrNull(1)?.times(GYRO_GAIN)
+                        gz = event.values.getOrNull(2)?.times(GYRO_GAIN)
                     }
 
                     Sensor.TYPE_ROTATION_VECTOR -> {
-                        SensorManager.getRotationMatrixFromVector(rotMat, event.values)
                         SensorManager.getQuaternionFromVector(quat, event.values)
                         qw = quat[0]; qx = quat[1]; qy = quat[2]; qz = quat[3]
-                        updateVerticalFromAccelAndRotMat()
                     }
 
                     Sensor.TYPE_LINEAR_ACCELERATION -> {
-                        vax = event.values.getOrNull(0)
-                        vay = event.values.getOrNull(1)
-                        vaz = event.values.getOrNull(2)
+                        vax = event.values.getOrNull(0)?.times(ACCEL_LINEAR_GAIN)
+                        vay = event.values.getOrNull(1)?.times(ACCEL_LINEAR_GAIN)
+                        vaz = event.values.getOrNull(2)?.times(ACCEL_LINEAR_GAIN)
                     }
                 }
 
@@ -144,10 +144,10 @@ object SensorsBus {
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
 
-        if (accel != null) sensorManager!!.registerListener(listener, accel, delay)
-        if (gyro != null) sensorManager!!.registerListener(listener, gyro, delay)
-        if (rot != null) sensorManager!!.registerListener(listener, rot, delay)
-        if (linAccel != null) sensorManager!!.registerListener(listener, linAccel, delay)
+        accel?.let { sensorManager!!.registerListener(listener, it, delay) }
+        gyro?.let { sensorManager!!.registerListener(listener, it, delay) }
+        rot?.let { sensorManager!!.registerListener(listener, it, delay) }
+        linAccel?.let { sensorManager!!.registerListener(listener, it, delay) }
     }
 
     fun stop() {
@@ -173,20 +173,6 @@ object SensorsBus {
             if (first.wallTimeMillis >= cutoff) break
             ring.removeFirst()
         }
-    }
-
-    private fun updateVerticalFromAccelAndRotMat() {
-        if (ax == null || ay == null || az == null) return
-        if (rotMat.all { it == 0f }) return
-        val aX = ax!!
-        val aY = ay!!
-        val aZ = az!!
-        val wx = rotMat[0] * aX + rotMat[1] * aY + rotMat[2] * aZ
-        val wy = rotMat[3] * aX + rotMat[4] * aY + rotMat[5] * aZ
-        val wz = rotMat[6] * aX + rotMat[7] * aY + rotMat[8] * aZ
-        vax = wx
-        vay = wy
-        vaz = wz
     }
 
     private fun norm(x: Float?, y: Float?, z: Float?): Float? {

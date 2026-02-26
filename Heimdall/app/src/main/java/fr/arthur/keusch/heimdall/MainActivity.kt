@@ -1,6 +1,7 @@
 package fr.arthur.keusch.heimdall
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -11,11 +12,14 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -27,6 +31,7 @@ import fr.arthur.keusch.heimdall.theme.HeimdallTheme
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import androidx.core.content.edit
 
 class MainActivity : ComponentActivity() {
 
@@ -182,6 +187,12 @@ fun EscalatedScreen() {
 fun MonitoringScreen() {
     val listState = rememberTransformingLazyColumnState()
     val transformationSpec = rememberTransformationSpec()
+    val context = LocalContext.current
+    val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+
+    var heightInput by remember { mutableStateOf(prefs.getFloat("height", 1.82f).toString()) }
+    var weightInput by remember { mutableStateOf(prefs.getFloat("weight", 97.0f).toString()) }
+
     ScreenScaffold(scrollState = listState) { contentPadding ->
         TransformingLazyColumn(contentPadding = contentPadding, state = listState) {
             item {
@@ -190,11 +201,50 @@ fun MonitoringScreen() {
                         .fillMaxWidth()
                         .transformedHeight(this, transformationSpec),
                     transformation = SurfaceTransformation(transformationSpec)
-                ) {
-                    Text("Heimdall")
-                }
+                ) { Text("Heimdall") }
             }
             item { SensorReadings() }
+            item {
+                Column(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp)) {
+                    Text("Taille (m):", style = MaterialTheme.typography.labelSmall)
+
+                    TextField(
+                        value = heightInput,
+                        onValueChange = {
+                            heightInput = it
+                            it.toFloatOrNull()
+                                ?.let { h -> prefs.edit { putFloat("height", h) } }
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Poids (kg):", style = MaterialTheme.typography.labelSmall)
+                    TextField(
+                        value = weightInput,
+                        onValueChange = {
+                            weightInput = it
+                            it.toFloatOrNull()
+                                ?.let { w -> prefs.edit { putFloat("weight", w) } }
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+            item {
+                Text(
+                    "Surveillance active",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.Green,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }
@@ -202,17 +252,15 @@ fun MonitoringScreen() {
 @Composable
 fun SensorReadings() {
     val lastFallEpoch by HealthEventBus.lastFall.collectAsState(initial = null)
-
-    val fallFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
-        .withZone(ZoneId.systemDefault())
-
+    val fallFormatter =
+        DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss").withZone(ZoneId.systemDefault())
     val fallText = lastFallEpoch?.let { fallFormatter.format(Instant.ofEpochMilli(it)) } ?: "—"
 
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Dernière chute:", style = MaterialTheme.typography.labelMedium)
+        Text("Dernière chute détectée :", style = MaterialTheme.typography.labelMedium)
         Text(
             text = fallText,
             style = MaterialTheme.typography.bodyMedium,

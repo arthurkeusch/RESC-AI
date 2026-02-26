@@ -8,6 +8,7 @@ import ai.onnxruntime.OrtSession
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.nio.FloatBuffer
 import java.util.Collections
 
 object FallDetectionService {
@@ -15,6 +16,7 @@ object FallDetectionService {
     private const val WINDOW_MS = 10_000L
     private const val SAMPLING_MS = 20L
     private const val MODEL_FILE = "xgboost_pond_trial_has_fall.onnx"
+    private const val NUM_FEATURES = 16
 
     private val _prediction = MutableStateFlow(false)
     val prediction = _prediction.asStateFlow()
@@ -45,121 +47,113 @@ object FallDetectionService {
         collectJob = scope.launch {
             SensorsBus.state.collect { s ->
                 if (s.wallTimeMillis > 0L) {
-                    synchronized(window) {
-                        window.add(s)
-                    }
+                    synchronized(window) { window.add(s) }
                 }
             }
         }
 
         loopJob = scope.launch {
+            var nextWindowTime = System.currentTimeMillis() + WINDOW_MS
             while (true) {
-                delay(WINDOW_MS)
+                val now = System.currentTimeMillis()
 
-                val rawSamples = synchronized(window) {
-                    val copy = window.toList()
-                    window.clear()
-                    copy
-                }
-
-                if (rawSamples.isNotEmpty()) {
-                    val downsampled = mutableListOf<SensorSnapshot>()
-                    var lastTimestamp = 0L
-
-                    for (sample in rawSamples) {
-                        if (sample.wallTimeMillis - lastTimestamp >= SAMPLING_MS) {
-                            downsampled.add(sample)
-                            lastTimestamp = sample.wallTimeMillis
-                        }
+                if (now >= nextWindowTime) {
+                    val rawSamples = synchronized(window) {
+                        val copy = window.toList()
+                        window.clear()
+                        copy
                     }
 
-                    logAverages(downsampled)
-
-                    val finalDecision = fallDetection(downsampled)
-                    _prediction.value = finalDecision
+                    if (rawSamples.isNotEmpty()) {
+                        val downsampledForAI = performDownsample(rawSamples)
+                        val finalDecision = fallDetection(context, downsampledForAI)
+                        _prediction.value = finalDecision
+                    }
+                    nextWindowTime = System.currentTimeMillis() + WINDOW_MS
                 }
+                delay(100)
             }
         }
     }
 
-    private fun logAverages(samples: List<SensorSnapshot>) {
-        if (samples.isEmpty()) return
+    private fun performDownsample(raw: List<SensorSnapshot>): List<SensorSnapshot> {
+        val downsampled = mutableListOf<SensorSnapshot>()
+        if (raw.isEmpty()) return downsampled
 
-        val count = samples.size.toFloat()
-        var sumAx = 0f;
-        var sumAy = 0f;
-        var sumAz = 0f
-        var sumGx = 0f;
-        var sumGy = 0f;
-        var sumGz = 0f
-        var sumQw = 0f;
-        var sumQx = 0f;
-        var sumQy = 0f;
-        var sumQz = 0f
-        var sumVax = 0f;
-        var sumVay = 0f;
-        var sumVaz = 0f
-
-        for (s in samples) {
-            sumAx += s.ax ?: 0f; sumAy += s.ay ?: 0f; sumAz += s.az ?: 0f
-            sumGx += s.gx ?: 0f; sumGy += s.gy ?: 0f; sumGz += s.gz ?: 0f
-            sumQw += s.qw ?: 1f; sumQx += s.qx ?: 0f; sumQy += s.qy ?: 0f; sumQz += s.qz ?: 0f
-            sumVax += s.vax ?: 0f; sumVay += s.vay ?: 0f; sumVaz += s.vaz ?: 0f
+        var lastTimestamp = 0L
+        for (sample in raw) {
+            if (sample.wallTimeMillis - lastTimestamp >= SAMPLING_MS) {
+                downsampled.add(sample)
+                lastTimestamp = sample.wallTimeMillis
+            }
         }
-
-        Log.i(
-            "Heimdall-Fall", """
-            --- MOYENNES FENÊTRE (N=$count) ---
-            Accel (m/s²): X=${sumAx / count}, Y=${sumAy / count}, Z=${sumAz / count}
-            Gyro (rad/s): X=${sumGx / count}, Y=${sumGy / count}, Z=${sumGz / count}
-            Quat (w,x,y,z): W=${sumQw / count}, X=${sumQx / count}, Y=${sumQy / count}, Z=${sumQz / count}
-            V-Accel: X=${sumVax / count}, Y=${sumVay / count}, Z=${sumVaz / count}
-            -----------------------------------
-        """.trimIndent()
-        )
+        return downsampled
     }
 
-    private suspend fun fallDetection(samples: List<SensorSnapshot>): Boolean {
+    private suspend fun fallDetection(context: Context, samples: List<SensorSnapshot>): Boolean {
+        if (samples.isEmpty()) return false
+        val session = ortSession ?: return false
+
+        val prefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val userHeight = prefs.getFloat("height", 1.82f)
+        val userWeight = prefs.getFloat("weight", 97.0f)
+
         return withContext(Dispatchers.Default) {
-            val session = ortSession ?: return@withContext false
-            val votes = mutableListOf<Int>()
-
             try {
-                for (s in samples) {
-                    val features = floatArrayOf(
-                        22f, 1.82f, 97f,
-                        s.ax ?: 0f, s.ay ?: 0f, s.az ?: 0f,
-                        s.gx ?: 0f, s.gy ?: 0f, s.gz ?: 0f,
-                        s.qw ?: 1f, s.qx ?: 0f, s.qy ?: 0f, s.qz ?: 0f,
-                        s.vax ?: 0f, s.vay ?: 0f, s.vaz ?: 0f
-                    )
+                val numRows = samples.size
+                val flatArray = FloatArray(numRows * NUM_FEATURES)
 
-                    val inputTensor = OnnxTensor.createTensor(ortEnv, arrayOf(features))
-                    val inputs = Collections.singletonMap("float_input", inputTensor)
-                    val results = session.run(inputs)
-
-                    val label = (results[0].value as LongArray)[0].toInt()
-                    votes.add(label)
-
-                    inputTensor.close()
-                    results.close()
+                samples.forEachIndexed { i, s ->
+                    val offset = i * NUM_FEATURES
+                    flatArray[offset + 0] = userHeight
+                    flatArray[offset + 1] = userWeight
+                    flatArray[offset + 2] = i * (SAMPLING_MS / 1000f)
+                    flatArray[offset + 3] = s.ax ?: 0f
+                    flatArray[offset + 4] = s.ay ?: 0f
+                    flatArray[offset + 5] = s.az ?: 0f
+                    flatArray[offset + 6] = s.gx ?: 0f
+                    flatArray[offset + 7] = s.gy ?: 0f
+                    flatArray[offset + 8] = s.gz ?: 0f
+                    flatArray[offset + 9] = s.qw ?: 1f
+                    flatArray[offset + 10] = s.qx ?: 0f
+                    flatArray[offset + 11] = s.qy ?: 0f
+                    flatArray[offset + 12] = s.qz ?: 0f
+                    flatArray[offset + 13] = s.vax ?: 0f
+                    flatArray[offset + 14] = s.vay ?: 0f
+                    flatArray[offset + 15] = s.vaz ?: 0f
                 }
 
-                val countFall = votes.count { it == 1 }
-                val countOk = votes.count { it == 0 }
+                val inputShape = longArrayOf(numRows.toLong(), NUM_FEATURES.toLong())
+                val inputTensor =
+                    OnnxTensor.createTensor(ortEnv, FloatBuffer.wrap(flatArray), inputShape)
 
-                val finalDecision = countFall > countOk
+                val inputs = Collections.singletonMap("float_input", inputTensor)
+                session.run(inputs).use { results ->
+                    val output = results[0].value
+                    val predictions = when (output) {
+                        is LongArray -> output
+                        is Array<*> -> (output as Array<LongArray>).map { it[0] }.toLongArray()
+                        else -> LongArray(0)
+                    }
 
-                Log.i(
-                    "Heimdall-Fall",
-                    "RÉSULTAT : $countFall votes CHUTE / $countOk OK. Décision: $finalDecision"
-                )
+                    val countFall = predictions.count { it == 1L }
+                    val ratio = countFall.toFloat() / numRows
 
-                return@withContext finalDecision
+                    Log.d(
+                        "Heimdall-Fall",
+                        "Inférence : $countFall detections / $numRows points (${
+                            String.format(
+                                "%.1f",
+                                ratio * 100
+                            )
+                        }%)"
+                    )
+                    return@withContext ratio > 0.15f
+                }
             } catch (e: Exception) {
-                Log.e("Heimdall-Fall", "Erreur Inférence: ${e.message}")
+                Log.e("Heimdall-Fall", "Inference Error: ${e.message}")
+                false
             }
-            false
         }
     }
 
