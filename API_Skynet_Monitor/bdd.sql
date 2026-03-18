@@ -45,3 +45,47 @@ CREATE TABLE IF NOT EXISTS prompts_results
     FOREIGN KEY (id_model) REFERENCES models (id_model),
     FOREIGN KEY (id_devices) REFERENCES devices (id_devices)
 );
+
+CREATE TABLE IF NOT EXISTS heimdall_recordings
+(
+    id_recording      BIGINT AUTO_INCREMENT,
+    started_at_millis BIGINT      NULL,
+    ended_at_millis   BIGINT      NULL,
+    status            VARCHAR(32) NOT NULL DEFAULT 'recording',
+    is_fall           BOOLEAN     NOT NULL DEFAULT FALSE,
+    fall_start_millis BIGINT      NULL,
+    fall_end_millis   BIGINT      NULL,
+    created_at        TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at        TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id_recording),
+    INDEX idx_heimdall_recordings_status (status),
+    INDEX idx_heimdall_recordings_started_at (started_at_millis)
+);
+
+CREATE TABLE IF NOT EXISTS heimdall_sensor_points
+(
+    id_sensor_point  BIGINT AUTO_INCREMENT,
+
+    id_recording     BIGINT      NOT NULL,
+    wall_time_millis BIGINT      NOT NULL,
+    time_text        VARCHAR(32) NULL,
+    ax               FLOAT       NULL,
+    ay               FLOAT       NULL,
+    az               FLOAT       NULL,
+    a_norm           FLOAT       NULL,
+    gx               FLOAT       NULL,
+    gy               FLOAT       NULL,
+    gz               FLOAT       NULL,
+    qw               FLOAT       NULL,
+    qx               FLOAT       NULL,
+    qy               FLOAT       NULL,
+    qz               FLOAT       NULL,
+    vax              FLOAT       NULL,
+    vay              FLOAT       NULL,
+    vaz              FLOAT       NULL,
+    created_at       TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id_sensor_point),
+    FOREIGN KEY (id_recording) REFERENCES heimdall_recordings (id_recording) ON DELETE CASCADE,
+    INDEX idx_heimdall_sensor_points_recording_time (id_recording, wall_time_millis),
+    INDEX idx_heimdall_sensor_points_wall_time (wall_time_millis)
+);

@@ -6,6 +6,7 @@ import dotenv from "dotenv"
 import modelsRouter from "./routes/models.js"
 import promptsRouter from "./routes/prompts.js";
 import datasetsRouter from "./routes/datasets.js";
+import heimdallRouter from "./routes/heimdall.js";
 
 dotenv.config()
 
@@ -15,7 +16,7 @@ const PORT = 3000
 const MODELS_DIR = path.join(process.cwd(), "models")
 if (!fs.existsSync(MODELS_DIR)) fs.mkdirSync(MODELS_DIR, {recursive: true})
 
-app.use(express.json())
+app.use(express.json({limit: "10mb"}))
 
 async function connectWithRetry(delay = 3000) {
     let lastLog = 0
@@ -61,6 +62,7 @@ if (fs.existsSync(sqlPath)) {
 app.use("/models", modelsRouter({db, MODELS_DIR}))
 app.use("/datasets", datasetsRouter({db}))
 app.use("/prompts", promptsRouter({db}))
+app.use("/heimdall", heimdallRouter({db}))
 
 app.get("/", (req, res) => {
     res.sendFile(path.join(process.cwd(), "upload.html"))
