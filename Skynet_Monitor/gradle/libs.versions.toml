@@ -1,19 +1,27 @@
 [versions]
-agp = "8.13.0"
+agp = "9.1.1"
 datastorePreferences = "1.1.7"
-kotlin = "2.0.21"
+kotlin = "2.2.10"
 coreKtx = "1.10.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
+kotlinxCoroutinesAndroid = "1.10.2"
 lifecycleRuntimeKtx = "2.6.1"
 activityCompose = "1.8.0"
 composeBom = "2024.09.00"
+litertlmAndroid = "latest.release"
 materialIconsExtended = "1.7.8"
 navigationCompose = "2.9.5"
 benchmark = "1.0.0-alpha03"
 foundation = "1.9.3"
 media3CommonKtx = "1.8.0"
+androidBuiltInKotlin = "9.1.1"
+appcompat = "1.6.1"
+material = "1.10.0"
+onnxruntime = "1.25.0"
+json = "20251224"
+coreKtxVersion = "1.18.0"
 
 [libraries]
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
@@ -36,9 +44,18 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 androidx-benchmark = { group = "androidx.benchmark", name = "benchmark", version.ref = "benchmark" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 androidx-media3-common-ktx = { group = "androidx.media3", name = "media3-common-ktx", version.ref = "media3CommonKtx" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
+litertlm-android = { module = "com.google.ai.edge.litertlm:litertlm-android", version.ref = "litertlmAndroid" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+onnxruntime = { group = "com.microsoft.onnxruntime", name = "onnxruntime-android", version.ref = "onnxruntime" }
+json = { group = "org.json", name = "json", version.ref = "json" }
+core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtxVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version = "2.2.20" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+android-built-in1-kotlin = { id = "com.android.built-in-kotlin", version.ref = "androidBuiltInKotlin" }
 

@@ -1,5 +1,6 @@
 package resc.ai.skynetmonitor.ui.screens
 
+import fr.arthur.keusch.mandiole.model.ModelDescriptor
 import android.annotation.SuppressLint
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -36,7 +37,7 @@ fun ModelScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vi
     val isDeleting by viewModel.isDeleting.collectAsState()
     val lastDeleteCompleted by viewModel.lastDeleteCompleted.collectAsState()
 
-    var actionModel by remember { mutableStateOf<RemoteModel?>(null) }
+    var actionModel by remember { mutableStateOf<ModelDescriptor?>(null) }
     var showMenu by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
@@ -69,7 +70,7 @@ fun ModelScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vi
 
     LaunchedEffect(lastDeleteCompleted) {
         val current = actionModel
-        if (lastDeleteCompleted != null && current != null && current.filename == lastDeleteCompleted) {
+        if (lastDeleteCompleted != null && current != null && current.id == lastDeleteCompleted) {
             showDeleteConfirm = false
             showMenu = false
             actionModel = null
@@ -94,9 +95,10 @@ fun ModelScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vi
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(items = models, key = { it.filename }) { model ->
+                items(items = models, key = { it.id }) { model ->
                     ModelCard(
                         model = model,
+                        isLocal = viewModel.isModelLocal(model),
                         onClick = {
                             actionModel = it
                             showMenu = true
@@ -125,15 +127,15 @@ fun ModelScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vi
 
     val current = actionModel
     if (showMenu && current != null) {
-        val local = current.isLocal
+        val local = viewModel.isModelLocal(current)
         AlertDialog(
             onDismissRequest = { showMenu = false },
             title = {
                 Column {
-                    Text(current.name)
+                    Text(current.displayName)
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        current.params,
+                        "${current.backendLabel} • ${current.sizeLabel}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -181,36 +183,6 @@ fun ModelScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vi
                             }
                         }
                     }
-                    Surface(
-                        tonalElevation = 1.dp,
-                        onClick = {
-                            showMenu = false
-                            scope.launch {
-                                try {
-                                    ModelService.fetchRemoteModels(viewModel.ctx)
-                                } catch (_: Exception) {
-                                } finally {
-                                    ModelService.deleteRemoteModel(viewModel.ctx, current)
-                                    viewModel.loadModelsRemote()
-                                }
-                            }
-                        }
-                    ) {
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                Icons.Filled.Delete,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                            Spacer(Modifier.width(12.dp))
-                            Text("Delete from server", color = MaterialTheme.colorScheme.error)
-                        }
-                    }
                 }
             },
             confirmButton = {},
@@ -223,7 +195,7 @@ fun ModelScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vi
         AlertDialog(
             onDismissRequest = { if (!isDeleting) showDeleteConfirm = false },
             title = { Text("Confirm deletion") },
-            text = { Text("Are you sure you want to delete ${modelToDelete.name} locally?") },
+            text = { Text("Are you sure you want to delete ${modelToDelete.displayName} locally?") },
             confirmButton = {
                 TextButton(
                     onClick = { viewModel.deleteLocalModel(modelToDelete) },

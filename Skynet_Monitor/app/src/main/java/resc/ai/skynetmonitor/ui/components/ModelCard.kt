@@ -1,5 +1,6 @@
 package resc.ai.skynetmonitor.ui.components
 
+import fr.arthur.keusch.mandiole.model.ModelDescriptor
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -19,17 +20,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import resc.ai.skynetmonitor.service.DownloadState
 import resc.ai.skynetmonitor.service.ModelService
-import resc.ai.skynetmonitor.service.RemoteModel
 
 @Composable
 fun ModelCard(
-    model: RemoteModel,
-    onClick: (RemoteModel) -> Unit
+    model: ModelDescriptor,
+    isLocal: Boolean,
+    onClick: (ModelDescriptor) -> Unit
 ) {
-    val context = LocalContext.current
-    val isLocal = ModelService.isModelDownloaded(context, model.filename)
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -48,7 +47,7 @@ fun ModelCard(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = model.name,
+                    text = model.displayName,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -56,14 +55,14 @@ fun ModelCard(
                     modifier = Modifier.weight(1f)
                 )
                 Text(
-                    text = ModelService.formatSize(model.sizeBytes),
+                    text = model.sizeLabel,
                     fontSize = 14.sp,
                     color = Color.White
                 )
             }
 
             Text(
-                text = model.params,
+                text = "${model.backendLabel} • ${model.deviceRecommendation}",
                 fontSize = 13.sp,
                 color = Color.White,
                 maxLines = 2,
@@ -84,4 +83,11 @@ fun ModelCard(
             }
         }
     }
+}
+
+private fun formatSize(bytes: Long): String {
+    if (bytes < 1024) return "$bytes B"
+    val exp = (Math.log(bytes.toDouble()) / Math.log(1024.0)).toInt()
+    val pre = "KMGTPE"[exp - 1]
+    return String.format("%.1f %sB", bytes / Math.pow(1024.0, exp.toDouble()), pre)
 }

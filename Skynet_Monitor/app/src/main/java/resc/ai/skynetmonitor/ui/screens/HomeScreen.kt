@@ -23,12 +23,14 @@ import resc.ai.skynetmonitor.ui.components.ModelSelectionDialog
 import resc.ai.skynetmonitor.ui.theme.SkynetMonitorTheme
 import resc.ai.skynetmonitor.viewmodel.DeviceInfoViewModel
 
+import fr.arthur.keusch.mandiole.model.ModelDescriptor
+import fr.arthur.keusch.mandiole.model.ModelRegistry
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = viewModel()) {
     var showDialog by remember { mutableStateOf(false) }
-    var selectedModel by remember { mutableStateOf<String?>(null) }
-    var pendingSelection by remember { mutableStateOf<String?>(null) }
+    var selectedModel by remember { mutableStateOf<ModelDescriptor?>(null) }
     var hardwareExpanded by remember { mutableStateOf(false) }
     var systemExpanded by remember { mutableStateOf(true) }
 
@@ -44,11 +46,10 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vie
     LaunchedEffect(downloadState?.progress) {
         val st = downloadState
         if (st != null && st.progress >= 100) {
-            val chosen = pendingSelection ?: st.name
-            selectedModel = chosen
-            pendingSelection = null
+            // After download, we might want to automatically select it or just clear
             showDialog = false
             viewModel.clearDownloadState()
+            viewModel.loadModelsRemote() // Refresh local status
         }
     }
 
@@ -56,25 +57,23 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vie
         ModelSelectionDialog(
             models = models.map {
                 resc.ai.skynetmonitor.ui.components.ModelInfo(
-                    name = it.name,
-                    sizeBytes = it.sizeBytes,
-                    parameters = it.params
+                    name = it.displayName,
+                    sizeBytes = it.approxDownloadBytes,
+                    parameters = it.sizeLabel
                 )
             },
             selectedModel = null,
             downloadState = downloadState,
             onDismiss = { showDialog = false },
             onConfirm = { info ->
-                val remote = models.find { it.name == info.name }
-                if (remote != null) {
-                    val isLocal = ModelService.isModelDownloaded(viewModel.ctx, remote.filename)
-                    if (isLocal) {
-                        selectedModel = remote.name
-                        showDialog = false
-                    } else {
-                        pendingSelection = remote.name
-                        viewModel.downloadModel(remote)
-                    }
+                val model = models.find { it.displayName == info.name }
+                if (model != null) {
+                    // Check if model is already downloaded via Mandiole
+                    // For now, let's assume if it's in models list, we can try to start or download
+                    // In a more robust impl, we'd check if files exist
+                    selectedModel = model
+                    viewModel.startBenchmark(model)
+                    showDialog = false
                 }
             }
         )
@@ -110,18 +109,11 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vie
                                 .widthIn(min = 160.dp)
                                 .height(48.dp)
                         ) {
-                            Text(selectedModel ?: "Select model", fontSize = 15.sp)
+                            Text(selectedModel?.displayName ?: "Select model", fontSize = 15.sp)
                         }
                         Button(
                             onClick = {
-                                val remote = models.find { it.name == selectedModel }
-                                if (remote != null) {
-                                    val path = ModelService.getLocalModelPath(
-                                        viewModel.ctx,
-                                        remote.filename
-                                    )
-                                    viewModel.startBenchmark(path)
-                                }
+                                selectedModel?.let { viewModel.startBenchmark(it) }
                             },
                             enabled = selectedModel != null && downloadState == null && !chatState.isRunning,
                             modifier = Modifier

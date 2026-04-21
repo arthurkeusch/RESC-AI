@@ -1,13 +1,18 @@
 package resc.ai.skynetmonitor.viewmodel
 
-import android.util.Log
 import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import fr.arthur.keusch.mandiole.Mandiole
+import fr.arthur.keusch.mandiole.backend.ChatBackend
+import fr.arthur.keusch.mandiole.model.ChatRole
+import fr.arthur.keusch.mandiole.model.ChatTurn
+import fr.arthur.keusch.mandiole.model.ModelDescriptor
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -15,8 +20,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import resc.ai.skynetmonitor.service.*
-import java.io.File
+import resc.ai.skynetmonitor.service.DeviceInfoService
+import resc.ai.skynetmonitor.service.DownloadState
 
 data class ChatSessionState(
     val isRunning: Boolean = false,
@@ -27,9 +32,10 @@ data class ChatSessionState(
 class DeviceInfoViewModel(application: Application) : AndroidViewModel(application) {
 
     val ctx: Context get() = getApplication<Application>().applicationContext
+    private val mandiole = Mandiole(ctx)
 
-    private val _remoteModels = MutableStateFlow<List<RemoteModel>>(emptyList())
-    val remoteModels: StateFlow<List<RemoteModel>> = _remoteModels.asStateFlow()
+    private val _remoteModels = MutableStateFlow<List<ModelDescriptor>>(emptyList())
+    val remoteModels: StateFlow<List<ModelDescriptor>> = _remoteModels.asStateFlow()
 
     private val _downloadState = MutableStateFlow<DownloadState?>(null)
     val downloadState: StateFlow<DownloadState?> = _downloadState.asStateFlow()
@@ -39,8 +45,6 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
 
     private val _lastDeleteCompleted = MutableStateFlow<String?>(null)
     val lastDeleteCompleted: StateFlow<String?> = _lastDeleteCompleted.asStateFlow()
-
-    private val metaByName = mutableMapOf<String, RemoteModel>()
 
     var hardwareInfo = mutableStateOf<Map<String, String>>(emptyMap())
         private set
@@ -53,7 +57,8 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
     val benchmarkState: StateFlow<ChatSessionState> = _chat.asStateFlow()
 
     private var downloadJob: Job? = null
-    private var currentDownload: RemoteModel? = null
+    private var currentBackend: ChatBackend? = null
+    private val chatHistory = mutableListOf<ChatTurn>()
 
     init {
         hardwareInfo.value = DeviceInfoService.getStaticHardwareInfo(ctx)
@@ -80,59 +85,49 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
+    fun isModelLocal(model: ModelDescriptor): Boolean {
+        return mandiole.isModelAvailable(model)
+    }
+
     fun loadModelsRemote() {
-        viewModelScope.launch {
-            try {
-                val remotes = ModelService.fetchRemoteModels(ctx).map { remote ->
-                    remote.copy(isLocal = ModelService.isModelDownloaded(ctx, remote.filename))
-                }
-                metaByName.clear()
-                remotes.forEach { metaByName[it.name] = it }
-                _remoteModels.value = remotes
-            } catch (_: Exception) {
-            }
-        }
+        _remoteModels.value = mandiole.getAvailableModels()
     }
 
-    fun onUseRemote(remote: RemoteModel) {
-        val path = ModelService.getLocalModelPath(ctx, remote.filename)
-        startBenchmark(path)
-    }
-
-    fun downloadModel(remote: RemoteModel) {
+    fun downloadModel(model: ModelDescriptor) {
         downloadJob?.cancel()
-        currentDownload = remote
         downloadJob = viewModelScope.launch {
             _downloadState.value = DownloadState(
-                name = remote.name,
+                name = model.displayName,
                 bytesReceived = 0L,
-                totalBytes = remote.sizeBytes,
+                totalBytes = model.approxDownloadBytes,
                 speedBytesPerSec = 0L,
                 etaSeconds = -1L,
                 progress = 0
             )
             try {
-                ModelService.downloadModel(ctx, remote) { st ->
-                    _downloadState.value = st
+                mandiole.downloadModel(model) { progress ->
+                    val received = progress.bytesDownloaded
+                    val total = progress.totalBytes ?: model.approxDownloadBytes
+                    val p = if (total > 0) ((received * 100) / total).toInt() else 0
+                    
+                    _downloadState.value = _downloadState.value?.copy(
+                        bytesReceived = received,
+                        totalBytes = total,
+                        progress = p.coerceIn(0, 100)
+                    )
                 }
                 _downloadState.value = _downloadState.value?.copy(
                     progress = 100,
                     etaSeconds = 0,
                     speedBytesPerSec = 0
                 )
-                loadModelsRemote()
             } catch (ce: CancellationException) {
-                currentDownload?.let {
-                    val target = ModelService.resolveLocalFile(ctx, it.filename)
-                    val tmp = File(target.parentFile, "${target.name}.part")
-                    if (tmp.exists()) tmp.delete()
-                }
                 _downloadState.value = null
                 throw ce
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                Log.e("ViewModel", "Download failed", e)
                 _downloadState.value = _downloadState.value?.copy(etaSeconds = -1)
             } finally {
-                currentDownload = null
                 downloadJob = null
             }
         }
@@ -140,13 +135,7 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
 
     fun cancelDownload() {
         downloadJob?.cancel()
-        currentDownload?.let {
-            val target = ModelService.resolveLocalFile(ctx, it.filename)
-            val tmp = File(target.parentFile, "${target.name}.part")
-            if (tmp.exists()) tmp.delete()
-        }
         _downloadState.value = null
-        currentDownload = null
         downloadJob = null
     }
 
@@ -154,13 +143,12 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
         _downloadState.value = null
     }
 
-    fun deleteLocalModel(remote: RemoteModel) {
+    fun deleteLocalModel(model: ModelDescriptor) {
         viewModelScope.launch {
             try {
                 _isDeleting.value = true
-                val f = ModelService.resolveLocalFile(ctx, remote.filename)
-                if (f.exists()) f.delete()
-                _lastDeleteCompleted.value = remote.filename
+                mandiole.deleteModel(model)
+                _lastDeleteCompleted.value = model.id
                 loadModelsRemote()
             } finally {
                 _isDeleting.value = false
@@ -172,52 +160,69 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
         _lastDeleteCompleted.value = null
     }
 
-    fun startBenchmark(modelPath: String) {
+    fun startBenchmark(model: ModelDescriptor) {
         viewModelScope.launch {
             try {
                 _chat.value = ChatSessionState(
                     isRunning = true,
-                    modelName = modelPath.substringAfterLast("/"),
-                    output = emptyList()
+                    modelName = model.displayName,
+                    output = listOf("Loading model ${model.displayName}...")
                 )
-                ModelLauncherService.startModel(
-                    context = ctx,
-                    modelPath = modelPath,
-                    onOutput = { line ->
-                        val list = _chat.value.output.toMutableList()
-                        list.add(line)
-                        _chat.value = _chat.value.copy(output = list)
-                    },
-                    onReady = {},
-                    onError = {
-                        _chat.value = ChatSessionState(
-                            isRunning = false,
-                            modelName = _chat.value.modelName,
-                            output = _chat.value.output + "Error: $it"
-                        )
-                    }
-                )
-            } catch (e: Error) {
-                e.stackTrace.forEach { stackTraceElement ->
-                    Log.e("Benchmark failed", "    $stackTraceElement")
+                
+                if (!mandiole.isModelAvailable(model)) {
+                    _chat.value = _chat.value.copy(output = listOf("Downloading model..."))
+                    downloadModel(model)
+                    return@launch
                 }
-                throw e
+
+                currentBackend?.close()
+                val backend = mandiole.loadModel(model)
+                currentBackend = backend
+                chatHistory.clear()
+                
+                _chat.value = _chat.value.copy(
+                    output = listOf("✅ Model loaded: ${model.displayName}")
+                )
+            } catch (e: Exception) {
+                Log.e("Benchmark failed", "Error", e)
+                _chat.value = _chat.value.copy(
+                    isRunning = false,
+                    output = _chat.value.output + "Error: ${e.message}"
+                )
             }
         }
     }
 
     fun sendPrompt(prompt: String) {
+        val userTurn = ChatTurn(role = ChatRole.USER, text = prompt)
+        chatHistory.add(userTurn)
+        
         val list = _chat.value.output.toMutableList()
         list.add("> $prompt")
         _chat.value = _chat.value.copy(output = list)
-        ModelLauncherService.sendPrompt(prompt) { response ->
-            val out = _chat.value.output.toMutableList()
-            out.add(response)
-            _chat.value = _chat.value.copy(output = out)
+        
+        viewModelScope.launch {
+            try {
+                val backend = currentBackend ?: return@launch
+                backend.streamReply(chatHistory, thinkingEnabled = false) { response ->
+                    // Stream update logic could go here
+                }.also { finalResponse ->
+                    chatHistory.add(ChatTurn(role = ChatRole.ASSISTANT, text = finalResponse.text))
+                    val out = _chat.value.output.toMutableList()
+                    out.add(finalResponse.text)
+                    _chat.value = _chat.value.copy(output = out)
+                }
+            } catch (e: Exception) {
+                val out = _chat.value.output.toMutableList()
+                out.add("Error: ${e.message}")
+                _chat.value = _chat.value.copy(output = out)
+            }
         }
     }
 
     fun stopBenchmark() {
+        currentBackend?.close()
+        currentBackend = null
         _chat.value = _chat.value.copy(isRunning = false)
     }
 

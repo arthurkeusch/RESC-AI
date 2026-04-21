@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Skynet Monitor"
 include(":app")
- 
+include(":mandiole")
