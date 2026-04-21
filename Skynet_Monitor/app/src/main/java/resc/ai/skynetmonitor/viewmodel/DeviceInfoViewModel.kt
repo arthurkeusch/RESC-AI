@@ -16,17 +16,22 @@ import fr.arthur.keusch.mandiole.model.ModelDescriptor
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import resc.ai.skynetmonitor.service.DeviceInfoService
 import resc.ai.skynetmonitor.service.DownloadState
 
+data class ChatMessage(
+    val role: ChatRole,
+    val text: String,
+)
+
 data class ChatSessionState(
     val isRunning: Boolean = false,
+    val isModelLoaded: Boolean = false,
+    val isGenerating: Boolean = false,
     val modelName: String = "",
-    val output: List<String> = emptyList()
+    val messages: List<ChatMessage> = emptyList()
 )
 
 class DeviceInfoViewModel(application: Application) : AndroidViewModel(application) {
@@ -36,6 +41,10 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
 
     private val _remoteModels = MutableStateFlow<List<ModelDescriptor>>(emptyList())
     val remoteModels: StateFlow<List<ModelDescriptor>> = _remoteModels.asStateFlow()
+
+    private val _localModels = MutableStateFlow<List<ModelDescriptor>>(emptyList())
+
+    val localModels: StateFlow<List<ModelDescriptor>> = _localModels.asStateFlow()
 
     private val _downloadState = MutableStateFlow<DownloadState?>(null)
     val downloadState: StateFlow<DownloadState?> = _downloadState.asStateFlow()
@@ -90,7 +99,10 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun loadModelsRemote() {
-        _remoteModels.value = mandiole.getAvailableModels()
+        val remoteList = mandiole.getAvailableModels()
+        _remoteModels.value = remoteList
+        val localList = remoteList.filter { isModelLocal(it) }
+        _localModels.value = localList
     }
 
     fun downloadModel(model: ModelDescriptor) {
@@ -165,12 +177,12 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
             try {
                 _chat.value = ChatSessionState(
                     isRunning = true,
+                    isModelLoaded = false,
                     modelName = model.displayName,
-                    output = listOf("Loading model ${model.displayName}...")
+                    messages = emptyList()
                 )
                 
                 if (!mandiole.isModelAvailable(model)) {
-                    _chat.value = _chat.value.copy(output = listOf("Downloading model..."))
                     downloadModel(model)
                     return@launch
                 }
@@ -179,15 +191,15 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                 val backend = mandiole.loadModel(model)
                 currentBackend = backend
                 chatHistory.clear()
-                
+
                 _chat.value = _chat.value.copy(
-                    output = listOf("✅ Model loaded: ${model.displayName}")
+                    isModelLoaded = true
                 )
             } catch (e: Exception) {
                 Log.e("Benchmark failed", "Error", e)
                 _chat.value = _chat.value.copy(
                     isRunning = false,
-                    output = _chat.value.output + "Error: ${e.message}"
+                    messages = _chat.value.messages + ChatMessage(ChatRole.ASSISTANT, "Error: ${e.message}")
                 )
             }
         }
@@ -196,34 +208,55 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
     fun sendPrompt(prompt: String) {
         val userTurn = ChatTurn(role = ChatRole.USER, text = prompt)
         chatHistory.add(userTurn)
-        
-        val list = _chat.value.output.toMutableList()
-        list.add("> $prompt")
-        _chat.value = _chat.value.copy(output = list)
-        
+
+        _chat.update { state ->
+            state.copy(
+                isGenerating = true,
+                messages = state.messages + ChatMessage(ChatRole.USER, prompt) + ChatMessage(ChatRole.ASSISTANT, "")
+            )
+        }
+
         viewModelScope.launch {
             try {
                 val backend = currentBackend ?: return@launch
                 backend.streamReply(chatHistory, thinkingEnabled = false) { response ->
-                    // Stream update logic could go here
+                    _chat.update { state ->
+                        val newMessages = state.messages.toMutableList()
+                        if (newMessages.isNotEmpty()) {
+                            newMessages[newMessages.size - 1] = ChatMessage(ChatRole.ASSISTANT, response.text)
+                        }
+                        state.copy(messages = newMessages)
+                    }
                 }.also { finalResponse ->
                     chatHistory.add(ChatTurn(role = ChatRole.ASSISTANT, text = finalResponse.text))
-                    val out = _chat.value.output.toMutableList()
-                    out.add(finalResponse.text)
-                    _chat.value = _chat.value.copy(output = out)
+                    _chat.update { state ->
+                        val newMessages = state.messages.toMutableList()
+                        if (newMessages.isNotEmpty()) {
+                            newMessages[newMessages.size - 1] = ChatMessage(ChatRole.ASSISTANT, finalResponse.text)
+                        }
+                        state.copy(messages = newMessages, isGenerating = false)
+                    }
                 }
             } catch (e: Exception) {
-                val out = _chat.value.output.toMutableList()
-                out.add("Error: ${e.message}")
-                _chat.value = _chat.value.copy(output = out)
+                _chat.update { state ->
+                    state.copy(
+                        isGenerating = false,
+                        messages = state.messages + ChatMessage(ChatRole.ASSISTANT, "Error: ${e.message}")
+                    )
+                }
             }
         }
+    }
+
+    fun cancelGeneration() {
+        currentBackend?.cancelGeneration()
+        _chat.update { it.copy(isGenerating = false) }
     }
 
     fun stopBenchmark() {
         currentBackend?.close()
         currentBackend = null
-        _chat.value = _chat.value.copy(isRunning = false)
+        _chat.value = ChatSessionState(isRunning = false)
     }
 
     @SuppressLint("DefaultLocale")

@@ -25,6 +25,7 @@ import resc.ai.skynetmonitor.viewmodel.DeviceInfoViewModel
 
 import fr.arthur.keusch.mandiole.model.ModelDescriptor
 import fr.arthur.keusch.mandiole.model.ModelRegistry
+import kotlinx.coroutines.flow.StateFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,7 +35,7 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vie
     var hardwareExpanded by remember { mutableStateOf(false) }
     var systemExpanded by remember { mutableStateOf(true) }
 
-    val models by viewModel.remoteModels.collectAsState()
+    val localModels: List<ModelDescriptor> by viewModel.localModels.collectAsState()
     val downloadState by viewModel.downloadState.collectAsState()
     val chatState by viewModel.benchmarkState.collectAsState()
 
@@ -53,9 +54,9 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vie
         }
     }
 
-    if (showDialog) {
+    if (showDialog && localModels.isNotEmpty()) {
         ModelSelectionDialog(
-            models = models.map {
+            models = localModels.map {
                 resc.ai.skynetmonitor.ui.components.ModelInfo(
                     name = it.displayName,
                     sizeBytes = it.approxDownloadBytes,
@@ -66,11 +67,8 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vie
             downloadState = downloadState,
             onDismiss = { showDialog = false },
             onConfirm = { info ->
-                val model = models.find { it.displayName == info.name }
+                val model = localModels.find { it.displayName == info.name }
                 if (model != null) {
-                    // Check if model is already downloaded via Mandiole
-                    // For now, let's assume if it's in models list, we can try to start or download
-                    // In a more robust impl, we'd check if files exist
                     selectedModel = model
                     viewModel.startBenchmark(model)
                     showDialog = false
@@ -109,7 +107,7 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vie
                                 .widthIn(min = 160.dp)
                                 .height(48.dp)
                         ) {
-                            Text(selectedModel?.displayName ?: "Select model", fontSize = 15.sp)
+                            Text(selectedModel?.displayName ?: "Select a model", fontSize = 15.sp)
                         }
                         Button(
                             onClick = {
@@ -189,20 +187,11 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vie
                                 val history = viewModel.historyData.value[label] ?: emptyList()
                                 val bounds = viewModel.getBoundsFor(label)
                                 val color = when {
-                                    label.contains(
-                                        "RAM",
-                                        ignoreCase = true
-                                    ) -> Color(0xFF42A5F5)
+                                    label.contains("RAM", ignoreCase = true) -> Color(0xFF42A5F5)
 
-                                    label.contains(
-                                        "Temp",
-                                        ignoreCase = true
-                                    ) -> Color(0xFFFFA726)
+                                    label.contains("Temp", ignoreCase = true) -> Color(0xFFFFA726)
 
-                                    label.contains(
-                                        "Battery",
-                                        ignoreCase = true
-                                    ) -> Color(0xFF9CCC65)
+                                    label.contains("Battery", ignoreCase = true) -> Color(0xFF9CCC65)
 
                                     else -> Color(0xFFBA68C8)
                                 }
