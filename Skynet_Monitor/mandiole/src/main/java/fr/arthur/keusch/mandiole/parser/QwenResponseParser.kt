@@ -39,6 +39,16 @@ object QwenResponseParser {
 
         while (cursor < rawOutput.length) {
             val thinkStart = rawOutput.indexOf(THINK_OPEN_TAG, startIndex = cursor)
+            val thinkEnd = rawOutput.indexOf(THINK_CLOSE_TAG, startIndex = cursor)
+
+            // Cas où on a un marqueur de fin </think> mais pas encore de marqueur de début <think>
+            // (peut arriver si le début a été tronqué ou si le modèle commence directement à réfléchir)
+            if (thinkEnd >= 0 && (thinkStart < 0 || thinkEnd < thinkStart)) {
+                thinkingBuilder.append(rawOutput.substring(cursor, thinkEnd))
+                cursor = thinkEnd + THINK_CLOSE_TAG.length
+                continue
+            }
+
             if (thinkStart < 0) {
                 answerBuilder.append(rawOutput.substring(cursor))
                 break
@@ -49,15 +59,15 @@ object QwenResponseParser {
             }
 
             val thoughtStart = thinkStart + THINK_OPEN_TAG.length
-            val thinkEnd = rawOutput.indexOf(THINK_CLOSE_TAG, startIndex = thoughtStart)
-            if (thinkEnd < 0) {
+            val nextThinkEnd = rawOutput.indexOf(THINK_CLOSE_TAG, startIndex = thoughtStart)
+            if (nextThinkEnd < 0) {
                 thinkingBuilder.append(rawOutput.substring(thoughtStart))
                 cursor = rawOutput.length
                 break
             }
 
-            thinkingBuilder.append(rawOutput.substring(thoughtStart, thinkEnd))
-            cursor = thinkEnd + THINK_CLOSE_TAG.length
+            thinkingBuilder.append(rawOutput.substring(thoughtStart, nextThinkEnd))
+            cursor = nextThinkEnd + THINK_CLOSE_TAG.length
         }
 
         return ParsedOutput(

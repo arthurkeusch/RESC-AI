@@ -1,6 +1,7 @@
 package fr.arthur.keusch.mandiole.backend.litert
 
 import android.content.Context
+import android.util.Log
 import com.google.ai.edge.litertlm.Backend
 import com.google.ai.edge.litertlm.Conversation
 import com.google.ai.edge.litertlm.ConversationConfig
@@ -17,6 +18,7 @@ import fr.arthur.keusch.mandiole.util.ModelFileResolver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.withContext
+import java.io.File
 
 class GemmaLiteRtBackend(
     private val context: Context,
@@ -30,21 +32,53 @@ class GemmaLiteRtBackend(
 
     private lateinit var engine: Engine
     private var conversation: Conversation? = null
+    private var unit: String = "CPU"
+
+    override val executionUnit: String
+        get() = unit
 
     override suspend fun initialize() = withContext(Dispatchers.IO) {
         val modelFile = modelFileResolver.resolveModelFile(spec)
 
-        val gpuResult = runCatching {
-            Engine(
-                EngineConfig(
-                    modelPath = modelFile.absolutePath,
-                    backend = Backend.GPU(),
-                    cacheDir = context.cacheDir.absolutePath
-                )
-            ).apply { initialize() }
+        // Détection de la présence d'OpenCL sur l'appareil.
+        val isOpenClAvailable = listOf(
+            "/system/lib64/libOpenCL.so",
+            "/system/vendor/lib64/libOpenCL.so",
+            "/vendor/lib64/libOpenCL.so",
+            "/vendor/lib64/egl/libGLES_mali.so", // Souvent là sur Samsung
+            "/system/vendor/lib/libOpenCL.so",
+            "/system/lib/libOpenCL.so"
+        ).any { File(it).exists() }
+
+        // Détection plus large pour inclure Samsung, Mali, Exynos et Mediatek (mt)
+        val isSamsung = android.os.Build.MANUFACTURER.contains("samsung", ignoreCase = true)
+        val isMaliOrExynos = android.os.Build.HARDWARE.contains("mali", ignoreCase = true) || 
+                             android.os.Build.BOARD.contains("exynos", ignoreCase = true) ||
+                             android.os.Build.HARDWARE.contains("mt", ignoreCase = true) // Mediatek
+
+        // On évite le GPU sur Samsung pour le moment car LiteRT-LM y a des problèmes de chargement OpenCL
+        val useGpu = isOpenClAvailable && !isMaliOrExynos && !isSamsung
+
+        Log.d("LLM", "Init: isOpenCl=$isOpenClAvailable, isMali=$isMaliOrExynos, isSamsung=$isSamsung, useGpu=$useGpu")
+
+        val gpuResult = if (useGpu) {
+            Log.i("LLM", "Attempting GPU initialization...")
+            runCatching {
+                Engine(
+                    EngineConfig(
+                        modelPath = modelFile.absolutePath,
+                        backend = Backend.GPU(),
+                        cacheDir = context.cacheDir.absolutePath
+                    )
+                ).apply { initialize() }
+            }.onSuccess { unit = "GPU" }
+        } else {
+            Result.failure(Exception(if (!isOpenClAvailable) "OpenCL unavailable" else "Forced CPU for stability on Mali/Exynos"))
         }
 
         engine = gpuResult.getOrElse { gpuError ->
+            Log.w("LLM", "Fallback to CPU mode: ${gpuError.message}")
+            unit = "CPU"
             runCatching {
                 Engine(
                     EngineConfig(
@@ -116,8 +150,10 @@ class GemmaLiteRtBackend(
 
     override fun close() {
         closeConversation()
-        if (::engine.isInitialized && engine.isInitialized()) {
-            engine.close()
+        runCatching {
+            if (::engine.isInitialized) {
+                engine.close()
+            }
         }
     }
 

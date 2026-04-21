@@ -28,6 +28,9 @@ class OnnxChatBackend(
     private lateinit var onnxModel: OnnxModel
     private val cancelRequested = AtomicBoolean(false)
 
+    override val executionUnit: String
+        get() = if (::onnxModel.isInitialized) onnxModel.executionUnit else "CPU"
+
     override suspend fun initialize() = withContext(Dispatchers.IO) {
         tokenizer = BpeTokenizer(context, spec, modelFileResolver)
         config = spec.toModelConfig(tokenizer)
@@ -54,7 +57,6 @@ class OnnxChatBackend(
         val promptTokens = promptBuilder.buildPromptTokens(history, PromptIntent.QA(systemPrompt))
         val responseBuilder = StringBuilder()
         val streamDecoder = tokenizer.createStreamDecoder()
-        var tokenCounter = 0
 
         onnxModel.runInferenceStreamingWithPastKV(
             inputIds = promptTokens,
@@ -63,12 +65,8 @@ class OnnxChatBackend(
             onTokenGenerated = { tokenId ->
                 val tokenText = streamDecoder.append(tokenId)
 
-                val shouldSkip = isQwen3 && tokenCounter < 4
-                if (!shouldSkip) {
-                    responseBuilder.append(tokenText)
-                    onPartial(parseBackendResponse(responseBuilder.toString(), isQwen3))
-                }
-                tokenCounter += 1
+                responseBuilder.append(tokenText)
+                onPartial(parseBackendResponse(responseBuilder.toString(), isQwen3))
             }
         )
 

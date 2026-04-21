@@ -14,6 +14,7 @@ import fr.arthur.keusch.mandiole.model.ChatRole
 import fr.arthur.keusch.mandiole.model.ChatTurn
 import fr.arthur.keusch.mandiole.model.ModelDescriptor
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -24,13 +25,18 @@ import resc.ai.skynetmonitor.service.DownloadState
 data class ChatMessage(
     val role: ChatRole,
     val text: String,
+    val thinkingText: String? = null,
+    val thinkingDurationSeconds: Int? = null
 )
 
 data class ChatSessionState(
     val isRunning: Boolean = false,
     val isModelLoaded: Boolean = false,
     val isGenerating: Boolean = false,
+    val thinkingEnabled: Boolean = false,
+    val canThink: Boolean = false,
     val modelName: String = "",
+    val executionUnit: String? = null,
     val messages: List<ChatMessage> = emptyList()
 )
 
@@ -67,6 +73,7 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
 
     private var downloadJob: Job? = null
     private var currentBackend: ChatBackend? = null
+    private var currentModel: ModelDescriptor? = null
     private val chatHistory = mutableListOf<ChatTurn>()
 
     init {
@@ -137,7 +144,7 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                 _downloadState.value = null
                 throw ce
             } catch (e: Exception) {
-                Log.e("ViewModel", "Download failed", e)
+                Log.e("LLM", "Download failed", e)
                 _downloadState.value = _downloadState.value?.copy(etaSeconds = -1)
             } finally {
                 downloadJob = null
@@ -178,6 +185,8 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                 _chat.value = ChatSessionState(
                     isRunning = true,
                     isModelLoaded = false,
+                    thinkingEnabled = model.supportsThinking,
+                    canThink = model.supportsThinking,
                     modelName = model.displayName,
                     messages = emptyList()
                 )
@@ -188,21 +197,36 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                 }
 
                 currentBackend?.close()
+                currentBackend = null
+                currentModel = model
+
                 val backend = mandiole.loadModel(model)
+                
+                // Check if user cancelled while loading
+                if (!_chat.value.isRunning) {
+                    backend.close()
+                    return@launch
+                }
+
                 currentBackend = backend
                 chatHistory.clear()
 
                 _chat.value = _chat.value.copy(
-                    isModelLoaded = true
+                    isModelLoaded = true,
+                    executionUnit = backend.executionUnit
                 )
             } catch (e: Exception) {
-                Log.e("Benchmark failed", "Error", e)
+                Log.e("LLM", "Error", e)
                 _chat.value = _chat.value.copy(
                     isRunning = false,
                     messages = _chat.value.messages + ChatMessage(ChatRole.ASSISTANT, "Error: ${e.message}")
                 )
             }
         }
+    }
+
+    fun setThinkingEnabled(enabled: Boolean) {
+        _chat.update { it.copy(thinkingEnabled = enabled) }
     }
 
     fun sendPrompt(prompt: String) {
@@ -219,20 +243,42 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
         viewModelScope.launch {
             try {
                 val backend = currentBackend ?: return@launch
-                backend.streamReply(chatHistory, thinkingEnabled = false) { response ->
+                val thinkingEnabled = _chat.value.thinkingEnabled
+                val startTime = System.currentTimeMillis()
+                
+                backend.streamReply(chatHistory, thinkingEnabled = thinkingEnabled) { response ->
+                    val currentTime = System.currentTimeMillis()
+                    val durationSec = if (response.thinkingText != null) {
+                        ((currentTime - startTime) / 1000).toInt()
+                    } else null
+
                     _chat.update { state ->
                         val newMessages = state.messages.toMutableList()
                         if (newMessages.isNotEmpty()) {
-                            newMessages[newMessages.size - 1] = ChatMessage(ChatRole.ASSISTANT, response.text)
+                            newMessages[newMessages.size - 1] = ChatMessage(
+                                role = ChatRole.ASSISTANT, 
+                                text = response.text,
+                                thinkingText = response.thinkingText,
+                                thinkingDurationSeconds = durationSec
+                            )
                         }
                         state.copy(messages = newMessages)
                     }
                 }.also { finalResponse ->
+                    val totalDurationSec = if (finalResponse.thinkingText != null) {
+                        ((System.currentTimeMillis() - startTime) / 1000).toInt()
+                    } else null
+
                     chatHistory.add(ChatTurn(role = ChatRole.ASSISTANT, text = finalResponse.text))
                     _chat.update { state ->
                         val newMessages = state.messages.toMutableList()
                         if (newMessages.isNotEmpty()) {
-                            newMessages[newMessages.size - 1] = ChatMessage(ChatRole.ASSISTANT, finalResponse.text)
+                            newMessages[newMessages.size - 1] = ChatMessage(
+                                role = ChatRole.ASSISTANT, 
+                                text = finalResponse.text,
+                                thinkingText = finalResponse.thinkingText,
+                                thinkingDurationSeconds = totalDurationSec
+                            )
                         }
                         state.copy(messages = newMessages, isGenerating = false)
                     }
@@ -254,9 +300,19 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun stopBenchmark() {
-        currentBackend?.close()
+        val backendToClose = currentBackend
         currentBackend = null
         _chat.value = ChatSessionState(isRunning = false)
+        
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                backendToClose?.close()
+            } catch (e: Exception) {
+                Log.e("LLM", "Error closing backend", e)
+            } finally {
+                System.gc()
+            }
+        }
     }
 
     @SuppressLint("DefaultLocale")

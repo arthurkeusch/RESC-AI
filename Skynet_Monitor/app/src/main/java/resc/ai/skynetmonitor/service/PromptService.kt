@@ -29,7 +29,7 @@ data class DatasetItem(
 )
 
 object PromptService {
-    private const val TAG = "PromptService"
+    private const val TAG = "LLM"
 
     private fun errorToast(context: Context, message: String) {
         Toast.makeText(context, message, Toast.LENGTH_LONG).show()

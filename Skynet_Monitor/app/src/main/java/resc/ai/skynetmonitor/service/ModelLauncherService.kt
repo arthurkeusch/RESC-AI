@@ -11,7 +11,7 @@ import java.util.concurrent.Executors
 
 object ModelLauncherService {
 
-    private const val TAG = "SkynetModel"
+    private const val TAG = "LLM"
 
     // Un petit pool pour éviter de bloquer l’UI
     private val io = Executors.newSingleThreadExecutor()

@@ -27,7 +27,7 @@ class BpeTokenizer(
     private val bpeCache = mutableMapOf<String, List<String>>()
 
     companion object {
-        private const val TAG = "BpeTokenizer"
+        private const val TAG = "LLM"
         private val DEFAULT_SPLIT_PATTERN = Regex(
             """'(?i:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+"""
         )

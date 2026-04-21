@@ -4,6 +4,7 @@ import fr.arthur.keusch.mandiole.model.ChatTurn
 import fr.arthur.keusch.mandiole.model.BackendResponse
 
 interface ChatBackend : AutoCloseable {
+    val executionUnit: String
     suspend fun initialize()
     suspend fun resetConversation(history: List<ChatTurn>, thinkingEnabled: Boolean)
     suspend fun streamReply(

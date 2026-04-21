@@ -10,8 +10,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Circle
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,7 +25,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -59,7 +70,15 @@ fun ModelChatDialog(
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 // Header
-                HeaderSection(chat.modelName, chat.isModelLoaded, downloadState)
+                HeaderSection(
+                    modelName = chat.modelName,
+                    isLoaded = chat.isModelLoaded,
+                    executionUnit = chat.executionUnit,
+                    downloadState = downloadState,
+                    canThink = chat.canThink,
+                    thinkingEnabled = chat.thinkingEnabled,
+                    onThinkingToggle = { viewModel.setThinkingEnabled(it) }
+                )
 
                 // Chat Messages
                 LazyColumn(
@@ -107,35 +126,69 @@ fun ModelChatDialog(
 }
 
 @Composable
-fun HeaderSection(modelName: String, isLoaded: Boolean, downloadState: resc.ai.skynetmonitor.service.DownloadState?) {
+fun HeaderSection(
+    modelName: String,
+    isLoaded: Boolean,
+    executionUnit: String?,
+    downloadState: resc.ai.skynetmonitor.service.DownloadState?,
+    canThink: Boolean,
+    thinkingEnabled: Boolean,
+    onThinkingToggle: (Boolean) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-            .padding(16.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column {
-                Text(
-                    text = modelName,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = modelName,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    
+                    if (canThink && isLoaded) {
+                        Spacer(Modifier.width(8.dp))
+                        IconToggleButton(
+                            checked = thinkingEnabled,
+                            onCheckedChange = onThinkingToggle,
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (thinkingEnabled) Icons.Filled.Lightbulb else Icons.Outlined.Lightbulb,
+                                contentDescription = "Toggle Thinking Mode",
+                                tint = if (thinkingEnabled) Color(0xFFFFC107) else MaterialTheme.colorScheme.outline,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                }
+                
                 if (downloadState != null) {
                     Text(
                         text = "Downloading... ${downloadState.progress}%",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary
                     )
+                } else if (canThink && isLoaded) {
+                    Text(
+                        text = if (thinkingEnabled) "Reasoning active" else "Reasoning disabled",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (thinkingEnabled) Color(0xFFFFC107) else MaterialTheme.colorScheme.outline
+                    )
                 }
             }
 
-            // Status Icon
-            StatusIcon(isLoaded)
+            // Status and Execution Unit
+            StatusIcon(isLoaded, executionUnit)
         }
 
         if (downloadState != null) {
@@ -160,7 +213,7 @@ fun HeaderSection(modelName: String, isLoaded: Boolean, downloadState: resc.ai.s
 }
 
 @Composable
-fun StatusIcon(isLoaded: Boolean) {
+fun StatusIcon(isLoaded: Boolean, executionUnit: String?) {
     val infiniteTransition = rememberInfiniteTransition(label = "status")
     val alpha by infiniteTransition.animateFloat(
         initialValue = 0.4f,
@@ -172,21 +225,42 @@ fun StatusIcon(isLoaded: Boolean) {
         label = "alpha"
     )
 
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            imageVector = Icons.Default.Circle,
-            contentDescription = null,
-            tint = if (isLoaded) Color(0xFF4CAF50) else Color(0xFFFFC107),
-            modifier = Modifier
-                .size(12.dp)
-                .then(if (!isLoaded) Modifier.graphicsLayer { this.alpha = alpha } else Modifier)
-        )
-        Spacer(Modifier.width(6.dp))
-        Text(
-            text = if (isLoaded) "Ready" else "Loading",
-            style = MaterialTheme.typography.labelMedium,
-            color = if (isLoaded) Color(0xFF4CAF50) else Color(0xFFFFC107)
-        )
+    Column(horizontalAlignment = Alignment.End) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Default.Circle,
+                contentDescription = null,
+                tint = if (isLoaded) Color(0xFF4CAF50) else Color(0xFFFFC107),
+                modifier = Modifier
+                    .size(12.dp)
+                    .then(if (!isLoaded) Modifier.graphicsLayer { this.alpha = alpha } else Modifier)
+            )
+            Spacer(Modifier.width(6.dp))
+            Text(
+                text = if (isLoaded) "Ready" else "Loading",
+                style = MaterialTheme.typography.labelMedium,
+                color = if (isLoaded) Color(0xFF4CAF50) else Color(0xFFFFC107)
+            )
+        }
+        
+        if (isLoaded && executionUnit != null) {
+            Spacer(Modifier.height(4.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                val isGpu = executionUnit.contains("GPU", ignoreCase = true)
+                Icon(
+                    imageVector = if (isGpu) Icons.Default.Bolt else Icons.Default.Memory,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.size(14.dp)
+                )
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    text = executionUnit,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+        }
     }
 }
 
@@ -214,11 +288,166 @@ fun ChatBubble(message: ChatMessage) {
             tonalElevation = 2.dp,
             modifier = Modifier.widthIn(max = 300.dp)
         ) {
-            Text(
-                text = message.text,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 22.sp)
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+                // Thinking section
+                if (message.thinkingText != null && message.thinkingText.isNotBlank()) {
+                    var isExpanded by remember { mutableStateOf(false) }
+                    
+                    Surface(
+                        onClick = { isExpanded = !isExpanded },
+                        color = Color.Transparent,
+                        contentColor = contentColor.copy(alpha = 0.7f),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Column {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(vertical = 4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                val durationText = message.thinkingDurationSeconds?.let { " ($it s)" } ?: ""
+                                Text(
+                                    text = if (isExpanded) "Thinking process$durationText" else "Model is thinking...$durationText",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontStyle = FontStyle.Italic
+                                )
+                            }
+                            
+                            if (isExpanded) {
+                                Text(
+                                    text = message.thinkingText,
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontStyle = FontStyle.Italic,
+                                        lineHeight = 16.sp
+                                    ),
+                                    modifier = Modifier.padding(start = 20.dp, bottom = 8.dp)
+                                )
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                    color = contentColor.copy(alpha = 0.2f)
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                if (message.text.isNotBlank()) {
+                    MarkdownText(
+                        text = message.text,
+                        style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 22.sp),
+                        color = contentColor
+                    )
+                } else if (!isUser) {
+                    // Typing indicator
+                    TypingIndicator(contentColor)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun TypingIndicator(color: Color) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        val infiniteTransition = rememberInfiniteTransition(label = "typing")
+        val dotAlpha1 by infiniteTransition.animateFloat(
+            initialValue = 0.2f, targetValue = 1f,
+            animationSpec = infiniteRepeatable(tween(600, 0), RepeatMode.Reverse), label = ""
+        )
+        val dotAlpha2 by infiniteTransition.animateFloat(
+            initialValue = 0.2f, targetValue = 1f,
+            animationSpec = infiniteRepeatable(tween(600, 200), RepeatMode.Reverse), label = ""
+        )
+        val dotAlpha3 by infiniteTransition.animateFloat(
+            initialValue = 0.2f, targetValue = 1f,
+            animationSpec = infiniteRepeatable(tween(600, 400), RepeatMode.Reverse), label = ""
+        )
+
+        listOf(dotAlpha1, dotAlpha2, dotAlpha3).forEach { alpha ->
+            Box(
+                Modifier
+                    .padding(horizontal = 2.dp)
+                    .size(6.dp)
+                    .graphicsLayer { this.alpha = alpha }
+                    .background(color, CircleShape)
             )
+        }
+    }
+}
+
+/**
+ * A very simple Markdown renderer for Compose.
+ * Handles Code Blocks (```), Bold (**), Italic (*), and Inline Code (`).
+ */
+@Composable
+fun MarkdownText(
+    text: String,
+    style: androidx.compose.ui.text.TextStyle,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    val parts = text.split("```")
+    Column(modifier = modifier) {
+        parts.forEachIndexed { index, part ->
+            if (index % 2 == 1) {
+                // Code block
+                Surface(
+                    color = color.copy(alpha = 0.05f),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.padding(vertical = 4.dp).fillMaxWidth()
+                ) {
+                    Text(
+                        text = part.trim(),
+                        style = style.copy(
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = (style.fontSize.value - 2).sp,
+                            color = color.copy(alpha = 0.8f)
+                        ),
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+            } else if (part.isNotBlank() || parts.size == 1) {
+                // Regular text with inline formatting
+                val annotatedString = buildAnnotatedString {
+                    var cursor = 0
+                    val pattern = Regex("""(\*\*|__)(.*?)\1|(\*|_)(.*?)\3|(`)(.*?)\5""")
+                    val matches = pattern.findAll(part)
+
+                    matches.forEach { match ->
+                        append(part.substring(cursor, match.range.first))
+                        val bold = match.groups[1]
+                        val italic = match.groups[3]
+                        val code = match.groups[5]
+
+                        when {
+                            bold != null -> withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append(match.groups[2]?.value ?: "")
+                            }
+                            italic != null -> withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
+                                append(match.groups[4]?.value ?: "")
+                            }
+                            code != null -> withStyle(SpanStyle(
+                                fontFamily = FontFamily.Monospace,
+                                background = color.copy(alpha = 0.1f)
+                            )) {
+                                append(match.groups[6]?.value ?: "")
+                            }
+                        }
+                        cursor = match.range.last + 1
+                    }
+                    if (cursor < part.length) append(part.substring(cursor))
+                }
+                Text(
+                    text = annotatedString,
+                    style = style,
+                    color = color
+                )
+            }
         }
     }
 }

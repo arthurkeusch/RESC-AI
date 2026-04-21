@@ -29,7 +29,7 @@ data class DownloadState(
 )
 
 object ModelService {
-    private const val TAG = "ModelService"
+    private const val TAG = "LLM"
 
     private suspend fun showToast(context: Context, message: String) {
         withContext(Dispatchers.Main) {

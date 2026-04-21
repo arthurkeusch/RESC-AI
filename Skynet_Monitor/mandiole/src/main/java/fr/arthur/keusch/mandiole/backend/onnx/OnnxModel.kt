@@ -22,13 +22,17 @@ class OnnxModel(
     private val session: OrtSession = initializeModel()
     private val sessionInputNames: List<String> = session.inputNames.toList()
     private val pastKeyValueSpecs: List<PastKeyValueSpec> = discoverPastKeyValueSpecs()
+    private var unit: String = "CPU"
+
+    val executionUnit: String
+        get() = unit
 
     companion object {
         const val MAX_TOKENS = 1024
         const val MAX_INPUT_TOKENS = 512
         const val TEMPERATURE = 0.8f
         const val REPETITION_PENALTY = 1.5f
-        private const val TAG = "OnnxModel"
+        private const val TAG = "LLM"
     }
 
     private data class PastKeyValueSpec(
@@ -46,6 +50,17 @@ class OnnxModel(
         Log.d(TAG, "Loading model from: ${modelFile.absolutePath}")
         val opts = OrtSession.SessionOptions()
         try {
+            // Tentative d'activation de NNAPI pour utiliser le NPU/GPU sur Android
+            // C'est beaucoup plus stable que l'OpenCL direct de LiteRT sur Samsung.
+            runCatching {
+                opts.addNnapi()
+                Log.i(TAG, "NNAPI acceleration enabled")
+                unit = "GPU (NNAPI)"
+            }.onFailure {
+                Log.w(TAG, "NNAPI not available, falling back to CPU: ${it.message}")
+                unit = "CPU"
+            }
+
             val session = env.createSession(modelFile.absolutePath, opts)
             Log.d(TAG, "Model loaded and session initialized")
             return session
