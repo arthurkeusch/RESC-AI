@@ -32,16 +32,34 @@ CREATE TABLE IF NOT EXISTS devices
 
 CREATE TABLE IF NOT EXISTS prompts_results
 (
-    id_result  INT AUTO_INCREMENT,
-    response   TEXT,
-    is_think   BOOLEAN NOT NULL DEFAULT FALSE,
-    id_prompt  INT NOT NULL,
-    id_model   INT NOT NULL,
-    id_devices INT NOT NULL,
+    id_result             INT AUTO_INCREMENT,
+    response              TEXT,
+    is_think              BOOLEAN NOT NULL DEFAULT FALSE,
+    response_time_ms      BIGINT  NULL,
+    response_token_count  INT     NULL,
+    response_tokens_per_s FLOAT   NULL,
+    id_prompt             INT     NOT NULL,
+    id_model              INT     NOT NULL,
+    id_devices            INT     NOT NULL,
     PRIMARY KEY (id_result),
     FOREIGN KEY (id_prompt) REFERENCES prompts (id_prompt),
     FOREIGN KEY (id_model) REFERENCES models (id_model),
     FOREIGN KEY (id_devices) REFERENCES devices (id_devices)
+);
+
+CREATE TABLE IF NOT EXISTS prompt_result_device_performance
+(
+    id_performance        BIGINT AUTO_INCREMENT,
+    id_result             INT       NOT NULL,
+    sample_time_ms        BIGINT    NULL,
+    battery_percent       FLOAT     NULL,
+    ram_current_mb        FLOAT     NULL,
+    ram_max_mb            FLOAT     NULL,
+    battery_temperature_c FLOAT     NULL,
+    created_at            TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id_performance),
+    FOREIGN KEY (id_result) REFERENCES prompts_results (id_result) ON DELETE CASCADE,
+    INDEX idx_prompt_result_performance_result_time (id_result, sample_time_ms)
 );
 
 CREATE TABLE IF NOT EXISTS heimdall_recordings
