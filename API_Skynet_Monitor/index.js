@@ -8,6 +8,7 @@ import promptsRouter from "./routes/prompts.js"
 import datasetsRouter from "./routes/datasets.js"
 import heimdallRouter from "./routes/heimdall.js"
 import devicesRouter from "./routes/devices.js"
+import statsRouter from "./routes/stats.js"
 
 dotenv.config()
 
@@ -75,6 +76,7 @@ app.use("/datasets", datasetsRouter({db}))
 app.use("/prompts", promptsRouter({db}))
 app.use("/heimdall", heimdallRouter({db}))
 app.use("/devices", devicesRouter({db}))
+app.use("/stats", statsRouter({db}))
 
 app.get("/health", async (req, res) => {
     try {

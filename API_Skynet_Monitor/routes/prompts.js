@@ -181,7 +181,7 @@ export default function promptsRouter({db}) {
 
     router.get("/results", async (req, res) => {
         try {
-            const [rows] = await db.execute("SELECT * FROM prompts_results")
+            const [rows] = await db.execute("SELECT * FROM prompts_results ORDER BY id_result DESC")
             res.json(rows)
         } catch (err) {
             res.status(500).json({error: err.message})
@@ -248,7 +248,7 @@ export default function promptsRouter({db}) {
     router.get("/:id/results", async (req, res) => {
         try {
             const [rows] = await db.execute(
-                "SELECT * FROM prompts_results WHERE id_prompt = ?",
+                "SELECT * FROM prompts_results WHERE id_prompt = ? ORDER BY id_result DESC",
                 [req.params.id]
             )
             res.json(rows)
