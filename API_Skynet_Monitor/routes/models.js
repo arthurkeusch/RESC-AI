@@ -21,6 +21,24 @@ export default function modelsRouter({db, MODELS_DIR}) {
         }
     })
 
+    router.get("/download/:id", async (req, res) => {
+        try {
+            const [rows] = await db.execute("SELECT * FROM models WHERE id_model = ?", [
+                req.params.id,
+            ])
+            if (rows.length === 0) return res.status(404).json({error: "Model not found"})
+
+            const row = rows[0]
+            const filePath = path.join(MODELS_DIR, row.filename)
+            if (!fs.existsSync(filePath))
+                return res.status(404).json({error: "File not found on disk"})
+
+            res.download(filePath, row.filename)
+        } catch (err) {
+            res.status(500).json({error: "Download failed: " + err.message})
+        }
+    })
+
     router.get("/:id", async (req, res) => {
         try {
             const [rows] = await db.execute(
@@ -149,24 +167,6 @@ export default function modelsRouter({db, MODELS_DIR}) {
             res.json({message: "Model deleted", id_model: id})
         } catch (err) {
             res.status(500).json({error: "Delete failed: " + err.message})
-        }
-    })
-
-    router.get("/download/:id", async (req, res) => {
-        try {
-            const [rows] = await db.execute("SELECT * FROM models WHERE id_model = ?", [
-                req.params.id,
-            ])
-            if (rows.length === 0) return res.status(404).json({error: "Model not found"})
-
-            const row = rows[0]
-            const filePath = path.join(MODELS_DIR, row.filename)
-            if (!fs.existsSync(filePath))
-                return res.status(404).json({error: "File not found on disk"})
-
-            res.download(filePath, row.filename)
-        } catch (err) {
-            res.status(500).json({error: "Download failed: " + err.message})
         }
     })
 

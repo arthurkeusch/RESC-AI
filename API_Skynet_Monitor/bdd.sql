@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS prompts_results
 (
     id_result  INT AUTO_INCREMENT,
     response   TEXT,
+    is_think   BOOLEAN NOT NULL DEFAULT FALSE,
     id_prompt  INT NOT NULL,
     id_model   INT NOT NULL,
     id_devices INT NOT NULL,
