@@ -90,12 +90,16 @@ class OnnxChatBackend(
     }
 
     private fun buildSystemPrompt(thinkingEnabled: Boolean): String {
-        if (!spec.modelName.equals("qwen3", ignoreCase = true) || !spec.thinkingModeAvailable) {
+        val isQwen3 = spec.modelName.contains("qwen3", ignoreCase = true)
+        if (!isQwen3 || !spec.thinkingModeAvailable) {
             return spec.defaultSystemPrompt
         }
 
-        val thinkingDirective = if (thinkingEnabled) "/think" else "/no_think"
-        return "${spec.defaultSystemPrompt} $thinkingDirective".trim()
+        return when {
+            // Mode manuel : On donne une indication claire mais on laisse le LLM maitre
+            !thinkingEnabled -> "${spec.defaultSystemPrompt} /no_think"
+            else -> "${spec.defaultSystemPrompt} /think"
+        }
     }
 
     private fun parseBackendResponse(rawOutput: String, isQwen3: Boolean): BackendResponse {

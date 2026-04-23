@@ -60,7 +60,7 @@ class OnnxModel(
                 Log.w(TAG, "NNAPI not available, falling back to CPU: ${it.message}")
                 unit = "CPU"
             }
-
+            
             val session = env.createSession(modelFile.absolutePath, opts)
             Log.d(TAG, "Model loaded and session initialized")
             return session
@@ -282,116 +282,143 @@ class OnnxModel(
             }
         }
 
-        var totalPosition = promptTokens.size.toLong()  // Running position counter for position_ids and attention mask
+        var totalPosition = 0L
 
-        for (i in 0 until maxTokens) {
-            if (shouldStop()) {
-                Log.d(TAG, "Stopped externally at token $i")
-                break
+        // CHUNKED PREFILL: Process the prompt in smaller blocks (e.g., 32 tokens) 
+        // to avoid massive logit matrix allocations [PromptLen x VocabSize].
+        val prefillChunkSize = 32
+        var prefillCursor = 0
+        
+        while (prefillCursor < promptTokens.size) {
+            val remaining = promptTokens.size - prefillCursor
+            val currentChunkSize = if (remaining > prefillChunkSize) prefillChunkSize else remaining
+            val currentChunk = promptTokens.sliceArray(prefillCursor until (prefillCursor + currentChunkSize))
+            val isLastChunk = prefillCursor + currentChunkSize == promptTokens.size
+            
+            // Run inference on the chunk
+            val seqLen = currentChunk.size.toLong()
+            val inputTensor = OnnxTensor.createTensor(
+                env,
+                LongBuffer.wrap(currentChunk.map { it.toLong() }.toLongArray()),
+                longArrayOf(1, seqLen)
+            )
+            
+            val attentionTensor = if (isQwen3) {
+                val attn = LongArray((totalPosition + seqLen).toInt()) { 1L }
+                OnnxTensor.createTensor(env, LongBuffer.wrap(attn), longArrayOf(1, totalPosition + seqLen))
+            } else {
+                val attn = LongArray(seqLen.toInt()) { 1L }
+                OnnxTensor.createTensor(env, LongBuffer.wrap(attn), longArrayOf(1, seqLen))
             }
 
-            // Use full prompt on first step, then only the last generated token
-            val currentInput = if (i == 0) promptTokens else intArrayOf(generated.last())
+            val posArray = LongArray(seqLen.toInt()) { j -> totalPosition + j }
+            val posTensor = OnnxTensor.createTensor(env, LongBuffer.wrap(posArray), longArrayOf(1, seqLen))
+
+            val inputs = buildRunInputs(inputTensor, attentionTensor, posTensor, pastKeyValues)
+            val results = session.run(inputs)
+            
+            try {
+                // If it's the last chunk, we might want to start generating from here
+                if (isLastChunk) {
+                    val logitsTensor = results[0] as OnnxTensor
+                    val shape = logitsTensor.info.shape
+                    val vocabSize = shape[2].toInt()
+                    
+                    val byteBuffer = logitsTensor.byteBuffer
+                    byteBuffer.order(java.nio.ByteOrder.nativeOrder())
+                    val floatBuffer = byteBuffer.asFloatBuffer()
+                    
+                    val lastTokenLogits = FloatArray(vocabSize)
+                    floatBuffer.position((shape[1].toInt() - 1) * vocabSize)
+                    floatBuffer.get(lastTokenLogits)
+                    
+                    val nextTokenId = lastTokenLogits.indices.maxByOrNull { lastTokenLogits[it] } ?: 0
+                    if (nextTokenId in endTokenIds) {
+                        // End of sequence reached in prefill
+                        pastKeyValues.values.forEach { it.close() }
+                        inputTensor.close(); attentionTensor.close(); posTensor.close(); results.close()
+                        return
+                    }
+                    
+                    onTokenGenerated(nextTokenId)
+                    generated.add(nextTokenId)
+                }
+
+                // Update KV Cache
+                results.drop(1).forEachIndexed { index, result ->
+                    val layer = index / 2
+                    val kv = if (index % 2 == 0) "key" else "value"
+                    val name = "past_key_values.$layer.$kv"
+                    (result.value as? OnnxTensor)?.let {
+                        val tensorCopy = cloneTensor(it)
+                        pastKeyValues[name]?.close()
+                        pastKeyValues[name] = tensorCopy
+                    }
+                }
+            } finally {
+                inputTensor.close(); attentionTensor.close(); posTensor.close(); results.close()
+            }
+            
+            totalPosition += seqLen
+            prefillCursor += currentChunkSize
+        }
+
+        // GENERATION: Continue token by token
+        for (i in 1 until maxTokens) {
+            if (shouldStop()) break
+
+            val currentInput = intArrayOf(generated.last())
             val seqLen = currentInput.size.toLong()
 
-            // Create input_ids tensor
             val inputTensor = OnnxTensor.createTensor(
                 env,
                 LongBuffer.wrap(currentInput.map { it.toLong() }.toLongArray()),
                 longArrayOf(1, seqLen)
             )
 
-            // Attention mask: Qwen3 requires full attention mask up to current position
             val attentionTensor = if (isQwen3) {
-                val attn = LongArray(totalPosition.toInt()) { 1L }
-                OnnxTensor.createTensor(env, LongBuffer.wrap(attn), longArrayOf(1, totalPosition))
+                val attn = LongArray(totalPosition.toInt() + 1) { 1L }
+                OnnxTensor.createTensor(env, LongBuffer.wrap(attn), longArrayOf(1, totalPosition + 1))
             } else {
                 val attn = LongArray(seqLen.toInt()) { 1L }
                 OnnxTensor.createTensor(env, LongBuffer.wrap(attn), longArrayOf(1, seqLen))
             }
 
-            // Position IDs: increment from where the last token ended
-            val startPos = totalPosition - seqLen
-            val posArray = LongArray(seqLen.toInt()) { j -> startPos + j }
-            val posTensor = OnnxTensor.createTensor(env, LongBuffer.wrap(posArray), longArrayOf(1, seqLen))
+            val posTensor = OnnxTensor.createTensor(env, LongBuffer.wrap(longArrayOf(totalPosition)), longArrayOf(1, 1))
 
-            // Merge standard inputs with cached past key-values
-            val inputs = buildRunInputs(
-                inputTensor = inputTensor,
-                attentionTensor = attentionTensor,
-                posTensor = posTensor,
-                pastKeyValues = pastKeyValues
-            )
-            if (inputs.size != session.numInputs.toInt()) {
-                Log.e(
-                    TAG,
-                    "Model input mismatch: prepared ${inputs.size} inputs, session expects ${session.numInputs}. " +
-                        "Input names=${inputs.keys.joinToString()}"
-                )
-                inputTensor.close()
-                attentionTensor.close()
-                posTensor.close()
-                pastKeyValues.values.forEach { it.close() }
-                runInferenceStreaming(
-                    inputIds = promptTokens,
-                    maxTokens = maxTokens,
-                    endTokenIds = endTokenIds,
-                    shouldStop = shouldStop,
-                    onTokenGenerated = onTokenGenerated
-                )
-                return
-            }
-            Log.d(
-                TAG,
-                "Running KV inference with ${inputs.size}/${session.numInputs} inputs: ${inputs.keys.joinToString()}"
-            )
-
-            // Run the ONNX model
+            val inputs = buildRunInputs(inputTensor, attentionTensor, posTensor, pastKeyValues)
             val results = session.run(inputs)
+            
             try {
-                val rawLogits = (results[0].value as Array<Array<FloatArray>>)[0].last()
+                val logitsTensor = results[0] as OnnxTensor
+                val shape = logitsTensor.info.shape
+                val vocabSize = shape[2].toInt()
+                
+                val byteBuffer = logitsTensor.byteBuffer
+                byteBuffer.order(java.nio.ByteOrder.nativeOrder())
+                val lastTokenLogits = FloatArray(vocabSize)
+                byteBuffer.asFloatBuffer().get(lastTokenLogits)
 
-                // Apply temperature or repetition penalty if desired:
-                // val logitsWithTemp = applyTemperature(rawLogits, TEMPERATURE)
-                // val logitsWithPenalty = applyRepetitionPenalty(rawLogits, generated, REPETITION_PENALTY)
-                // val logitsAdjusted = applyRepetitionPenalty(applyTemperature(rawLogits, TEMPERATURE), generated, REPETITION_PENALTY)
-
-                // Select highest-probability token (greedy decoding)
-                val nextTokenId = rawLogits.indices.maxByOrNull { rawLogits[it] } ?: break
-                // Log.d(TAG, "Step $i - Token $nextTokenId")
-
-                // Stop if generated token is in end-of-sequence set
+                val nextTokenId = lastTokenLogits.indices.maxByOrNull { lastTokenLogits[it] } ?: break
                 if (nextTokenId in endTokenIds) break
 
-                // Return token to UI or callback
                 onTokenGenerated(nextTokenId)
                 generated.add(nextTokenId)
                 totalPosition += 1
 
-                // Update KV cache with present key/values from model output
                 results.drop(1).forEachIndexed { index, result ->
                     val layer = index / 2
-                    val kv = if (index % 2 == 0) {
-                        "key"
-                    } else {
-                        "value"
-                    }
+                    val kv = if (index % 2 == 0) "key" else "value"
                     val name = "past_key_values.$layer.$kv"
-                    val ortValue = result.value as? OnnxTensor
-                    ortValue?.let {
+                    (result.value as? OnnxTensor)?.let {
                         val tensorCopy = cloneTensor(it)
-                        pastKeyValues[name]?.close()  // Free old tensor
+                        pastKeyValues[name]?.close()
                         pastKeyValues[name] = tensorCopy
                     }
                 }
             } finally {
-                results.close()
+                inputTensor.close(); attentionTensor.close(); posTensor.close(); results.close()
             }
-
-            // Clean up tensors
-            inputTensor.close()
-            attentionTensor.close()
-            posTensor.close()
         }
 
         // Release all cached key/value tensors after generation
@@ -400,16 +427,19 @@ class OnnxModel(
 
     private fun cloneTensor(source: OnnxTensor): OnnxTensor {
         val info = source.info as TensorInfo
+        val shape = info.shape
         return when (info.type) {
             OnnxJavaType.FLOAT16 -> {
-                val buffer = source.getShortBuffer()
-                    ?: throw IllegalStateException("Expected FLOAT16 tensor buffer.")
-                OnnxTensor.createTensor(env, ShortBuffer.wrap(buffer.array()), info.shape, OnnxJavaType.FLOAT16)
+                val buffer = source.shortBuffer ?: throw IllegalStateException("Missing buffer")
+                val copy = ShortArray(buffer.remaining())
+                buffer.get(copy)
+                OnnxTensor.createTensor(env, ShortBuffer.wrap(copy), shape, OnnxJavaType.FLOAT16)
             }
             OnnxJavaType.FLOAT -> {
-                val buffer = source.getFloatBuffer()
-                    ?: throw IllegalStateException("Expected FLOAT tensor buffer.")
-                OnnxTensor.createTensor(env, FloatBuffer.wrap(buffer.array()), info.shape)
+                val buffer = source.floatBuffer ?: throw IllegalStateException("Missing buffer")
+                val copy = FloatArray(buffer.remaining())
+                buffer.get(copy)
+                OnnxTensor.createTensor(env, FloatBuffer.wrap(copy), shape)
             }
             else -> throw IllegalArgumentException("Unsupported cached tensor type: ${info.type}")
         }

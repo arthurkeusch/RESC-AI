@@ -174,8 +174,10 @@ class QwenLiteRtBackend(
     }
 
     private fun buildSystemInstruction(thinkingEnabled: Boolean): String {
-        val thinkingDirective = if (thinkingEnabled) "/think" else "/no_think"
-        return "${spec.defaultSystemInstruction} $thinkingDirective".trim()
+        return when {
+            !thinkingEnabled -> "${spec.defaultSystemInstruction} /no_think"
+            else -> "${spec.defaultSystemInstruction} /think"
+        }
     }
 
     private fun closeConversation() {

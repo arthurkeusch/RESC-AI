@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
+import org.json.JSONObject
 import resc.ai.skynetmonitor.config.AppConfig
 import java.io.File
 import java.net.URL
@@ -61,7 +62,7 @@ object ModelService {
                     RemoteModel(
                         id = o.getLong("id_model"),
                         name = o.getString("name"),
-                        filename = o.getString("filename"),
+                        filename = o.optString("filename", o.getString("name")),
                         sizeBytes = o.optLong("size", -1L),
                         params = o.optString("params", ""),
                         isLocal = false
@@ -74,6 +75,45 @@ object ModelService {
                 } catch (_: Exception) {
                 }
                 emptyList()
+            }
+        }
+
+    suspend fun registerOrGetModel(context: Context, name: String): Long? =
+        withContext(Dispatchers.IO) {
+            try {
+                val modelName = name.trim()
+                if (modelName.isEmpty()) return@withContext null
+
+                val apiBase = getApiBase(context)
+                val payload = JSONObject().apply {
+                    put("name", modelName)
+                }.toString()
+
+                val conn = (URL("$apiBase/models").openConnection() as HttpsURLConnection).apply {
+                    requestMethod = "POST"
+                    setRequestProperty("Content-Type", "application/json")
+                    connectTimeout = 7000
+                    readTimeout = 15000
+                    doOutput = true
+                    outputStream.use { it.write(payload.toByteArray()) }
+                }
+
+                val code = conn.responseCode
+                val body = if (code in 200..299) {
+                    conn.inputStream.bufferedReader().use { it.readText() }
+                } else {
+                    conn.errorStream?.bufferedReader()?.use { it.readText() }
+                }
+
+                if (code !in 200..299 || body.isNullOrBlank()) {
+                    Log.e(TAG, "Model registration failed ($code): $body")
+                    return@withContext null
+                }
+
+                JSONObject(body).optLong("id_model", -1L).takeIf { it > 0 }
+            } catch (e: Exception) {
+                Log.e(TAG, "Exception in registerOrGetModel()", e)
+                null
             }
         }
 

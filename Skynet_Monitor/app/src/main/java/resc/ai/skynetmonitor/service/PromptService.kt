@@ -306,4 +306,92 @@ object PromptService {
                 false
             }
         }
+
+    suspend fun submitBenchmarkResult(
+        context: Context,
+        response: String,
+        idPrompt: Int,
+        idModel: Long,
+        idDevices: Int,
+        isThink: Boolean
+    ): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val apiBase = getApiBase(context)
+            val url = URL("$apiBase/prompts/results")
+            val payloadObj = JSONObject().apply {
+                put("response", response)
+                put("id_prompt", idPrompt)
+                put("id_model", idModel)
+                put("id_devices", idDevices)
+                put("is_think", isThink)
+            }
+            val payload = payloadObj.toString()
+            Log.d("API_Skynet", "POST $url | Payload: $payload")
+
+            val conn = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "POST"
+                setRequestProperty("Content-Type", "application/json")
+                doOutput = true
+                connectTimeout = 10000
+                readTimeout = 15000
+                outputStream.use { it.write(payload.toByteArray()) }
+            }
+
+            val status = conn.responseCode
+            val responseBody = if (status in 200..299) {
+                conn.inputStream.bufferedReader().use { it.readText() }
+            } else {
+                conn.errorStream?.bufferedReader()?.use { it.readText() }
+            }
+            Log.d("API_Skynet", "Response ($status): $responseBody")
+
+            status in 200..299
+        } catch (e: Exception) {
+            Log.e("API_Skynet", "Result submission failed", e)
+            false
+        }
+    }
+
+    suspend fun registerOrGetDevice(context: Context, info: Map<String, String>): Int? = withContext(Dispatchers.IO) {
+        try {
+            val apiBase = getApiBase(context)
+            val url = URL("$apiBase/devices")
+            val payload = JSONObject().apply {
+                put("brand", info["Brand"])
+                put("model", info["Model"])
+                put("android_version", info["Android Version"])
+                put("cpu_arch", info["CPU Architecture"])
+                put("cpu_cores", info["CPU Cores"]?.toIntOrNull() ?: 0)
+                put("soc", info["SoC"])
+                put("gpu", info["GPU"])
+                put("ram", info["RAM"])
+            }.toString()
+            
+            Log.d("API_Skynet", "POST $url | Registering device: $payload")
+
+            val conn = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "POST"
+                setRequestProperty("Content-Type", "application/json")
+                doOutput = true
+                connectTimeout = 10000
+                readTimeout = 15000
+                outputStream.use { it.write(payload.toByteArray()) }
+            }
+
+            val status = conn.responseCode
+            if (status in 200..299) {
+                val response = conn.inputStream.bufferedReader().use { it.readText() }
+                Log.d("API_Skynet", "Device Reg Response ($status): $response")
+                val obj = JSONObject(response)
+                obj.optInt("id_devices", -1).takeIf { it >= 0 }
+            } else {
+                val err = conn.errorStream?.bufferedReader()?.use { it.readText() }
+                Log.e("API_Skynet", "Device registration failed ($status): $err")
+                null
+            }
+        } catch (e: Exception) {
+            Log.e("API_Skynet", "Device registration error", e)
+            null
+        }
+    }
 }

@@ -19,7 +19,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import resc.ai.skynetmonitor.service.ModelService
 import resc.ai.skynetmonitor.ui.components.InfoCard
 import resc.ai.skynetmonitor.ui.components.ModelChatDialog
-import resc.ai.skynetmonitor.ui.components.ModelSelectionDialog
 import resc.ai.skynetmonitor.ui.theme.SkynetMonitorTheme
 import resc.ai.skynetmonitor.viewmodel.DeviceInfoViewModel
 
@@ -30,12 +29,9 @@ import kotlinx.coroutines.flow.StateFlow
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = viewModel()) {
-    var showDialog by remember { mutableStateOf(false) }
-    var selectedModel by remember { mutableStateOf<ModelDescriptor?>(null) }
     var hardwareExpanded by remember { mutableStateOf(false) }
     var systemExpanded by remember { mutableStateOf(true) }
 
-    val localModels: List<ModelDescriptor> by viewModel.localModels.collectAsState()
     val downloadState by viewModel.downloadState.collectAsState()
     val chatState by viewModel.benchmarkState.collectAsState()
 
@@ -43,39 +39,6 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vie
 
     val hardwareInfo = viewModel.hardwareInfo.value
     val systemState = viewModel.systemState.value
-
-    LaunchedEffect(downloadState?.progress) {
-        val st = downloadState
-        if (st != null && st.progress >= 100) {
-            // After download, we might want to automatically select it or just clear
-            showDialog = false
-            viewModel.clearDownloadState()
-            viewModel.loadModelsRemote() // Refresh local status
-        }
-    }
-
-    if (showDialog && localModels.isNotEmpty()) {
-        ModelSelectionDialog(
-            models = localModels.map {
-                resc.ai.skynetmonitor.ui.components.ModelInfo(
-                    name = it.displayName,
-                    sizeBytes = it.approxDownloadBytes,
-                    parameters = it.sizeLabel
-                )
-            },
-            selectedModel = null,
-            downloadState = downloadState,
-            onDismiss = { showDialog = false },
-            onConfirm = { info ->
-                val model = localModels.find { it.displayName == info.name }
-                if (model != null) {
-                    selectedModel = model
-                    viewModel.startBenchmark(model)
-                    showDialog = false
-                }
-            }
-        )
-    }
 
     if (chatState.isRunning) {
         ModelChatDialog(
@@ -101,19 +64,17 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vie
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         OutlinedButton(
-                            onClick = { showDialog = true },
+                            onClick = { viewModel.startSimpleChatFlow() },
                             enabled = downloadState == null && !chatState.isRunning,
                             modifier = Modifier
                                 .widthIn(min = 160.dp)
                                 .height(48.dp)
                         ) {
-                            Text(selectedModel?.displayName ?: "Select a model", fontSize = 15.sp)
+                            Text("Select a model", fontSize = 15.sp)
                         }
                         Button(
-                            onClick = {
-                                selectedModel?.let { viewModel.startBenchmark(it) }
-                            },
-                            enabled = selectedModel != null && downloadState == null && !chatState.isRunning,
+                            onClick = { viewModel.startBenchmarkFlow() },
+                            enabled = !chatState.isRunning,
                             modifier = Modifier
                                 .widthIn(min = 160.dp)
                                 .height(48.dp)

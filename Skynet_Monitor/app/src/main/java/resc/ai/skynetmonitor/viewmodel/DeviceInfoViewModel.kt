@@ -21,6 +21,9 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import resc.ai.skynetmonitor.service.DeviceInfoService
 import resc.ai.skynetmonitor.service.DownloadState
+import resc.ai.skynetmonitor.service.DatasetItem
+import resc.ai.skynetmonitor.service.PromptService
+import resc.ai.skynetmonitor.service.ModelService
 
 data class ChatMessage(
     val role: ChatRole,
@@ -33,12 +36,22 @@ data class ChatSessionState(
     val isRunning: Boolean = false,
     val isModelLoaded: Boolean = false,
     val isGenerating: Boolean = false,
+    val isBenchmarking: Boolean = false,
     val thinkingEnabled: Boolean = false,
     val canThink: Boolean = false,
     val modelName: String = "",
     val executionUnit: String? = null,
-    val messages: List<ChatMessage> = emptyList()
+    val messages: List<ChatMessage> = emptyList(),
+    val currentStep: BenchmarkStep = BenchmarkStep.MODEL_SELECTION,
+    val datasets: List<DatasetItem> = emptyList(),
+    val selectedDatasetIds: Set<Int> = emptySet()
 )
+
+enum class BenchmarkStep {
+    MODEL_SELECTION,
+    DATASET_SELECTION,
+    EXECUTING
+}
 
 class DeviceInfoViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -71,6 +84,7 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
     private val _chat = MutableStateFlow(ChatSessionState())
     val benchmarkState: StateFlow<ChatSessionState> = _chat.asStateFlow()
 
+    private var deviceId: Int? = null
     private var downloadJob: Job? = null
     private var currentBackend: ChatBackend? = null
     private var currentModel: ModelDescriptor? = null
@@ -78,6 +92,11 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
 
     init {
         hardwareInfo.value = DeviceInfoService.getStaticHardwareInfo(ctx)
+        
+        viewModelScope.launch {
+            deviceId = PromptService.registerOrGetDevice(ctx, hardwareInfo.value)
+        }
+
         viewModelScope.launch {
             while (true) {
                 val newState = DeviceInfoService.getDynamicSystemState(ctx)
@@ -140,6 +159,15 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                     etaSeconds = 0,
                     speedBytesPerSec = 0
                 )
+                
+                // If a model was being selected for chat/benchmark, load it now
+                if (_chat.value.isRunning && !_chat.value.isModelLoaded && currentModel == model) {
+                    if (_chat.value.isBenchmarking && _chat.value.currentStep == BenchmarkStep.EXECUTING) {
+                        runBenchmark()
+                    } else if (!_chat.value.isBenchmarking) {
+                        startChat(model)
+                    }
+                }
             } catch (ce: CancellationException) {
                 _downloadState.value = null
                 throw ce
@@ -179,15 +207,17 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
         _lastDeleteCompleted.value = null
     }
 
-    fun startBenchmark(model: ModelDescriptor) {
+    fun startChat(model: ModelDescriptor) {
         viewModelScope.launch {
             try {
                 _chat.value = ChatSessionState(
                     isRunning = true,
                     isModelLoaded = false,
+                    isBenchmarking = false,
                     thinkingEnabled = model.supportsThinking,
                     canThink = model.supportsThinking,
                     modelName = model.displayName,
+                    currentStep = BenchmarkStep.EXECUTING,
                     messages = emptyList()
                 )
                 
@@ -202,7 +232,6 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
 
                 val backend = mandiole.loadModel(model)
                 
-                // Check if user cancelled while loading
                 if (!_chat.value.isRunning) {
                     backend.close()
                     return@launch
@@ -216,11 +245,170 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                     executionUnit = backend.executionUnit
                 )
             } catch (e: Exception) {
-                Log.e("LLM", "Error", e)
+                Log.e("LLM", "Error starting chat", e)
                 _chat.value = _chat.value.copy(
                     isRunning = false,
                     messages = _chat.value.messages + ChatMessage(ChatRole.ASSISTANT, "Error: ${e.message}")
                 )
+            }
+        }
+    }
+
+    fun startSimpleChatFlow() {
+        _chat.value = ChatSessionState(
+            isRunning = true,
+            isBenchmarking = false,
+            currentStep = BenchmarkStep.MODEL_SELECTION
+        )
+        loadModelsRemote()
+    }
+
+    fun startBenchmarkFlow() {
+        _chat.value = ChatSessionState(
+            isRunning = true,
+            isBenchmarking = true,
+            currentStep = BenchmarkStep.MODEL_SELECTION
+        )
+        loadModelsRemote()
+    }
+
+    fun selectModelForBenchmark(model: ModelDescriptor) {
+        viewModelScope.launch {
+            if (!_chat.value.isBenchmarking) {
+                // Simple chat mode: start chat immediately after selection
+                startChat(model)
+                return@launch
+            }
+            
+            // Benchmark mode: proceed to dataset selection
+            val datasets = PromptService.fetchDatasets(ctx) ?: emptyList()
+            _chat.update {
+                it.copy(
+                    modelName = model.displayName,
+                    currentStep = BenchmarkStep.DATASET_SELECTION,
+                    datasets = datasets,
+                    canThink = model.supportsThinking,
+                    thinkingEnabled = model.supportsThinking
+                )
+            }
+            currentModel = model
+        }
+    }
+
+    fun toggleDatasetSelection(datasetId: Int) {
+        _chat.update { state ->
+            val newSelected = if (state.selectedDatasetIds.contains(datasetId)) {
+                state.selectedDatasetIds - datasetId
+            } else {
+                state.selectedDatasetIds + datasetId
+            }
+            state.copy(selectedDatasetIds = newSelected)
+        }
+    }
+
+    fun runBenchmark() {
+        val model = currentModel ?: return
+        val selectedIds = _chat.value.selectedDatasetIds
+        val selectedDatasets = _chat.value.datasets.filter { selectedIds.contains(it.id) }
+        
+        if (selectedDatasets.isEmpty()) return
+
+        _chat.update { it.copy(currentStep = BenchmarkStep.EXECUTING, messages = emptyList()) }
+
+        viewModelScope.launch {
+            try {
+                if (!mandiole.isModelAvailable(model)) {
+                    downloadModel(model)
+                    return@launch
+                }
+
+                currentBackend?.close()
+                val backend = mandiole.loadModel(model)
+                currentBackend = backend
+                
+                _chat.update { it.copy(isModelLoaded = true, executionUnit = backend.executionUnit) }
+
+                val serverModels = ModelService.fetchRemoteModels(ctx)
+                val dbModelId = serverModels.find { it.name == model.displayName }?.id ?: 1L
+
+                for (dataset in selectedDatasets) {
+                    chatHistory.clear()
+                    
+                    for (promptItem in dataset.prompts) {
+                        if (!dataset.isConversational) {
+                            chatHistory.clear()
+                        }
+                        
+                        val promptText = promptItem.prompt
+                        chatHistory.add(ChatTurn(role = ChatRole.USER, text = promptText))
+
+                        _chat.update { state ->
+                            state.copy(
+                                isGenerating = true,
+                                messages = state.messages + ChatMessage(ChatRole.USER, promptText) + ChatMessage(ChatRole.ASSISTANT, "")
+                            )
+                        }
+
+                        val startTime = System.currentTimeMillis()
+                        val isThinkingModeActive = _chat.value.thinkingEnabled
+                        
+                        val response = backend.streamReply(chatHistory, thinkingEnabled = isThinkingModeActive) { partial ->
+                            val currentTime = System.currentTimeMillis()
+                            val durationSec = if (partial.thinkingText != null) {
+                                ((currentTime - startTime) / 1000).toInt()
+                            } else null
+
+                            _chat.update { state ->
+                                val newMessages = state.messages.toMutableList()
+                                if (newMessages.isNotEmpty()) {
+                                    newMessages[newMessages.size - 1] = ChatMessage(
+                                        role = ChatRole.ASSISTANT,
+                                        text = partial.text,
+                                        thinkingText = partial.thinkingText,
+                                        thinkingDurationSeconds = durationSec
+                                    )
+                                }
+                                state.copy(messages = newMessages)
+                            }
+                        }
+
+                        val totalDurationSec = if (response.thinkingText != null) {
+                            ((System.currentTimeMillis() - startTime) / 1000).toInt()
+                        } else null
+                        
+                        chatHistory.add(ChatTurn(role = ChatRole.ASSISTANT, text = response.text))
+                        
+                        _chat.update { state ->
+                            val newMessages = state.messages.toMutableList()
+                            if (newMessages.isNotEmpty()) {
+                                newMessages[newMessages.size - 1] = ChatMessage(
+                                    role = ChatRole.ASSISTANT,
+                                    text = response.text,
+                                    thinkingText = response.thinkingText,
+                                    thinkingDurationSeconds = totalDurationSec
+                                )
+                            }
+                            val limitedMessages = if (newMessages.size > 50) newMessages.takeLast(50) else newMessages
+                            state.copy(messages = limitedMessages, isGenerating = false)
+                        }
+
+                        try {
+                            PromptService.submitBenchmarkResult(
+                                context = ctx,
+                                response = response.text,
+                                idPrompt = promptItem.id,
+                                idModel = dbModelId,
+                                idDevices = deviceId ?: 1,
+                                isThink = response.thinkingText != null
+                            )
+                        } catch (e: Exception) {
+                            Log.e("LLM", "Failed to submit result", e)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("LLM", "Benchmark execution failed", e)
+                _chat.update { it.copy(isGenerating = false) }
             }
         }
     }
@@ -243,10 +431,10 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
         viewModelScope.launch {
             try {
                 val backend = currentBackend ?: return@launch
-                val thinkingEnabled = _chat.value.thinkingEnabled
+                val isThinkingModeActive = _chat.value.thinkingEnabled
                 val startTime = System.currentTimeMillis()
                 
-                backend.streamReply(chatHistory, thinkingEnabled = thinkingEnabled) { response ->
+                backend.streamReply(chatHistory, thinkingEnabled = isThinkingModeActive) { response ->
                     val currentTime = System.currentTimeMillis()
                     val durationSec = if (response.thinkingText != null) {
                         ((currentTime - startTime) / 1000).toInt()
@@ -323,7 +511,7 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
         val gb = mb / 1024.0
         return when {
             gb >= 1 -> String.format("%.2f GB", gb)
-            mb >= 1 -> String.format("%.2f MB", mb)
+            mb >= 1 -> String.format("%.1f MB", mb)
             else -> String.format("%.2f KB", kb)
         }
     }
