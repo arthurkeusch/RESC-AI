@@ -28,15 +28,170 @@ data class DatasetItem(
     val prompts: List<PromptItem>
 )
 
+data class PromptResult(
+    val id: Int,
+    val response: String,
+    val isThink: Boolean,
+    val responseTimeMs: Long?,
+    val responseTokenCount: Int?,
+    val responseTokensPerS: Float?,
+    val idPrompt: Int,
+    val idModel: Long,
+    val idDevices: Int
+)
+
+data class DeviceItem(
+    val id: Int,
+    val name: String
+)
+
+data class ModelItem(
+    val id: Long,
+    val name: String
+)
+
 object PromptService {
-    private const val TAG = "LLM"
+    private const val TAG = "API_Skynet"
 
     private fun errorToast(context: Context, message: String) {
-        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        try {
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        } catch (_: Exception) {}
     }
 
     private suspend fun getApiBase(context: Context): String {
         return AppConfig.apiUrl.first()
+    }
+
+    suspend fun fetchDevices(context: Context): List<DeviceItem>? = withContext(Dispatchers.IO) {
+        try {
+            val apiBase = getApiBase(context)
+            val url = URL("$apiBase/devices")
+            val conn = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+            }
+            if (conn.responseCode in 200..299) {
+                val response = conn.inputStream.bufferedReader().use { it.readText() }
+                val arr = JSONArray(response)
+                List(arr.length()) { i ->
+                    val obj = arr.getJSONObject(i)
+                    DeviceItem(obj.getInt("id_devices"), obj.getString("name"))
+                }
+            } else null
+        } catch (e: Exception) {
+            Log.e(TAG, "fetchDevices failed", e)
+            null
+        }
+    }
+
+    suspend fun fetchModels(context: Context): List<ModelItem>? = withContext(Dispatchers.IO) {
+        try {
+            val apiBase = getApiBase(context)
+            val url = URL("$apiBase/models")
+            val conn = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+            }
+            if (conn.responseCode in 200..299) {
+                val response = conn.inputStream.bufferedReader().use { it.readText() }
+                val arr = JSONArray(response)
+                List(arr.length()) { i ->
+                    val obj = arr.getJSONObject(i)
+                    ModelItem(obj.getLong("id_model"), obj.getString("name"))
+                }
+            } else null
+        } catch (e: Exception) {
+            Log.e(TAG, "fetchModels failed", e)
+            null
+        }
+    }
+
+    suspend fun fetchResultsForPrompt(context: Context, promptId: Int): List<PromptResult>? = withContext(Dispatchers.IO) {
+        try {
+            val apiBase = getApiBase(context)
+            val url = URL("$apiBase/prompts/$promptId/results")
+            val conn = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+            }
+            if (conn.responseCode in 200..299) {
+                val response = conn.inputStream.bufferedReader().use { it.readText() }
+                val arr = JSONArray(response)
+                List(arr.length()) { i ->
+                    val obj = arr.getJSONObject(i)
+                    PromptResult(
+                        id = obj.getInt("id_result"),
+                        response = obj.getString("response"),
+                        isThink = obj.optInt("is_think", 0) == 1,
+                        responseTimeMs = obj.optLong("response_time_ms").takeIf { it > 0 },
+                        responseTokenCount = obj.optInt("response_token_count").takeIf { it > 0 },
+                        responseTokensPerS = obj.optDouble("response_tokens_per_s").toFloat().takeIf { it > 0 },
+                        idPrompt = obj.getInt("id_prompt"),
+                        idModel = obj.getLong("id_model"),
+                        idDevices = obj.getInt("id_devices")
+                    )
+                }
+            } else null
+        } catch (e: Exception) {
+            Log.e(TAG, "fetchResultsForPrompt failed", e)
+            null
+        }
+    }
+
+    suspend fun fetchAllResults(context: Context): List<PromptResult>? = withContext(Dispatchers.IO) {
+        try {
+            val apiBase = getApiBase(context)
+            val url = URL("$apiBase/prompts/results")
+            val conn = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+            }
+            if (conn.responseCode in 200..299) {
+                val response = conn.inputStream.bufferedReader().use { it.readText() }
+                val arr = JSONArray(response)
+                List(arr.length()) { i ->
+                    val obj = arr.getJSONObject(i)
+                    PromptResult(
+                        id = obj.getInt("id_result"),
+                        response = obj.getString("response"),
+                        isThink = obj.optInt("is_think", 0) == 1,
+                        responseTimeMs = obj.optLong("response_time_ms").takeIf { it > 0 },
+                        responseTokenCount = obj.optInt("response_token_count").takeIf { it > 0 },
+                        responseTokensPerS = obj.optDouble("response_tokens_per_s").toFloat().takeIf { it > 0 },
+                        idPrompt = obj.getInt("id_prompt"),
+                        idModel = obj.getLong("id_model"),
+                        idDevices = obj.getInt("id_devices")
+                    )
+                }
+            } else null
+        } catch (e: Exception) {
+            Log.e(TAG, "fetchAllResults failed", e)
+            null
+        }
+    }
+
+    suspend fun fetchPerformanceSamples(context: Context, resultId: Int): List<PerformanceSample>? = withContext(Dispatchers.IO) {
+        try {
+            val apiBase = getApiBase(context)
+            val url = URL("$apiBase/prompts/results/$resultId/performance")
+            val conn = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+            }
+            if (conn.responseCode in 200..299) {
+                val response = conn.inputStream.bufferedReader().use { it.readText() }
+                val arr = JSONArray(response)
+                List(arr.length()) { i ->
+                    val obj = arr.getJSONObject(i)
+                    PerformanceSample(
+                        sampleTimeMs = obj.getLong("sample_time_ms"),
+                        batteryPercent = obj.optDouble("battery_percent").toFloat(),
+                        ramCurrentMb = obj.optDouble("ram_current_mb").toFloat(),
+                        ramMaxMb = obj.optDouble("ram_max_mb").toFloat(),
+                        batteryTemperatureC = obj.optDouble("battery_temperature_c").toFloat()
+                    )
+                }
+            } else null
+        } catch (e: Exception) {
+            Log.e(TAG, "fetchPerformanceSamples failed", e)
+            null
+        }
     }
 
     suspend fun importDataset(

@@ -347,8 +347,8 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                 
                 _chat.update { it.copy(isModelLoaded = true, executionUnit = backend.executionUnit) }
 
-                val serverModels = ModelService.fetchRemoteModels(ctx)
-                val dbModelId = serverModels.find { it.name == model.displayName }?.id ?: 1L
+                val dbModelId = ModelService.registerOrGetModel(ctx, model.displayName) ?: 1L
+                Log.d("LLM", "Benchmark model registered with ID: $dbModelId")
 
                 var overallPromptCounter = 0
                 for ((dIdx, dataset) in selectedDatasets.withIndex()) {
