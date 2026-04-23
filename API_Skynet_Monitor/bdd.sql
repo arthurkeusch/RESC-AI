@@ -1,10 +1,7 @@
 CREATE TABLE IF NOT EXISTS models
 (
     id_model INT AUTO_INCREMENT,
-    name     VARCHAR(255) UNIQUE,
-    params   TEXT,
-    filename VARCHAR(255) UNIQUE,
-    size     BIGINT,
+    name     VARCHAR(255) UNIQUE NOT NULL,
     PRIMARY KEY (id_model)
 );
 

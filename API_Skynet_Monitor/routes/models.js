@@ -1,172 +1,104 @@
 import {Router} from "express"
-import multer from "multer"
-import fs from "fs"
-import path from "path"
 
-export default function modelsRouter({db, MODELS_DIR}) {
+function normalizeName(value) {
+    if (typeof value !== "string") return ""
+    return value.trim()
+}
+
+export default function modelsRouter({db}) {
     const router = Router()
 
-    const storage = multer.diskStorage({
-        destination: (req, file, cb) => cb(null, MODELS_DIR),
-        filename: (req, file, cb) => cb(null, file.originalname.replace(/\s+/g, "_")),
-    })
-    const upload = multer({storage})
+    async function findModelByName(name) {
+        const [rows] = await db.execute(
+            "SELECT id_model, name FROM models WHERE name = ? LIMIT 1",
+            [name]
+        )
+        return rows[0] || null
+    }
+
+    async function findModelById(id) {
+        const [rows] = await db.execute(
+            "SELECT id_model, name FROM models WHERE id_model = ?",
+            [id]
+        )
+        return rows[0] || null
+    }
 
     router.get("/", async (req, res) => {
         try {
-            const [rows] = await db.execute("SELECT * FROM models")
+            const name = normalizeName(req.query.name)
+            if (name) {
+                const model = await findModelByName(name)
+                if (!model) return res.status(404).json({error: "Model not found"})
+                return res.json(model)
+            }
+
+            const [rows] = await db.execute("SELECT id_model, name FROM models ORDER BY name ASC")
             res.json(rows)
         } catch (err) {
             res.status(500).json({error: "Failed to fetch models: " + err.message})
         }
     })
 
-    router.get("/download/:id", async (req, res) => {
+    router.post("/", async (req, res) => {
         try {
-            const [rows] = await db.execute("SELECT * FROM models WHERE id_model = ?", [
-                req.params.id,
-            ])
-            if (rows.length === 0) return res.status(404).json({error: "Model not found"})
+            const name = normalizeName(req.body?.name)
+            if (!name) return res.status(400).json({error: "Missing model name"})
 
-            const row = rows[0]
-            const filePath = path.join(MODELS_DIR, row.filename)
-            if (!fs.existsSync(filePath))
-                return res.status(404).json({error: "File not found on disk"})
+            const existing = await findModelByName(name)
+            if (existing) return res.json(existing)
 
-            res.download(filePath, row.filename)
+            const [result] = await db.execute(
+                "INSERT INTO models (id_model, name) VALUES (NULL, ?)",
+                [name]
+            )
+
+            const created = await findModelById(result.insertId)
+            res.status(201).json(created)
         } catch (err) {
-            res.status(500).json({error: "Download failed: " + err.message})
+            res.status(500).json({error: "Failed to create model: " + err.message})
         }
     })
 
     router.get("/:id", async (req, res) => {
         try {
-            const [rows] = await db.execute(
-                "SELECT * FROM models WHERE id_model = ?",
-                [req.params.id]
-            )
-            if (rows.length === 0) return res.status(404).json({error: "Model not found"})
-            res.json(rows[0])
+            const model = await findModelById(req.params.id)
+            if (!model) return res.status(404).json({error: "Model not found"})
+            res.json(model)
         } catch (err) {
-            res.status(500).json({error: "Failed to fetch model info: " + err.message})
+            res.status(500).json({error: "Failed to fetch model: " + err.message})
         }
     })
 
-    router.post("/upload", upload.single("file"), async (req, res) => {
+    router.put("/:id", async (req, res) => {
         try {
-            const {name, params} = req.body
-            const file = req.file
-            if (!file || !name || !params)
-                return res.status(400).json({error: "Missing file, name, or params."})
+            const name = normalizeName(req.body?.name)
+            if (!name) return res.status(400).json({error: "Missing model name"})
 
-            const filePath = path.join(MODELS_DIR, file.filename)
-            const size = fs.statSync(filePath).size
+            const model = await findModelById(req.params.id)
+            if (!model) return res.status(404).json({error: "Model not found"})
 
             await db.execute(
-                `INSERT INTO models (id_model, name, params, filename, size)
-                 VALUES (NULL, ?, ?, ?, ?)`,
-                [name, params, file.filename, size]
+                "UPDATE models SET name = ? WHERE id_model = ?",
+                [name, req.params.id]
             )
 
-            const [row] = await db.execute("SELECT id_model FROM models WHERE name = ?", [name])
-
-            res.json({
-                message: "Model uploaded successfully",
-                id_model: row[0].id_model,
-                name,
-                params,
-                filename: file.filename,
-                size,
-            })
+            const updated = await findModelById(req.params.id)
+            res.json(updated)
         } catch (err) {
-            res.status(500).json({error: "Upload failed: " + err.message})
-        }
-    })
-
-    router.put("/:id", upload.single("file"), async (req, res) => {
-        try {
-            const id = req.params.id
-            const [rows] = await db.execute("SELECT * FROM models WHERE id_model = ?", [id])
-            if (rows.length === 0) return res.status(404).json({error: "Model not found"})
-            const current = rows[0]
-
-            const {name, params} = req.body
-            let newFilename = current.filename
-            let newSize = current.size
-
-            if (req.file) {
-                newFilename = req.file.filename
-                const newPath = path.join(MODELS_DIR, newFilename)
-                if (!fs.existsSync(newPath)) {
-                    return res.status(500).json({error: "Uploaded file missing on disk"})
-                }
-                newSize = fs.statSync(newPath).size
-            }
-
-            const fields = []
-            const values = []
-            if (typeof name !== "undefined" && name !== current.name) {
-                fields.push("name = ?")
-                values.push(name)
-            }
-            if (typeof params !== "undefined" && params !== current.params) {
-                fields.push("params = ?")
-                values.push(params)
-            }
-            if (req.file) {
-                fields.push("filename = ?")
-                values.push(newFilename)
-                fields.push("size = ?")
-                values.push(newSize)
-            }
-
-            if (fields.length === 0) {
-                const [updated] = await db.execute("SELECT * FROM models WHERE id_model = ?", [id])
-                return res.json(updated[0])
-            }
-
-            values.push(id)
-            await db.execute(`UPDATE models
-                              SET ${fields.join(", ")}
-                              WHERE id_model = ?`, values)
-
-            if (req.file && current.filename !== newFilename) {
-                const oldPath = path.join(MODELS_DIR, current.filename)
-                if (fs.existsSync(oldPath)) {
-                    try {
-                        fs.unlinkSync(oldPath)
-                    } catch {
-                    }
-                }
-            }
-
-            const [updated] = await db.execute("SELECT * FROM models WHERE id_model = ?", [id])
-            res.json(updated[0])
-        } catch (err) {
-            res.status(500).json({error: "Update failed: " + err.message})
+            res.status(500).json({error: "Failed to update model: " + err.message})
         }
     })
 
     router.delete("/:id", async (req, res) => {
         try {
-            const id = req.params.id
-            const [rows] = await db.execute("SELECT * FROM models WHERE id_model = ?", [id])
-            if (rows.length === 0) return res.status(404).json({error: "Model not found"})
-            const row = rows[0]
+            const model = await findModelById(req.params.id)
+            if (!model) return res.status(404).json({error: "Model not found"})
 
-            const filePath = path.join(MODELS_DIR, row.filename)
-            if (fs.existsSync(filePath)) {
-                try {
-                    fs.unlinkSync(filePath)
-                } catch {
-                }
-            }
-
-            await db.execute("DELETE FROM models WHERE id_model = ?", [id])
-
-            res.json({message: "Model deleted", id_model: id})
+            await db.execute("DELETE FROM models WHERE id_model = ?", [req.params.id])
+            res.json({message: "Model deleted", id_model: Number(req.params.id)})
         } catch (err) {
-            res.status(500).json({error: "Delete failed: " + err.message})
+            res.status(500).json({error: "Failed to delete model: " + err.message})
         }
     })
 
