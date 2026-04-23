@@ -118,11 +118,13 @@ class QwenLiteRtBackend(
 
         val rawOutputBuilder = StringBuilder()
         val channelThinkingBuilder = StringBuilder()
+        var chunkCount = 0
 
         activeConversation.sendMessageAsync(userTurn.text).collect { message ->
             val chunkText = message.contents.toString()
             if (chunkText.isNotEmpty()) {
                 rawOutputBuilder.append(chunkText)
+                chunkCount++
             }
 
             val thoughtChunk = message.channels[THOUGHT_CHANNEL_NAME].orEmpty()
@@ -130,18 +132,18 @@ class QwenLiteRtBackend(
                 channelThinkingBuilder.append(thoughtChunk)
             }
 
-            onPartial(
-                QwenResponseParser.parseVisibleResponse(
-                    rawOutput = rawOutputBuilder.toString(),
-                    channelThinking = channelThinkingBuilder.toString().takeIf { it.isNotBlank() }
-                )
+            val partialRes = QwenResponseParser.parseVisibleResponse(
+                rawOutput = rawOutputBuilder.toString(),
+                channelThinking = channelThinkingBuilder.toString().takeIf { it.isNotBlank() }
             )
+            onPartial(partialRes.copy(tokenCount = chunkCount))
         }
 
-        QwenResponseParser.parseVisibleResponse(
+        val finalRes = QwenResponseParser.parseVisibleResponse(
             rawOutput = rawOutputBuilder.toString(),
             channelThinking = channelThinkingBuilder.toString().takeIf { it.isNotBlank() }
         )
+        finalRes.copy(tokenCount = chunkCount)
     }
 
     override fun cancelGeneration() {

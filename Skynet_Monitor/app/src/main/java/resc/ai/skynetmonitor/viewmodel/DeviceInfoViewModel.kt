@@ -18,12 +18,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import resc.ai.skynetmonitor.service.DeviceInfoService
 import resc.ai.skynetmonitor.service.DownloadState
 import resc.ai.skynetmonitor.service.DatasetItem
 import resc.ai.skynetmonitor.service.PromptService
 import resc.ai.skynetmonitor.service.ModelService
+import resc.ai.skynetmonitor.service.PerformanceSample
 
 data class ChatMessage(
     val role: ChatRole,
@@ -44,7 +46,11 @@ data class ChatSessionState(
     val messages: List<ChatMessage> = emptyList(),
     val currentStep: BenchmarkStep = BenchmarkStep.MODEL_SELECTION,
     val datasets: List<DatasetItem> = emptyList(),
-    val selectedDatasetIds: Set<Int> = emptySet()
+    val selectedDatasetIds: Set<Int> = emptySet(),
+    val currentDatasetIndex: Int = 0,
+    val currentPromptIndex: Int = 0,
+    val totalPromptsInSelectedDatasets: Int = 0,
+    val showStatsPanel: Boolean = false
 )
 
 enum class BenchmarkStep {
@@ -306,6 +312,10 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
+    fun toggleStatsPanel() {
+        _chat.update { it.copy(showStatsPanel = !it.showStatsPanel) }
+    }
+
     fun runBenchmark() {
         val model = currentModel ?: return
         val selectedIds = _chat.value.selectedDatasetIds
@@ -313,7 +323,16 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
         
         if (selectedDatasets.isEmpty()) return
 
-        _chat.update { it.copy(currentStep = BenchmarkStep.EXECUTING, messages = emptyList()) }
+        val totalPrompts = selectedDatasets.sumOf { it.prompts.size }
+        _chat.update { 
+            it.copy(
+                currentStep = BenchmarkStep.EXECUTING, 
+                messages = emptyList(),
+                totalPromptsInSelectedDatasets = totalPrompts,
+                currentDatasetIndex = 0,
+                currentPromptIndex = 0
+            ) 
+        }
 
         viewModelScope.launch {
             try {
@@ -331,10 +350,13 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                 val serverModels = ModelService.fetchRemoteModels(ctx)
                 val dbModelId = serverModels.find { it.name == model.displayName }?.id ?: 1L
 
-                for (dataset in selectedDatasets) {
+                var overallPromptCounter = 0
+                for ((dIdx, dataset) in selectedDatasets.withIndex()) {
+                    _chat.update { it.copy(currentDatasetIndex = dIdx) }
                     chatHistory.clear()
                     
-                    for (promptItem in dataset.prompts) {
+                    for ((pIdx, promptItem) in dataset.prompts.withIndex()) {
+                        _chat.update { it.copy(currentPromptIndex = overallPromptCounter) }
                         if (!dataset.isConversational) {
                             chatHistory.clear()
                         }
@@ -351,6 +373,15 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
 
                         val startTime = System.currentTimeMillis()
                         val isThinkingModeActive = _chat.value.thinkingEnabled
+                        val performanceSamples = mutableListOf<PerformanceSample>()
+                        
+                        // Periodic performance sampling during generation
+                        val samplingJob = viewModelScope.launch {
+                            while (coroutineContext.isActive) {
+                                performanceSamples.add(DeviceInfoService.getCurrentPerformanceSample(ctx, startTime))
+                                delay(1000L)
+                            }
+                        }
                         
                         val response = backend.streamReply(chatHistory, thinkingEnabled = isThinkingModeActive) { partial ->
                             val currentTime = System.currentTimeMillis()
@@ -371,9 +402,15 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                                 state.copy(messages = newMessages)
                             }
                         }
+                        
+                        samplingJob.cancel()
+                        val endTime = System.currentTimeMillis()
+                        val durationMs = endTime - startTime
+                        val tokenCount = response.tokenCount ?: response.text.split(Regex("\\s+")).size
+                        val tokensPerS = if (durationMs > 0) (tokenCount.toFloat() / (durationMs / 1000.0f)) else 0f
 
                         val totalDurationSec = if (response.thinkingText != null) {
-                            ((System.currentTimeMillis() - startTime) / 1000).toInt()
+                            (durationMs / 1000).toInt()
                         } else null
                         
                         chatHistory.add(ChatTurn(role = ChatRole.ASSISTANT, text = response.text))
@@ -399,13 +436,19 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                                 idPrompt = promptItem.id,
                                 idModel = dbModelId,
                                 idDevices = deviceId ?: 1,
-                                isThink = response.thinkingText != null
+                                isThink = response.thinkingText != null,
+                                responseTimeMs = durationMs,
+                                responseTokenCount = tokenCount,
+                                responseTokensPerS = tokensPerS,
+                                performanceSamples = performanceSamples
                             )
                         } catch (e: Exception) {
                             Log.e("LLM", "Failed to submit result", e)
                         }
+                        overallPromptCounter++
                     }
                 }
+                _chat.update { it.copy(currentPromptIndex = overallPromptCounter) }
             } catch (e: Exception) {
                 Log.e("LLM", "Benchmark execution failed", e)
                 _chat.update { it.copy(isGenerating = false) }

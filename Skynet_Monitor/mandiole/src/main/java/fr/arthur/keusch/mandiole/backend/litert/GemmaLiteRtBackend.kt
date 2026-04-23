@@ -118,29 +118,34 @@ class GemmaLiteRtBackend(
 
         val textBuilder = StringBuilder()
         val thinkingBuilder = StringBuilder()
+        var chunkCount = 0
 
         activeConversation.sendMessageAsync(userTurn.text).collect { message ->
             val chunkText = message.contents.toString()
             if (chunkText.isNotEmpty()) {
                 textBuilder.append(chunkText)
+                chunkCount++
             }
 
             val thoughtChunk = message.channels[THOUGHT_CHANNEL_NAME].orEmpty()
             if (thoughtChunk.isNotEmpty()) {
                 thinkingBuilder.append(thoughtChunk)
+                // thinking chunks are separate from content usually
             }
 
             onPartial(
                 BackendResponse(
                     text = textBuilder.toString(),
-                    thinkingText = thinkingBuilder.toString().takeIf { it.isNotBlank() }
+                    thinkingText = thinkingBuilder.toString().takeIf { it.isNotBlank() },
+                    tokenCount = chunkCount
                 )
             )
         }
 
         BackendResponse(
             text = textBuilder.toString(),
-            thinkingText = thinkingBuilder.toString().takeIf { it.isNotBlank() }
+            thinkingText = thinkingBuilder.toString().takeIf { it.isNotBlank() },
+            tokenCount = chunkCount
         )
     }
 

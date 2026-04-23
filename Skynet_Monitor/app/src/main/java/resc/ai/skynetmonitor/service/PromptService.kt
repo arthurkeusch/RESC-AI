@@ -313,7 +313,11 @@ object PromptService {
         idPrompt: Int,
         idModel: Long,
         idDevices: Int,
-        isThink: Boolean
+        isThink: Boolean,
+        responseTimeMs: Long,
+        responseTokenCount: Int,
+        responseTokensPerS: Float,
+        performanceSamples: List<PerformanceSample>
     ): Boolean = withContext(Dispatchers.IO) {
         try {
             val apiBase = getApiBase(context)
@@ -324,9 +328,24 @@ object PromptService {
                 put("id_model", idModel)
                 put("id_devices", idDevices)
                 put("is_think", isThink)
+                put("response_time_ms", responseTimeMs)
+                put("response_token_count", responseTokenCount)
+                put("response_tokens_per_s", responseTokensPerS)
+                
+                val samplesArray = JSONArray()
+                performanceSamples.forEach { s ->
+                    samplesArray.put(JSONObject().apply {
+                        put("sample_time_ms", s.sampleTimeMs)
+                        put("battery_percent", s.batteryPercent)
+                        put("ram_current_mb", s.ramCurrentMb)
+                        put("ram_max_mb", s.ramMaxMb)
+                        put("battery_temperature_c", s.batteryTemperatureC)
+                    })
+                }
+                put("performance_samples", samplesArray)
             }
             val payload = payloadObj.toString()
-            Log.d("API_Skynet", "POST $url | Payload: $payload")
+            Log.d("API_Skynet", "POST $url | Payload size: ${payload.length}")
 
             val conn = (url.openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"

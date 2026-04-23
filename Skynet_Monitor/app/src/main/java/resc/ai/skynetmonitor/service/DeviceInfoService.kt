@@ -15,7 +15,39 @@ import android.os.BatteryManager
 import android.os.Build
 import android.os.PowerManager
 
+data class PerformanceSample(
+    val sampleTimeMs: Long,
+    val batteryPercent: Float,
+    val ramCurrentMb: Float,
+    val ramMaxMb: Float,
+    val batteryTemperatureC: Float
+)
+
 object DeviceInfoService {
+
+    @SuppressLint("DefaultLocale")
+    fun getCurrentPerformanceSample(context: Context, startTimeMs: Long): PerformanceSample {
+        val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+        val level = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY).toFloat()
+        val intent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        val batteryTemp =
+            intent?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0)?.toFloat()?.div(10.0f) ?: 0.0f
+
+        val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val memInfo = ActivityManager.MemoryInfo()
+        am.getMemoryInfo(memInfo)
+        
+        val ramMaxMb = memInfo.totalMem / (1024.0f * 1024.0f)
+        val ramCurrentMb = (memInfo.totalMem - memInfo.availMem) / (1024.0f * 1024.0f)
+
+        return PerformanceSample(
+            sampleTimeMs = System.currentTimeMillis() - startTimeMs,
+            batteryPercent = level,
+            ramCurrentMb = ramCurrentMb,
+            ramMaxMb = ramMaxMb,
+            batteryTemperatureC = batteryTemp
+        )
+    }
 
     @SuppressLint("DefaultLocale")
     fun getStaticHardwareInfo(context: Context): Map<String, String> {

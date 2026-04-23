@@ -1,10 +1,12 @@
 package resc.ai.skynetmonitor.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -19,7 +21,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -51,32 +56,23 @@ fun ModelChatDialog(
     val listState = rememberLazyListState()
     var autoScrollEnabled by remember { mutableStateOf(true) }
     
-    // Check if the list is being dragged by the user
     val isDragged by listState.interactionSource.collectIsDraggedAsState()
 
-    // If the user drags the list away from the bottom, disable auto-scroll
     LaunchedEffect(isDragged) {
         if (isDragged) {
             val layoutInfo = listState.layoutInfo
             val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull()
             val isAtBottom = lastVisibleItem != null && 
                            lastVisibleItem.index >= layoutInfo.totalItemsCount - 2
-            
-            if (!isAtBottom) {
-                autoScrollEnabled = false
-            }
+            if (!isAtBottom) autoScrollEnabled = false
         }
     }
 
-    // Main auto-scroll effect
     LaunchedEffect(chat.messages.size, if (chat.messages.isNotEmpty()) chat.messages.last().text else "", chat.isGenerating) {
         if (chat.isGenerating && chat.messages.isNotEmpty() && chat.messages.last().text.isEmpty()) {
-            // Reset auto-scroll when a new turn starts
             autoScrollEnabled = true
         }
-        
         if (autoScrollEnabled && chat.messages.isNotEmpty()) {
-            // Use instant scroll for streaming to avoid animation overlap
             listState.scrollToItem(chat.messages.size)
         }
     }
@@ -86,9 +82,7 @@ fun ModelChatDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Surface(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(16.dp),
             color = MaterialTheme.colorScheme.surface,
             shape = MaterialTheme.shapes.extraLarge,
             tonalElevation = 6.dp
@@ -121,52 +115,103 @@ fun ModelChatDialog(
                             downloadState = downloadState,
                             canThink = chat.canThink,
                             thinkingEnabled = chat.thinkingEnabled,
-                            onThinkingToggle = { viewModel.setThinkingEnabled(it) }
+                            onThinkingToggle = { viewModel.setThinkingEnabled(it) },
+                            isBenchmarking = chat.isBenchmarking,
+                            showStatsPanel = chat.showStatsPanel,
+                            onToggleStats = { viewModel.toggleStatsPanel() }
                         )
 
-                        LazyColumn(
-                            state = listState,
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            items(chat.messages) { message ->
-                                ChatBubble(message, chat.thinkingEnabled)
+                        Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                            // Chat area
+                            Column(modifier = Modifier.weight(if (chat.showStatsPanel) 0.7f else 1f)) {
+                                LazyColumn(
+                                    state = listState,
+                                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                                    contentPadding = PaddingValues(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    items(chat.messages) { message ->
+                                        ChatBubble(message, chat.thinkingEnabled)
+                                    }
+                                    item { Spacer(modifier = Modifier.height(1.dp).fillMaxWidth()) }
+                                }
                             }
-                            // Invisible anchor for auto-scroll to focus on the BOTTOM of the message
-                            item {
-                                Spacer(modifier = Modifier.height(1.dp).fillMaxWidth())
+
+                            // Stats area
+                            if (chat.showStatsPanel) {
+                                VerticalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                                Column(
+                                    modifier = Modifier.weight(0.35f).fillMaxHeight().padding(8.dp)
+                                ) {
+                                    Text("Live Stats", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
+                                    LazyColumn(
+                                        modifier = Modifier.fillMaxSize(),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        val systemState = viewModel.systemState.value
+                                        items(systemState.keys.toList()) { label ->
+                                            val value = systemState[label] ?: ""
+                                            val history = viewModel.historyData.value[label] ?: emptyList()
+                                            val bounds = viewModel.getBoundsFor(label)
+                                            val color = when {
+                                                label.contains("RAM", ignoreCase = true) -> Color(0xFF42A5F5)
+                                                label.contains("Temp", ignoreCase = true) -> Color(0xFFFFA726)
+                                                label.contains("Battery", ignoreCase = true) -> Color(0xFF9CCC65)
+                                                else -> Color(0xFFBA68C8)
+                                            }
+                                            
+                                            Card(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                                            ) {
+                                                Column(modifier = Modifier.padding(8.dp)) {
+                                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                                        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                                                        Text(value, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                                    }
+                                                    if (history.isNotEmpty()) {
+                                                        Spacer(Modifier.height(4.dp))
+                                                        // A smaller version of the graph for the side panel
+                                                        CompactMiniGraph(
+                                                            data = history,
+                                                            color = color,
+                                                            minValue = bounds.first,
+                                                            maxValue = bounds.second
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
 
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-                        InputSection(
-                            userInput = userInput,
-                            onValueChange = { userInput = it },
-                            onSend = {
-                                if (userInput.isNotBlank()) {
-                                    viewModel.sendPrompt(userInput)
-                                    userInput = ""
-                                }
-                            },
-                            onStop = { viewModel.cancelGeneration() },
-                            isGenerating = chat.isGenerating,
-                            isModelLoaded = chat.isModelLoaded
-                        )
+                        if (chat.isBenchmarking) {
+                            BenchmarkProgressSection(
+                                currentDatasetIdx = chat.currentDatasetIndex,
+                                totalDatasets = chat.selectedDatasetIds.size,
+                                currentPromptIdx = chat.currentPromptIndex,
+                                totalPrompts = chat.totalPromptsInSelectedDatasets
+                            )
+                        } else {
+                            InputSection(
+                                userInput = userInput,
+                                onValueChange = { userInput = it },
+                                onSend = { if (userInput.isNotBlank()) { viewModel.sendPrompt(userInput); userInput = "" } },
+                                onStop = { viewModel.cancelGeneration() },
+                                isGenerating = chat.isGenerating,
+                                isModelLoaded = chat.isModelLoaded
+                            )
+                        }
 
                         TextButton(
                             onClick = { viewModel.stopBenchmark(); onClose() },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 8.dp)
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
                         ) {
-                            Text(
-                                text = if (chat.isBenchmarking) "Close Benchmark" else "Close Chat",
-                                color = MaterialTheme.colorScheme.outline
-                            )
+                            Text(text = if (chat.isBenchmarking) "Close Benchmark" else "Close Chat", color = MaterialTheme.colorScheme.outline)
                         }
                     }
                 }
@@ -176,15 +221,35 @@ fun ModelChatDialog(
 }
 
 @Composable
-fun ModelSelectionStep(
-    localModels: List<ModelDescriptor>,
-    onModelSelected: (ModelDescriptor) -> Unit,
-    onClose: () -> Unit
-) {
+fun BenchmarkProgressSection(currentDatasetIdx: Int, totalDatasets: Int, currentPromptIdx: Int, totalPrompts: Int) {
+    Column(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        val overallProgress = if (totalPrompts > 0) currentPromptIdx.toFloat() / totalPrompts else 0f
+        
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("Benchmark Progress", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+            Text("${currentPromptIdx}/${totalPrompts} Prompts", style = MaterialTheme.typography.labelSmall)
+        }
+        
+        LinearProgressIndicator(
+            progress = { overallProgress },
+            modifier = Modifier.fillMaxWidth().height(8.dp).clip(CircleShape),
+            color = MaterialTheme.colorScheme.primary,
+            trackColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+        
+        Text(
+            text = "Dataset ${currentDatasetIdx + 1} of ${totalDatasets}",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.outline
+        )
+    }
+}
+
+@Composable
+fun ModelSelectionStep(localModels: List<ModelDescriptor>, onModelSelected: (ModelDescriptor) -> Unit, onClose: () -> Unit) {
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text("Step 1: Select a Local Model", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(16.dp))
-        
         if (localModels.isEmpty()) {
             Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                 Text("No local models found. Please download one first.", color = MaterialTheme.colorScheme.error)
@@ -192,188 +257,93 @@ fun ModelSelectionStep(
         } else {
             LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(localModels) { model ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth().clickable { onModelSelected(model) },
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                    ) {
+                    Card(modifier = Modifier.fillMaxWidth().clickable { onModelSelected(model) }, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))) {
                         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.SmartToy, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                             Spacer(Modifier.width(12.dp))
-                            Column {
-                                Text(model.displayName, fontWeight = FontWeight.Bold)
-                                Text(model.sizeLabel, style = MaterialTheme.typography.bodySmall)
-                            }
+                            Column { Text(model.displayName, fontWeight = FontWeight.Bold); Text(model.sizeLabel, style = MaterialTheme.typography.bodySmall) }
                         }
                     }
                 }
             }
         }
-        
-        TextButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) {
-            Text("Cancel")
-        }
+        TextButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) { Text("Cancel") }
     }
 }
 
 @Composable
-fun DatasetSelectionStep(
-    datasets: List<resc.ai.skynetmonitor.service.DatasetItem>,
-    selectedIds: Set<Int>,
-    thinkingEnabled: Boolean,
-    onThinkingToggle: (Boolean) -> Unit,
-    onToggle: (Int) -> Unit,
-    onConfirm: () -> Unit,
-    onBack: () -> Unit
-) {
+fun DatasetSelectionStep(datasets: List<resc.ai.skynetmonitor.service.DatasetItem>, selectedIds: Set<Int>, thinkingEnabled: Boolean, onThinkingToggle: (Boolean) -> Unit, onToggle: (Int) -> Unit, onConfirm: () -> Unit, onBack: () -> Unit) {
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text("Step 2: Select Datasets", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(16.dp))
-        
         if (datasets.isNotEmpty()) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onThinkingToggle(!thinkingEnabled) }
-                    .padding(vertical = 8.dp)
-            ) {
-                Checkbox(
-                    checked = thinkingEnabled,
-                    onCheckedChange = onThinkingToggle
-                )
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { onThinkingToggle(!thinkingEnabled) }.padding(vertical = 8.dp)) {
+                Checkbox(checked = thinkingEnabled, onCheckedChange = onThinkingToggle)
                 Spacer(Modifier.width(8.dp))
-                Column {
-                    Text("Enable Reasoning", fontWeight = FontWeight.Bold)
-                    Text("The model will show its thinking process (slower but more accurate)", style = MaterialTheme.typography.bodySmall)
-                }
+                Column { Text("Enable Reasoning", fontWeight = FontWeight.Bold); Text("The model will show its thinking process (slower but more accurate)", style = MaterialTheme.typography.bodySmall) }
             }
             Spacer(Modifier.height(8.dp))
         }
-
         LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(datasets) { dataset ->
-                Card(
-                    modifier = Modifier.fillMaxWidth().clickable { onToggle(dataset.id) },
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (selectedIds.contains(dataset.id)) 
-                            MaterialTheme.colorScheme.primaryContainer 
-                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                    )
-                ) {
+                Card(modifier = Modifier.fillMaxWidth().clickable { onToggle(dataset.id) }, colors = CardDefaults.cardColors(containerColor = if (selectedIds.contains(dataset.id)) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))) {
                     Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(
-                            checked = selectedIds.contains(dataset.id),
-                            onCheckedChange = { onToggle(dataset.id) }
-                        )
+                        Checkbox(checked = selectedIds.contains(dataset.id), onCheckedChange = { onToggle(dataset.id) })
                         Spacer(Modifier.width(8.dp))
                         Column {
                             Text(dataset.name, fontWeight = FontWeight.Bold)
-                            dataset.description?.let { 
-                                Text(it, style = MaterialTheme.typography.bodySmall, maxLines = 2) 
-                            }
-                            if (dataset.isConversational) {
-                                Badge(containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)) {
-                                    Text("Conversational", style = MaterialTheme.typography.labelSmall)
-                                }
-                            }
+                            dataset.description?.let { Text(it, style = MaterialTheme.typography.bodySmall, maxLines = 2) }
+                            if (dataset.isConversational) { Badge(containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)) { Text("Conversational", style = MaterialTheme.typography.labelSmall) } }
                         }
                     }
                 }
             }
         }
-        
         Spacer(Modifier.height(16.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = onBack, modifier = Modifier.weight(1f)) {
-                Text("Back")
-            }
-            Button(
-                onClick = onConfirm, 
-                modifier = Modifier.weight(1f),
-                enabled = selectedIds.isNotEmpty()
-            ) {
-                Text("Start Execution")
-            }
+            OutlinedButton(onClick = onBack, modifier = Modifier.weight(1f)) { Text("Back") }
+            Button(onClick = onConfirm, modifier = Modifier.weight(1f), enabled = selectedIds.isNotEmpty()) { Text("Start Execution") }
         }
     }
 }
 
 @Composable
-fun HeaderSection(
-    modelName: String,
-    isLoaded: Boolean,
-    executionUnit: String?,
-    downloadState: resc.ai.skynetmonitor.service.DownloadState?,
-    canThink: Boolean,
-    thinkingEnabled: Boolean,
-    onThinkingToggle: (Boolean) -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
+fun HeaderSection(modelName: String, isLoaded: Boolean, executionUnit: String?, downloadState: resc.ai.skynetmonitor.service.DownloadState?, canThink: Boolean, thinkingEnabled: Boolean, onThinkingToggle: (Boolean) -> Unit, isBenchmarking: Boolean, showStatsPanel: Boolean, onToggleStats: () -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)).padding(horizontal = 16.dp, vertical = 12.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = modelName,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(1f, fill = false)
-                    )
-                    
+                    Text(text = modelName, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f, fill = false))
                     if (canThink && isLoaded) {
                         Spacer(Modifier.width(8.dp))
-                        IconToggleButton(
-                            checked = thinkingEnabled,
-                            onCheckedChange = onThinkingToggle,
-                            modifier = Modifier.size(24.dp)
-                        ) {
-                            Icon(
-                                imageVector = if (thinkingEnabled) Icons.Default.Lightbulb else Icons.Outlined.Lightbulb,
-                                contentDescription = "Toggle Thinking Mode",
-                                tint = if (thinkingEnabled) Color(0xFFFFC107) else MaterialTheme.colorScheme.outline,
-                                modifier = Modifier.size(18.dp)
-                            )
+                        IconToggleButton(checked = thinkingEnabled, onCheckedChange = onThinkingToggle, modifier = Modifier.size(24.dp)) {
+                            Icon(imageVector = if (thinkingEnabled) Icons.Default.Lightbulb else Icons.Outlined.Lightbulb, contentDescription = "Toggle Thinking", tint = if (thinkingEnabled) Color(0xFFFFC107) else MaterialTheme.colorScheme.outline, modifier = Modifier.size(18.dp))
                         }
                     }
                 }
-                
                 if (downloadState != null) {
-                    Text(
-                        text = "Downloading... ${downloadState.progress}%",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    Text(text = "Downloading... ${downloadState.progress}%", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                 } else if (canThink && isLoaded) {
-                    Text(
-                        text = if (thinkingEnabled) "Reasoning active" else "Reasoning disabled",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (thinkingEnabled) Color(0xFFFFC107) else MaterialTheme.colorScheme.outline
-                    )
+                    Text(text = if (thinkingEnabled) "Reasoning active" else "Reasoning disabled", style = MaterialTheme.typography.labelSmall, color = if (thinkingEnabled) Color(0xFFFFC107) else MaterialTheme.colorScheme.outline)
                 }
             }
-
-            StatusIcon(isLoaded, executionUnit)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onToggleStats) {
+                    Icon(
+                        imageVector = if (showStatsPanel) Icons.Default.BarChart else Icons.Default.Timeline,
+                        contentDescription = "Toggle Stats",
+                        tint = if (showStatsPanel) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                    )
+                }
+                StatusIcon(isLoaded, executionUnit)
+            }
         }
-
         if (downloadState != null) {
             Spacer(Modifier.height(8.dp))
-            LinearProgressIndicator(
-                progress = { downloadState.progress / 100f },
-                modifier = Modifier.fillMaxWidth().height(4.dp).clip(CircleShape),
-            )
+            LinearProgressIndicator(progress = { downloadState.progress / 100f }, modifier = Modifier.fillMaxWidth().height(4.dp).clip(CircleShape))
         } else if (!isLoaded) {
             Spacer(Modifier.height(8.dp))
-            LinearProgressIndicator(
-                modifier = Modifier.fillMaxWidth().height(2.dp).clip(CircleShape),
-            )
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth().height(2.dp).clip(CircleShape))
         }
     }
 }
@@ -381,25 +351,13 @@ fun HeaderSection(
 @Composable
 fun StatusIcon(isLoaded: Boolean, executionUnit: String?) {
     val infiniteTransition = rememberInfiniteTransition(label = "status")
-    val alpha by infiniteTransition.animateFloat(
-        initialValue = 0.4f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(1000, easing = LinearEasing), repeatMode = RepeatMode.Reverse),
-        label = "alpha"
-    )
-
+    val alpha by infiniteTransition.animateFloat(0.4f, 1f, infiniteRepeatable(tween(1000, easing = LinearEasing), RepeatMode.Reverse), "alpha")
     Column(horizontalAlignment = Alignment.End) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = Icons.Default.Circle,
-                contentDescription = null,
-                tint = if (isLoaded) Color(0xFF4CAF50) else Color(0xFFFFC107),
-                modifier = Modifier.size(12.dp).then(if (!isLoaded) Modifier.graphicsLayer { this.alpha = alpha } else Modifier)
-            )
+            Icon(imageVector = Icons.Default.Circle, contentDescription = null, tint = if (isLoaded) Color(0xFF4CAF50) else Color(0xFFFFC107), modifier = Modifier.size(12.dp).then(if (!isLoaded) Modifier.graphicsLayer { this.alpha = alpha } else Modifier))
             Spacer(Modifier.width(6.dp))
             Text(text = if (isLoaded) "Ready" else "Loading", style = MaterialTheme.typography.labelMedium, color = if (isLoaded) Color(0xFF4CAF50) else Color(0xFFFFC107))
         }
-        
         if (isLoaded && executionUnit != null) {
             Spacer(Modifier.height(4.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -419,7 +377,6 @@ fun ChatBubble(message: ChatMessage, isThinkingModeActive: Boolean) {
     val containerColor = if (isUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer
     val contentColor = if (isUser) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer
     val shape = if (isUser) RoundedCornerShape(20.dp, 20.dp, 4.dp, 20.dp) else RoundedCornerShape(20.dp, 20.dp, 20.dp, 4.dp)
-
     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = alignment) {
         Surface(color = containerColor, contentColor = contentColor, shape = shape, tonalElevation = 2.dp, modifier = Modifier.widthIn(max = 300.dp)) {
             Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
@@ -448,6 +405,45 @@ fun ChatBubble(message: ChatMessage, isThinkingModeActive: Boolean) {
                 }
             }
         }
+    }
+}
+
+@Composable
+fun CompactMiniGraph(
+    data: List<Float>,
+    color: Color,
+    minValue: Float,
+    maxValue: Float
+) {
+    Canvas(modifier = Modifier.fillMaxWidth().height(40.dp)) {
+        if (data.isEmpty()) return@Canvas
+        
+        val contentWidth = size.width
+        val contentHeight = size.height
+
+        val padded = if (data.size < 60) List(60 - data.size) { data.first() } + data else data
+        val normalized = padded.map {
+            ((it - minValue) / (maxValue - minValue).coerceAtLeast(0.0001f)).coerceIn(0f, 1f)
+        }
+        val stepX = contentWidth / (normalized.size - 1).coerceAtLeast(1)
+
+        // Simple grid
+        repeat(3) {
+            val y = it * (contentHeight / 2)
+            drawLine(
+                color = Color.Gray.copy(alpha = 0.1f),
+                start = Offset(0f, y),
+                end = Offset(contentWidth, y)
+            )
+        }
+
+        val path = Path()
+        normalized.forEachIndexed { i, v ->
+            val x = i * stepX
+            val y = contentHeight - (v * contentHeight)
+            if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+        }
+        drawPath(path = path, color = color, style = Stroke(width = 2f))
     }
 }
 

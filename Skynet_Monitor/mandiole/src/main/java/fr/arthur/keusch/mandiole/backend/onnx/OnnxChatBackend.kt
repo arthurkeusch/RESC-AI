@@ -57,6 +57,7 @@ class OnnxChatBackend(
         val promptTokens = promptBuilder.buildPromptTokens(history, PromptIntent.QA(systemPrompt))
         val responseBuilder = StringBuilder()
         val streamDecoder = tokenizer.createStreamDecoder()
+        var tokenCount = 0
 
         onnxModel.runInferenceStreamingWithPastKV(
             inputIds = promptTokens,
@@ -64,19 +65,20 @@ class OnnxChatBackend(
             shouldStop = { cancelRequested.get() || !coroutineIsActive() },
             onTokenGenerated = { tokenId ->
                 val tokenText = streamDecoder.append(tokenId)
+                tokenCount++
 
                 responseBuilder.append(tokenText)
-                onPartial(parseBackendResponse(responseBuilder.toString(), isQwen3))
+                onPartial(parseBackendResponse(responseBuilder.toString(), isQwen3, tokenCount))
             }
         )
 
         val trailingText = streamDecoder.flush()
         if (trailingText.isNotEmpty()) {
             responseBuilder.append(trailingText)
-            onPartial(parseBackendResponse(responseBuilder.toString(), isQwen3))
+            onPartial(parseBackendResponse(responseBuilder.toString(), isQwen3, tokenCount))
         }
 
-        parseBackendResponse(responseBuilder.toString(), isQwen3)
+        parseBackendResponse(responseBuilder.toString(), isQwen3, tokenCount)
     }
 
     override fun cancelGeneration() {
@@ -102,11 +104,12 @@ class OnnxChatBackend(
         }
     }
 
-    private fun parseBackendResponse(rawOutput: String, isQwen3: Boolean): BackendResponse {
+    private fun parseBackendResponse(rawOutput: String, isQwen3: Boolean, tokenCount: Int): BackendResponse {
         return if (isQwen3) {
-            QwenResponseParser.parseVisibleResponse(rawOutput)
+            val base = QwenResponseParser.parseVisibleResponse(rawOutput)
+            base.copy(tokenCount = tokenCount)
         } else {
-            BackendResponse(text = rawOutput)
+            BackendResponse(text = rawOutput, tokenCount = tokenCount)
         }
     }
 
