@@ -9,7 +9,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 warnings.filterwarnings("ignore", category=UserWarning)
 
 def get_frame_skip(fps):
-    if fps <= 26:          # 25 FPS → 8–10 analysés
+    if fps <= 26:          # 25- FPS → 8–10 analysés
         target_fps = 9
     elif fps <= 35:        # 30 FPS → 8–12 analysés
         target_fps = 10
