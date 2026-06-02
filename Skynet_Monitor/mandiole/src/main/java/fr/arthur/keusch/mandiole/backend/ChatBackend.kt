@@ -3,7 +3,7 @@ package fr.arthur.keusch.mandiole.backend
 import fr.arthur.keusch.mandiole.model.ChatTurn
 import fr.arthur.keusch.mandiole.model.BackendResponse
 
-interface ChatBackend : AutoCloseable {
+internal interface ChatBackend : AutoCloseable {
     val executionUnit: String
     suspend fun initialize()
     suspend fun resetConversation(history: List<ChatTurn>, thinkingEnabled: Boolean)
@@ -12,5 +12,6 @@ interface ChatBackend : AutoCloseable {
         thinkingEnabled: Boolean,
         onPartial: (BackendResponse) -> Unit
     ): BackendResponse
+
     fun cancelGeneration()
 }

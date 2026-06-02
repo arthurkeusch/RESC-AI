@@ -1,6 +1,6 @@
 package resc.ai.skynetmonitor.ui.screens
 
-import fr.arthur.keusch.mandiole.model.ModelDescriptor
+import fr.arthur.keusch.mandiole.Mandiole
 import android.annotation.SuppressLint
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -37,7 +37,7 @@ fun ModelScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vi
     val isDeleting by viewModel.isDeleting.collectAsState()
     val lastDeleteCompleted by viewModel.lastDeleteCompleted.collectAsState()
 
-    var actionModel by remember { mutableStateOf<ModelDescriptor?>(null) }
+    var actionModel by remember { mutableStateOf<Mandiole.ModelDescriptor?>(null) }
     var showMenu by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
 

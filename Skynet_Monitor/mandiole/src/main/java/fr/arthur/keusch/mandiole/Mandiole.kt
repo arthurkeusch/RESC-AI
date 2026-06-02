@@ -1,142 +1,206 @@
 package fr.arthur.keusch.mandiole
 
 import android.content.Context
-import fr.arthur.keusch.mandiole.backend.ChatBackend
 import fr.arthur.keusch.mandiole.backend.litert.GemmaLiteRtBackend
 import fr.arthur.keusch.mandiole.backend.litert.QwenLiteRtBackend
 import fr.arthur.keusch.mandiole.backend.onnx.OnnxChatBackend
-import fr.arthur.keusch.mandiole.download.ModelDownloader
-import fr.arthur.keusch.mandiole.download.ModelDownloadProgress
-import fr.arthur.keusch.mandiole.model.BackendResponse
-import fr.arthur.keusch.mandiole.model.ChatRole
-import fr.arthur.keusch.mandiole.model.ChatTurn
-import fr.arthur.keusch.mandiole.model.GemmaLiteRtSpec
-import fr.arthur.keusch.mandiole.model.ModelDescriptor
-import fr.arthur.keusch.mandiole.model.ModelRegistry
-import fr.arthur.keusch.mandiole.model.OnnxQwenSpec
-import fr.arthur.keusch.mandiole.model.QwenLiteRtSpec
-import fr.arthur.keusch.mandiole.model.asModelMemoryTurns
+import fr.arthur.keusch.mandiole.model.*
 import fr.arthur.keusch.mandiole.util.ModelFileResolver
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * Main entry point for the Mandiole LLM library.
- * This class acts as a facade to handle model discovery, downloading, and loading.
  */
-class Mandiole(private val context: Context) {
+class Mandiole(private val context: Context) : AutoCloseable {
 
     private val modelFileResolver = ModelFileResolver(context)
-    private val modelDownloader = ModelDownloader(modelFileResolver)
-
-    // --- Model Discovery & Management ---
+    private val backendLock = Mutex()
+    private var activeBackend: fr.arthur.keusch.mandiole.backend.ChatBackend? = null
 
     /**
-     * Returns all registered model descriptors.
+     * Represents a single turn in a chat conversation.
      */
-    fun getAvailableModels(): List<ModelDescriptor> {
-        return ModelRegistry.all
+    interface ChatTurn {
+        val text: String
+        val isUser: Boolean
+        val thinkingText: String?
+        val thinkingDurationMillis: Long?
     }
 
     /**
-     * Finds a model descriptor by its ID.
+     * Represents the response from the LLM.
      */
-    fun getModel(id: String): ModelDescriptor? {
-        return ModelRegistry.findById(id)
+    interface Response {
+        val text: String
+        val thinkingText: String?
+        val tokenCount: Int?
     }
 
     /**
-     * Checks if a model's files are available (either downloaded or in assets).
+     * Represents a model's properties.
      */
-    fun isModelAvailable(modelId: String): Boolean {
-        val descriptor = getModel(modelId) ?: return false
-        return modelFileResolver.isModelAvailable(descriptor)
+    interface ModelDescriptor {
+        val id: String
+        val displayName: String
+        val supportsThinking: Boolean
+        val backendLabel: String
+        val sizeLabel: String
+        val deviceRecommendation: String
+        val approxDownloadBytes: Long
     }
 
     /**
-     * Checks if a model's files are available (either downloaded or in assets).
+     * Information about a model download progress.
+     */
+    interface DownloadProgress {
+        val fileName: String
+        val bytesDownloaded: Long
+        val totalBytes: Long?
+    }
+
+    /**
+     * Name of the current hardware execution unit (e.g., "CPU", "GPU").
+     */
+    val executionUnit: String
+        get() = activeBackend?.executionUnit ?: "None"
+
+    /**
+     * Checks if the model files are available locally.
      */
     fun isModelAvailable(descriptor: ModelDescriptor): Boolean {
-        return modelFileResolver.isModelAvailable(descriptor)
-    }
-
-    // --- Downloading ---
-
-    /**
-     * Downloads the required files for a model.
-     */
-    suspend fun downloadModel(
-        modelId: String,
-        onProgress: (ModelDownloadProgress) -> Unit
-    ) {
-        val descriptor = getModel(modelId) ?: throw IllegalArgumentException("Model not found: $modelId")
-        downloadModel(descriptor, onProgress)
+        val internalDescriptor = ModelRegistry.findById(descriptor.id) ?: return false
+        return modelFileResolver.isModelAvailable(internalDescriptor)
     }
 
     /**
-     * Downloads the required files for a model.
+     * Downloads the required files for the specified model.
      */
     suspend fun downloadModel(
         descriptor: ModelDescriptor,
-        onProgress: (ModelDownloadProgress) -> Unit
+        onProgress: (DownloadProgress) -> Unit
     ) {
-        modelDownloader.downloadModel(descriptor, onProgress)
+        val internalDescriptor =
+            ModelRegistry.findById(descriptor.id) ?: throw IllegalArgumentException("Unknown model")
+        val downloader = fr.arthur.keusch.mandiole.download.ModelDownloader(modelFileResolver)
+        downloader.downloadModel(internalDescriptor) { progress ->
+            onProgress(object : DownloadProgress {
+                override val fileName = progress.fileName
+                override val bytesDownloaded = progress.bytesDownloaded
+                override val totalBytes = progress.totalBytes
+            })
+        }
     }
 
-    // --- Deletion ---
-
     /**
-     * Deletes the downloaded files for a model.
-     */
-    fun deleteModel(modelId: String): Boolean {
-        val descriptor = getModel(modelId) ?: return true
-        return deleteModel(descriptor)
-    }
-
-    /**
-     * Deletes the downloaded files for a model.
+     * Deletes the local files of the specified model.
      */
     fun deleteModel(descriptor: ModelDescriptor): Boolean {
-        return modelFileResolver.deleteModelFiles(descriptor)
-    }
-
-    // --- Inference & Backend ---
-
-    /**
-     * Loads and initializes a model backend.
-     */
-    suspend fun loadModel(modelId: String): ChatBackend {
-        val descriptor = getModel(modelId) ?: throw IllegalArgumentException("Model not found: $modelId")
-        return loadModel(descriptor)
+        val internalDescriptor = ModelRegistry.findById(descriptor.id) ?: return true
+        return modelFileResolver.deleteModelFiles(internalDescriptor)
     }
 
     /**
-     * Loads and initializes a model backend.
+     * Loads the model into memory. Closes any previous model.
      */
-    suspend fun loadModel(descriptor: ModelDescriptor): ChatBackend {
-        val backend = when (descriptor) {
-            is OnnxQwenSpec -> OnnxChatBackend(context, descriptor, modelFileResolver)
-            is QwenLiteRtSpec -> QwenLiteRtBackend(context, descriptor, modelFileResolver)
-            is GemmaLiteRtSpec -> GemmaLiteRtBackend(context, descriptor, modelFileResolver)
+    suspend fun loadModel(descriptor: ModelDescriptor) = backendLock.withLock {
+        closeInternal()
+        val internalDescriptor =
+            ModelRegistry.findById(descriptor.id) ?: throw IllegalArgumentException("Unknown model")
+        val backend = when (internalDescriptor) {
+            is OnnxQwenSpec -> OnnxChatBackend(context, internalDescriptor, modelFileResolver)
+            is QwenLiteRtSpec -> QwenLiteRtBackend(context, internalDescriptor, modelFileResolver)
+            is GemmaLiteRtSpec -> GemmaLiteRtBackend(context, internalDescriptor, modelFileResolver)
         }
         backend.initialize()
-        return backend
+        activeBackend = backend
     }
 
     /**
-     * Utility to prepare chat history for inference by stripping UI-specific metadata.
+     * Generates a streaming reply based on the chat history.
      */
-    fun prepareHistoryForInference(history: List<ChatTurn>): List<ChatTurn> {
-        return history.asModelMemoryTurns()
+    suspend fun streamReply(
+        history: List<ChatTurn>,
+        thinkingEnabled: Boolean = true,
+        onPartial: (Response) -> Unit
+    ): Response = backendLock.withLock {
+        val backend = activeBackend ?: throw IllegalStateException("No model loaded.")
+        val internalHistory = history.map { turn ->
+            ChatTurn(
+                role = if (turn.isUser) ChatRole.USER else ChatRole.ASSISTANT,
+                text = turn.text
+            )
+        }
+        val result = backend.streamReply(internalHistory, thinkingEnabled) { resp ->
+            onPartial(object : Response {
+                override val text = resp.text
+                override val thinkingText = resp.thinkingText
+                override val tokenCount = resp.tokenCount
+            })
+        }
+        return object : Response {
+            override val text = result.text
+            override val thinkingText = result.thinkingText
+            override val tokenCount = result.tokenCount
+        }
     }
 
     /**
-     * Creates a new chat turn.
+     * Resets the conversation state with the given history.
      */
-    fun createChatTurn(role: ChatRole, text: String): ChatTurn {
-        return ChatTurn(role = role, text = text)
+    suspend fun resetConversation(history: List<ChatTurn>, thinkingEnabled: Boolean) =
+        backendLock.withLock {
+            val internalHistory = history.map { turn ->
+                ChatTurn(
+                    role = if (turn.isUser) ChatRole.USER else ChatRole.ASSISTANT,
+                    text = turn.text
+                )
+            }
+            activeBackend?.resetConversation(internalHistory, thinkingEnabled)
+        }
+
+    /**
+     * Interrupts the current generation process.
+     */
+    fun cancelGeneration() {
+        activeBackend?.cancelGeneration()
+    }
+
+    /**
+     * Releases all resources and closes the active model.
+     */
+    override fun close() {
+        closeInternal()
+    }
+
+    private fun closeInternal() {
+        synchronized(this) {
+            activeBackend?.close()
+            activeBackend = null
+        }
+    }
+
+    /**
+     * Creates a Turn object representing a user message.
+     */
+    fun userTurn(text: String): ChatTurn = createTurn(text, true)
+
+    /**
+     * Creates a Turn object representing an assistant message.
+     */
+    fun assistantTurn(text: String): ChatTurn = createTurn(text, false)
+
+    private fun createTurn(text: String, isUser: Boolean) = object : ChatTurn {
+        override val text = text
+        override val isUser = isUser
+        override val thinkingText = null
+        override val thinkingDurationMillis = null
+    }
+
+    companion object {
+        /**
+         * Returns a list of all registered models.
+         */
+        fun getAllModels(): List<ModelDescriptor> = ModelRegistry.all.map { it as ModelDescriptor }
     }
 }
-
-// Re-export important types for easier access if they are in the same package or widely used
-typealias MandioleChatBackend = ChatBackend
-typealias MandioleDownloadProgress = ModelDownloadProgress
-typealias MandioleResponse = BackendResponse

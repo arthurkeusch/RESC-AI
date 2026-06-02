@@ -1,5 +1,6 @@
 package fr.arthur.keusch.mandiole.model
 
+import fr.arthur.keusch.mandiole.Mandiole
 import fr.arthur.keusch.mandiole.backend.onnx.PromptStyle
 
 data class ModelDownloadFile(
@@ -8,17 +9,17 @@ data class ModelDownloadFile(
 )
 
 sealed class ModelDescriptor(
-    val id: String,
-    val displayName: String,
-    val supportsThinking: Boolean,
-    val backendLabel: String,
-    val sizeLabel: String,
-    val deviceRecommendation: String,
-    val approxDownloadBytes: Long,
+    override val id: String,
+    override val displayName: String,
+    override val supportsThinking: Boolean,
+    override val backendLabel: String,
+    override val sizeLabel: String,
+    override val deviceRecommendation: String,
+    override val approxDownloadBytes: Long,
     val downloadFiles: List<ModelDownloadFile>
-)
+) : Mandiole.ModelDescriptor
 
-data class OnnxQwenSpec(
+internal data class OnnxQwenSpec(
     val modelName: String,
     val displayNameOverride: String = modelName,
     val promptStyle: PromptStyle,
@@ -49,7 +50,7 @@ data class OnnxQwenSpec(
     downloadFiles = downloadArtifacts
 )
 
-data class GemmaLiteRtSpec(
+internal data class GemmaLiteRtSpec(
     val modelName: String,
     val modelAssetName: String,
     val defaultSystemInstruction: String,
@@ -70,7 +71,7 @@ data class GemmaLiteRtSpec(
     downloadFiles = downloadArtifacts
 )
 
-data class QwenLiteRtSpec(
+internal data class QwenLiteRtSpec(
     val modelName: String,
     val modelAssetName: String,
     val defaultSystemInstruction: String,
@@ -91,7 +92,7 @@ data class QwenLiteRtSpec(
     downloadFiles = downloadArtifacts
 )
 
-object ModelRegistry {
+internal object ModelRegistry {
     private const val TOKENIZER_ASSET = "tokenizer.json"
     private const val QWEN_MODEL_ASSET = "model.onnx"
     private const val QWEN_DISPLAY_MAPPING_ASSET = "qwen_token_display_mapping.json"

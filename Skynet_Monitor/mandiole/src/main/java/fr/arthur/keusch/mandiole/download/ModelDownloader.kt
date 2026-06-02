@@ -23,7 +23,7 @@ data class ModelDownloadProgress(
     val totalBytes: Long?
 )
 
-class ModelDownloader(
+internal class ModelDownloader(
     private val modelFileResolver: ModelFileResolver
 ) {
 
@@ -96,6 +96,7 @@ class ModelDownloader(
             val totalBytes = when {
                 isResuming -> parseContentRangeTotal(connection.getHeaderField("Content-Range"))
                     ?: responseBytes?.plus(startingBytes)
+
                 else -> responseBytes
             }
 
@@ -205,6 +206,7 @@ class ModelDownloader(
                 connection.disconnect()
                 openConnection(URL(URL(url), nextUrl).toString(), redirectCount + 1, startByte)
             }
+
             else -> connection
         }
     }

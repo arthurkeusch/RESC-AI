@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.withContext
 import java.io.File
 
-class GemmaLiteRtBackend(
+internal class GemmaLiteRtBackend(
     private val context: Context,
     private val spec: GemmaLiteRtSpec,
     private val modelFileResolver: ModelFileResolver
@@ -40,26 +40,26 @@ class GemmaLiteRtBackend(
     override suspend fun initialize() = withContext(Dispatchers.IO) {
         val modelFile = modelFileResolver.resolveModelFile(spec)
 
-        // Détection de la présence d'OpenCL sur l'appareil.
         val isOpenClAvailable = listOf(
             "/system/lib64/libOpenCL.so",
             "/system/vendor/lib64/libOpenCL.so",
             "/vendor/lib64/libOpenCL.so",
-            "/vendor/lib64/egl/libGLES_mali.so", // Souvent là sur Samsung
+            "/vendor/lib64/egl/libGLES_mali.so",
             "/system/vendor/lib/libOpenCL.so",
             "/system/lib/libOpenCL.so"
         ).any { File(it).exists() }
 
-        // Détection plus large pour inclure Samsung, Mali, Exynos et Mediatek (mt)
         val isSamsung = android.os.Build.MANUFACTURER.contains("samsung", ignoreCase = true)
-        val isMaliOrExynos = android.os.Build.HARDWARE.contains("mali", ignoreCase = true) || 
-                             android.os.Build.BOARD.contains("exynos", ignoreCase = true) ||
-                             android.os.Build.HARDWARE.contains("mt", ignoreCase = true) // Mediatek
+        val isMaliOrExynos = android.os.Build.HARDWARE.contains("mali", ignoreCase = true) ||
+                android.os.Build.BOARD.contains("exynos", ignoreCase = true) ||
+                android.os.Build.HARDWARE.contains("mt", ignoreCase = true) // Mediatek
 
-        // On évite le GPU sur Samsung pour le moment car LiteRT-LM y a des problèmes de chargement OpenCL
         val useGpu = isOpenClAvailable && !isMaliOrExynos && !isSamsung
 
-        Log.d("LLM", "Init: isOpenCl=$isOpenClAvailable, isMali=$isMaliOrExynos, isSamsung=$isSamsung, useGpu=$useGpu")
+        Log.d(
+            "LLM",
+            "Init: isOpenCl=$isOpenClAvailable, isMali=$isMaliOrExynos, isSamsung=$isSamsung, useGpu=$useGpu"
+        )
 
         val gpuResult = if (useGpu) {
             Log.i("LLM", "Attempting GPU initialization...")
@@ -130,7 +130,6 @@ class GemmaLiteRtBackend(
             val thoughtChunk = message.channels[THOUGHT_CHANNEL_NAME].orEmpty()
             if (thoughtChunk.isNotEmpty()) {
                 thinkingBuilder.append(thoughtChunk)
-                // thinking chunks are separate from content usually
             }
 
             onPartial(

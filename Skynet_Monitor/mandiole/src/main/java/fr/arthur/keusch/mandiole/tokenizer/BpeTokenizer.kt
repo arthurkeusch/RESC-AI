@@ -8,7 +8,7 @@ import org.json.JSONObject
 import java.io.InputStream
 import java.text.Normalizer
 
-class BpeTokenizer(
+internal class BpeTokenizer(
     private val context: Context,
     private val modelDescriptor: OnnxQwenSpec,
     private val modelFileResolver: ModelFileResolver
@@ -75,11 +75,9 @@ class BpeTokenizer(
     init {
         val tokenizerJson = loadTokenizerJson()
 
-        // Load base vocabulary
         vocab = tokenizerJson.getJSONObject("model").getJSONObject("vocab").toIntMap()
         idToToken = vocab.entries.associate { (k, v) -> v to k }
 
-        // Load BPE merge rules
         val mergeList = tokenizerJson.getJSONObject("model").getJSONArray("merges")
         merges = (0 until mergeList.length()).map { i ->
             when (val entry = mergeList.get(i)) {
@@ -88,16 +86,17 @@ class BpeTokenizer(
                     require(parts.size == 2) { "Invalid merge string: $entry" }
                     parts[0] to parts[1]
                 }
+
                 is org.json.JSONArray -> {
                     require(entry.length() == 2) { "Invalid merge array: $entry" }
                     entry.getString(0) to entry.getString(1)
                 }
+
                 else -> throw IllegalArgumentException("Unsupported merge entry type: ${entry::class.java}")
             }
         }
         bpeRanks = merges.withIndex().associate { it.value to it.index }
 
-        // Load special tokens like <|im_start|> and <|im_end|>
         val addedTokens = tokenizerJson.optJSONArray("added_tokens")
         specialTokens = if (addedTokens != null) {
             (0 until addedTokens.length()).associate {
@@ -107,7 +106,6 @@ class BpeTokenizer(
         } else emptyMap()
         specialTokensById = specialTokens.entries.associate { (token, id) -> id to token }
 
-        // Check if NFC normalization is enabled
         nfcNormalize = tokenizerJson.optJSONObject("normalizer")
             ?.optString("type") == "NFC"
 
@@ -115,11 +113,12 @@ class BpeTokenizer(
         unicodeToByte = byteToUnicode.entries.associate { (byte, symbol) -> symbol to byte }
         splitPattern = loadSplitPattern(tokenizerJson)
 
-        // Log tokenizer summary
-        Log.d(TAG, "Tokenizer loaded successfully: vocab=${vocab.size}, merges=${merges.size}, specialTokens=${specialTokens.size}, NFC=$nfcNormalize")
+        Log.d(
+            TAG,
+            "Tokenizer loaded successfully: vocab=${vocab.size}, merges=${merges.size}, specialTokens=${specialTokens.size}, NFC=$nfcNormalize"
+        )
     }
 
-    // Converts input text into a list of token IDs using BPE and optional special tokens
     fun tokenize(text: String, addSpecialTokens: Boolean = false): IntArray {
         val tokens = mutableListOf<Int>()
 
@@ -147,7 +146,6 @@ class BpeTokenizer(
         return tokens.toIntArray()
     }
 
-    // Decodes a list of token IDs back into a readable string
     fun decode(tokenIds: IntArray): String {
         val builder = StringBuilder()
         val pendingTokenBytes = StringBuilder()
@@ -172,27 +170,23 @@ class BpeTokenizer(
         return if (nfcNormalize) Normalizer.normalize(decoded, Normalizer.Form.NFC) else decoded
     }
 
-    // Decodes a single token ID into a string using cached values
     fun decodeSingleToken(tokenId: Int): String {
         return decodedTokenCache[tokenId] ?: "<unk>"
     }
 
     fun createStreamDecoder(): StreamDecoder = StreamDecoder()
 
-    // Returns the token ID for a string (special tokens included)
     fun getTokenId(token: String): Int {
         return specialTokens[token]
             ?: vocab[token]
             ?: throw IllegalArgumentException("Token '$token' not found in vocab or special tokens.")
     }
 
-    // Splits input string into space and word chunks before BPE merging
     private fun preTokenize(text: String): List<String> {
         if (text.isEmpty()) return emptyList()
         return splitPattern.findAll(text).map { it.value }.toList()
     }
 
-    // Applies BPE merge rules to a single token string
     private fun bpe(token: String): List<String> {
         bpeCache[token]?.let { return it }
         var word = token.toCharArray().map { it.toString() }.toMutableList() // preTokenize
@@ -221,14 +215,13 @@ class BpeTokenizer(
         return word.toList().also { bpeCache[token] = it }
     }
 
-    // Returns all adjacent pairs of characters or merged subwords
     private fun getPairs(word: List<String>): Set<Pair<String, String>> {
         return (0 until word.size - 1).map { word[it] to word[it + 1] }.toSet()
     }
 
-    // Loads the tokenizer.json file from the app's assets folder
     private fun loadTokenizerJson(): JSONObject {
-        val tokenizerFile = modelFileResolver.resolveFile(modelDescriptor, modelDescriptor.tokenizerAssetName)
+        val tokenizerFile =
+            modelFileResolver.resolveFile(modelDescriptor, modelDescriptor.tokenizerAssetName)
         Log.d(TAG, "Loading tokenizer from ${tokenizerFile.absolutePath}")
         val inputStream: InputStream = tokenizerFile.inputStream()
         val jsonStr = inputStream.bufferedReader().use { it.readText() }
@@ -260,7 +253,6 @@ class BpeTokenizer(
         return splitRegex?.let(::Regex) ?: DEFAULT_SPLIT_PATTERN
     }
 
-    // Converts a JSON object of string→int mappings into a Kotlin map
     private fun JSONObject.toIntMap(): Map<String, Int> {
         return keys().asSequence().associateWith { this.getInt(it) }
     }
@@ -347,7 +339,6 @@ class BpeTokenizer(
         return index
     }
 
-    // Precomputed cache for fast single-token decoding
     private val decodedTokenCache: Map<Int, String> = buildMap {
         idToToken.forEach { (id, token) ->
             val decoded = decodeByteLevelString(token)

@@ -6,11 +6,15 @@ import fr.arthur.keusch.mandiole.model.ChatRole
 import fr.arthur.keusch.mandiole.model.ChatTurn
 import fr.arthur.keusch.mandiole.tokenizer.BpeTokenizer
 
-class PromptBuilder(
+internal class PromptBuilder(
     private val tokenizer: BpeTokenizer,
     private val config: ModelConfig
 ) {
-    fun buildPromptTokens(messages: List<ChatTurn>, intent: PromptIntent, maxTokens: Int = 500): IntArray {
+    fun buildPromptTokens(
+        messages: List<ChatTurn>,
+        intent: PromptIntent,
+        maxTokens: Int = 500
+    ): IntArray {
         return when (config.promptStyle) {
             PromptStyle.QWEN2_5, PromptStyle.QWEN3 -> when (intent) {
                 is PromptIntent.QA -> buildQwenChatPrompt(messages, intent.systemPrompt, maxTokens)
@@ -18,7 +22,11 @@ class PromptBuilder(
         }
     }
 
-    fun buildQwenChatPrompt(messages: List<ChatTurn>, systemPrompt: String? = null, maxTokens: Int = 500): IntArray {
+    fun buildQwenChatPrompt(
+        messages: List<ChatTurn>,
+        systemPrompt: String? = null,
+        maxTokens: Int = 500
+    ): IntArray {
         val systemTokens = tokenizer.tokenize(systemPrompt ?: config.defaultSystemPrompt)
         val assistantStart = config.roleTokenIds.assistantStart
         val end = config.roleTokenIds.endToken
@@ -30,7 +38,8 @@ class PromptBuilder(
 
         val turns = mutableListOf<Int>()
         for (msg in messages) {
-            val roleTokens = if (msg.role == ChatRole.USER) config.roleTokenIds.userStart else assistantStart
+            val roleTokens =
+                if (msg.role == ChatRole.USER) config.roleTokenIds.userStart else assistantStart
             val msgTokens = tokenizer.tokenize(msg.text)
             turns.addAll(roleTokens)
             turns.addAll(msgTokens.toList())

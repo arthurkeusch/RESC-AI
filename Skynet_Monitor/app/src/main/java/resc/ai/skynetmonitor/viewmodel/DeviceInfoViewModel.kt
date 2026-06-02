@@ -9,10 +9,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import fr.arthur.keusch.mandiole.Mandiole
-import fr.arthur.keusch.mandiole.backend.ChatBackend
-import fr.arthur.keusch.mandiole.model.ChatRole
-import fr.arthur.keusch.mandiole.model.ChatTurn
-import fr.arthur.keusch.mandiole.model.ModelDescriptor
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -28,7 +24,7 @@ import resc.ai.skynetmonitor.service.ModelService
 import resc.ai.skynetmonitor.service.PerformanceSample
 
 data class ChatMessage(
-    val role: ChatRole,
+    val isUser: Boolean,
     val text: String,
     val thinkingText: String? = null,
     val thinkingDurationSeconds: Int? = null
@@ -64,12 +60,12 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
     val ctx: Context get() = getApplication<Application>().applicationContext
     private val mandiole = Mandiole(ctx)
 
-    private val _remoteModels = MutableStateFlow<List<ModelDescriptor>>(emptyList())
-    val remoteModels: StateFlow<List<ModelDescriptor>> = _remoteModels.asStateFlow()
+    private val _remoteModels = MutableStateFlow<List<Mandiole.ModelDescriptor>>(emptyList())
+    val remoteModels: StateFlow<List<Mandiole.ModelDescriptor>> = _remoteModels.asStateFlow()
 
-    private val _localModels = MutableStateFlow<List<ModelDescriptor>>(emptyList())
+    private val _localModels = MutableStateFlow<List<Mandiole.ModelDescriptor>>(emptyList())
 
-    val localModels: StateFlow<List<ModelDescriptor>> = _localModels.asStateFlow()
+    val localModels: StateFlow<List<Mandiole.ModelDescriptor>> = _localModels.asStateFlow()
 
     private val _downloadState = MutableStateFlow<DownloadState?>(null)
     val downloadState: StateFlow<DownloadState?> = _downloadState.asStateFlow()
@@ -92,13 +88,13 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
 
     private var deviceId: Int? = null
     private var downloadJob: Job? = null
-    private var currentBackend: ChatBackend? = null
-    private var currentModel: ModelDescriptor? = null
-    private val chatHistory = mutableListOf<ChatTurn>()
+    private var inferenceJob: Job? = null
+    private var currentModel: Mandiole.ModelDescriptor? = null
+    private val chatHistory = mutableListOf<Mandiole.ChatTurn>()
 
     init {
         hardwareInfo.value = DeviceInfoService.getStaticHardwareInfo(ctx)
-        
+
         viewModelScope.launch {
             deviceId = PromptService.registerOrGetDevice(ctx, hardwareInfo.value)
         }
@@ -126,18 +122,18 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    fun isModelLocal(model: ModelDescriptor): Boolean {
+    fun isModelLocal(model: Mandiole.ModelDescriptor): Boolean {
         return mandiole.isModelAvailable(model)
     }
 
     fun loadModelsRemote() {
-        val remoteList = mandiole.getAvailableModels()
+        val remoteList = Mandiole.getAllModels()
         _remoteModels.value = remoteList
         val localList = remoteList.filter { isModelLocal(it) }
         _localModels.value = localList
     }
 
-    fun downloadModel(model: ModelDescriptor) {
+    fun downloadModel(model: Mandiole.ModelDescriptor) {
         downloadJob?.cancel()
         downloadJob = viewModelScope.launch {
             _downloadState.value = DownloadState(
@@ -153,7 +149,7 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                     val received = progress.bytesDownloaded
                     val total = progress.totalBytes ?: model.approxDownloadBytes
                     val p = if (total > 0) ((received * 100) / total).toInt() else 0
-                    
+
                     _downloadState.value = _downloadState.value?.copy(
                         bytesReceived = received,
                         totalBytes = total,
@@ -165,7 +161,7 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                     etaSeconds = 0,
                     speedBytesPerSec = 0
                 )
-                
+
                 // If a model was being selected for chat/benchmark, load it now
                 if (_chat.value.isRunning && !_chat.value.isModelLoaded && currentModel == model) {
                     if (_chat.value.isBenchmarking && _chat.value.currentStep == BenchmarkStep.EXECUTING) {
@@ -196,7 +192,7 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
         _downloadState.value = null
     }
 
-    fun deleteLocalModel(model: ModelDescriptor) {
+    fun deleteLocalModel(model: Mandiole.ModelDescriptor) {
         viewModelScope.launch {
             try {
                 _isDeleting.value = true
@@ -213,7 +209,7 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
         _lastDeleteCompleted.value = null
     }
 
-    fun startChat(model: ModelDescriptor) {
+    fun startChat(model: Mandiole.ModelDescriptor) {
         viewModelScope.launch {
             try {
                 _chat.value = ChatSessionState(
@@ -226,35 +222,34 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                     currentStep = BenchmarkStep.EXECUTING,
                     messages = emptyList()
                 )
-                
+
                 if (!mandiole.isModelAvailable(model)) {
                     downloadModel(model)
                     return@launch
                 }
 
-                currentBackend?.close()
-                currentBackend = null
                 currentModel = model
+                mandiole.loadModel(model)
 
-                val backend = mandiole.loadModel(model)
-                
                 if (!_chat.value.isRunning) {
-                    backend.close()
+                    mandiole.close()
                     return@launch
                 }
 
-                currentBackend = backend
                 chatHistory.clear()
 
                 _chat.value = _chat.value.copy(
                     isModelLoaded = true,
-                    executionUnit = backend.executionUnit
+                    executionUnit = mandiole.executionUnit
                 )
             } catch (e: Exception) {
                 Log.e("LLM", "Error starting chat", e)
                 _chat.value = _chat.value.copy(
                     isRunning = false,
-                    messages = _chat.value.messages + ChatMessage(ChatRole.ASSISTANT, "Error: ${e.message}")
+                    messages = _chat.value.messages + ChatMessage(
+                        isUser = false,
+                        "Error: ${e.message}"
+                    )
                 )
             }
         }
@@ -278,15 +273,13 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
         loadModelsRemote()
     }
 
-    fun selectModelForBenchmark(model: ModelDescriptor) {
+    fun selectModelForBenchmark(model: Mandiole.ModelDescriptor) {
         viewModelScope.launch {
             if (!_chat.value.isBenchmarking) {
-                // Simple chat mode: start chat immediately after selection
                 startChat(model)
                 return@launch
             }
-            
-            // Benchmark mode: proceed to dataset selection
+
             val datasets = PromptService.fetchDatasets(ctx) ?: emptyList()
             _chat.update {
                 it.copy(
@@ -320,32 +313,36 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
         val model = currentModel ?: return
         val selectedIds = _chat.value.selectedDatasetIds
         val selectedDatasets = _chat.value.datasets.filter { selectedIds.contains(it.id) }
-        
+
         if (selectedDatasets.isEmpty()) return
 
         val totalPrompts = selectedDatasets.sumOf { it.prompts.size }
-        _chat.update { 
+        _chat.update {
             it.copy(
-                currentStep = BenchmarkStep.EXECUTING, 
+                currentStep = BenchmarkStep.EXECUTING,
                 messages = emptyList(),
                 totalPromptsInSelectedDatasets = totalPrompts,
                 currentDatasetIndex = 0,
                 currentPromptIndex = 0
-            ) 
+            )
         }
 
-        viewModelScope.launch {
+        inferenceJob?.cancel()
+        inferenceJob = viewModelScope.launch {
             try {
                 if (!mandiole.isModelAvailable(model)) {
                     downloadModel(model)
                     return@launch
                 }
 
-                currentBackend?.close()
-                val backend = mandiole.loadModel(model)
-                currentBackend = backend
-                
-                _chat.update { it.copy(isModelLoaded = true, executionUnit = backend.executionUnit) }
+                mandiole.loadModel(model)
+
+                _chat.update {
+                    it.copy(
+                        isModelLoaded = true,
+                        executionUnit = mandiole.executionUnit
+                    )
+                }
 
                 val dbModelId = ModelService.registerOrGetModel(ctx, model.displayName) ?: 1L
                 Log.d("LLM", "Benchmark model registered with ID: $dbModelId")
@@ -354,36 +351,46 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                 for ((dIdx, dataset) in selectedDatasets.withIndex()) {
                     _chat.update { it.copy(currentDatasetIndex = dIdx) }
                     chatHistory.clear()
-                    
+
                     for ((pIdx, promptItem) in dataset.prompts.withIndex()) {
                         _chat.update { it.copy(currentPromptIndex = overallPromptCounter) }
                         if (!dataset.isConversational) {
                             chatHistory.clear()
                         }
-                        
+
                         val promptText = promptItem.prompt
-                        chatHistory.add(ChatTurn(role = ChatRole.USER, text = promptText))
+                        chatHistory.add(mandiole.userTurn(promptText))
 
                         _chat.update { state ->
                             state.copy(
                                 isGenerating = true,
-                                messages = state.messages + ChatMessage(ChatRole.USER, promptText) + ChatMessage(ChatRole.ASSISTANT, "")
+                                messages = state.messages + ChatMessage(
+                                    isUser = true,
+                                    promptText
+                                ) + ChatMessage(isUser = false, "")
                             )
                         }
 
                         val startTime = System.currentTimeMillis()
                         val isThinkingModeActive = _chat.value.thinkingEnabled
                         val performanceSamples = mutableListOf<PerformanceSample>()
-                        
-                        // Periodic performance sampling during generation
+
                         val samplingJob = viewModelScope.launch {
                             while (coroutineContext.isActive) {
-                                performanceSamples.add(DeviceInfoService.getCurrentPerformanceSample(ctx, startTime))
+                                performanceSamples.add(
+                                    DeviceInfoService.getCurrentPerformanceSample(
+                                        ctx,
+                                        startTime
+                                    )
+                                )
                                 delay(1000L)
                             }
                         }
-                        
-                        val response = backend.streamReply(chatHistory, thinkingEnabled = isThinkingModeActive) { partial ->
+
+                        val response = mandiole.streamReply(
+                            chatHistory,
+                            thinkingEnabled = isThinkingModeActive
+                        ) { partial ->
                             val currentTime = System.currentTimeMillis()
                             val durationSec = if (partial.thinkingText != null) {
                                 ((currentTime - startTime) / 1000).toInt()
@@ -393,7 +400,7 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                                 val newMessages = state.messages.toMutableList()
                                 if (newMessages.isNotEmpty()) {
                                     newMessages[newMessages.size - 1] = ChatMessage(
-                                        role = ChatRole.ASSISTANT,
+                                        isUser = false,
                                         text = partial.text,
                                         thinkingText = partial.thinkingText,
                                         thinkingDurationSeconds = durationSec
@@ -402,30 +409,33 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                                 state.copy(messages = newMessages)
                             }
                         }
-                        
+
                         samplingJob.cancel()
                         val endTime = System.currentTimeMillis()
                         val durationMs = endTime - startTime
-                        val tokenCount = response.tokenCount ?: response.text.split(Regex("\\s+")).size
-                        val tokensPerS = if (durationMs > 0) (tokenCount.toFloat() / (durationMs / 1000.0f)) else 0f
+                        val tokenCount =
+                            response.tokenCount ?: response.text.split(Regex("\\s+")).size
+                        val tokensPerS =
+                            if (durationMs > 0) (tokenCount.toFloat() / (durationMs / 1000.0f)) else 0f
 
                         val totalDurationSec = if (response.thinkingText != null) {
                             (durationMs / 1000).toInt()
                         } else null
-                        
-                        chatHistory.add(ChatTurn(role = ChatRole.ASSISTANT, text = response.text))
-                        
+
+                        chatHistory.add(mandiole.assistantTurn(response.text))
+
                         _chat.update { state ->
                             val newMessages = state.messages.toMutableList()
                             if (newMessages.isNotEmpty()) {
                                 newMessages[newMessages.size - 1] = ChatMessage(
-                                    role = ChatRole.ASSISTANT,
+                                    isUser = false,
                                     text = response.text,
                                     thinkingText = response.thinkingText,
                                     thinkingDurationSeconds = totalDurationSec
                                 )
                             }
-                            val limitedMessages = if (newMessages.size > 50) newMessages.takeLast(50) else newMessages
+                            val limitedMessages =
+                                if (newMessages.size > 50) newMessages.takeLast(50) else newMessages
                             state.copy(messages = limitedMessages, isGenerating = false)
                         }
 
@@ -461,23 +471,29 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun sendPrompt(prompt: String) {
-        val userTurn = ChatTurn(role = ChatRole.USER, text = prompt)
+        val userTurn = mandiole.userTurn(prompt)
         chatHistory.add(userTurn)
 
         _chat.update { state ->
             state.copy(
                 isGenerating = true,
-                messages = state.messages + ChatMessage(ChatRole.USER, prompt) + ChatMessage(ChatRole.ASSISTANT, "")
+                messages = state.messages + ChatMessage(
+                    isUser = true,
+                    prompt
+                ) + ChatMessage(isUser = false, "")
             )
         }
 
-        viewModelScope.launch {
+        inferenceJob?.cancel()
+        inferenceJob = viewModelScope.launch {
             try {
-                val backend = currentBackend ?: return@launch
                 val isThinkingModeActive = _chat.value.thinkingEnabled
                 val startTime = System.currentTimeMillis()
-                
-                backend.streamReply(chatHistory, thinkingEnabled = isThinkingModeActive) { response ->
+
+                mandiole.streamReply(
+                    chatHistory,
+                    thinkingEnabled = isThinkingModeActive
+                ) { response ->
                     val currentTime = System.currentTimeMillis()
                     val durationSec = if (response.thinkingText != null) {
                         ((currentTime - startTime) / 1000).toInt()
@@ -487,7 +503,7 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                         val newMessages = state.messages.toMutableList()
                         if (newMessages.isNotEmpty()) {
                             newMessages[newMessages.size - 1] = ChatMessage(
-                                role = ChatRole.ASSISTANT, 
+                                isUser = false,
                                 text = response.text,
                                 thinkingText = response.thinkingText,
                                 thinkingDurationSeconds = durationSec
@@ -500,12 +516,12 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                         ((System.currentTimeMillis() - startTime) / 1000).toInt()
                     } else null
 
-                    chatHistory.add(ChatTurn(role = ChatRole.ASSISTANT, text = finalResponse.text))
+                    chatHistory.add(mandiole.assistantTurn(finalResponse.text))
                     _chat.update { state ->
                         val newMessages = state.messages.toMutableList()
                         if (newMessages.isNotEmpty()) {
                             newMessages[newMessages.size - 1] = ChatMessage(
-                                role = ChatRole.ASSISTANT, 
+                                isUser = false,
                                 text = finalResponse.text,
                                 thinkingText = finalResponse.thinkingText,
                                 thinkingDurationSeconds = totalDurationSec
@@ -518,7 +534,10 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                 _chat.update { state ->
                     state.copy(
                         isGenerating = false,
-                        messages = state.messages + ChatMessage(ChatRole.ASSISTANT, "Error: ${e.message}")
+                        messages = state.messages + ChatMessage(
+                            isUser = false,
+                            "Error: ${e.message}"
+                        )
                     )
                 }
             }
@@ -526,22 +545,22 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun cancelGeneration() {
-        currentBackend?.cancelGeneration()
+        mandiole.cancelGeneration()
+        inferenceJob?.cancel()
         _chat.update { it.copy(isGenerating = false) }
     }
 
     fun stopBenchmark() {
-        val backendToClose = currentBackend
-        currentBackend = null
-        _chat.value = ChatSessionState(isRunning = false)
-        
+        _chat.update { it.copy(isRunning = false, isGenerating = false) }
+        mandiole.cancelGeneration()
+        inferenceJob?.cancel()
+
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                backendToClose?.close()
+                inferenceJob?.join()
+                mandiole.close()
             } catch (e: Exception) {
                 Log.e("LLM", "Error closing backend", e)
-            } finally {
-                System.gc()
             }
         }
     }
@@ -574,5 +593,10 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
 
             else -> 0f to 100f
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        mandiole.close()
     }
 }

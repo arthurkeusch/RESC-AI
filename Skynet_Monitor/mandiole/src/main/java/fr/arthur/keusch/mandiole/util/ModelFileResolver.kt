@@ -7,7 +7,7 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 
-class ModelFileResolver(private val context: Context) {
+internal class ModelFileResolver(private val context: Context) {
 
     fun getModelDirectory(descriptor: ModelDescriptor): File {
         return File(context.filesDir, "models/${descriptor.id}").apply { mkdirs() }
@@ -38,7 +38,7 @@ class ModelFileResolver(private val context: Context) {
     fun isModelAvailable(descriptor: ModelDescriptor): Boolean {
         return descriptor.downloadFiles.all { downloadFile ->
             isFileDownloaded(descriptor, downloadFile.localFileName) ||
-                hasBundledAsset(downloadFile.localFileName)
+                    hasBundledAsset(downloadFile.localFileName)
         }
     }
 

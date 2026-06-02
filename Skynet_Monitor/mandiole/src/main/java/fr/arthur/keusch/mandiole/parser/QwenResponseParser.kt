@@ -2,7 +2,7 @@ package fr.arthur.keusch.mandiole.parser
 
 import fr.arthur.keusch.mandiole.model.BackendResponse
 
-object QwenResponseParser {
+internal object QwenResponseParser {
 
     private const val THINK_OPEN_TAG = "<think>"
     private const val THINK_CLOSE_TAG = "</think>"
@@ -41,8 +41,6 @@ object QwenResponseParser {
             val thinkStart = rawOutput.indexOf(THINK_OPEN_TAG, startIndex = cursor)
             val thinkEnd = rawOutput.indexOf(THINK_CLOSE_TAG, startIndex = cursor)
 
-            // Cas où on a un marqueur de fin </think> mais pas encore de marqueur de début <think>
-            // (peut arriver si le début a été tronqué ou si le modèle commence directement à réfléchir)
             if (thinkEnd >= 0 && (thinkStart < 0 || thinkEnd < thinkStart)) {
                 thinkingBuilder.append(rawOutput.substring(cursor, thinkEnd))
                 cursor = thinkEnd + THINK_CLOSE_TAG.length

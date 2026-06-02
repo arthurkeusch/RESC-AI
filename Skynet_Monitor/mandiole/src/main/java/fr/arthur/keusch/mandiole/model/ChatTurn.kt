@@ -19,16 +19,3 @@ data class ChatTurn(
     val isUser: Boolean
         get() = role == ChatRole.USER
 }
-
-fun ChatTurn.asModelMemoryTurn(): ChatTurn {
-    return copy(
-        thinkingText = null,
-        thinkingDurationMillis = null,
-        stopped = false,
-        renderAsMarkdown = false
-    )
-}
-
-fun List<ChatTurn>.asModelMemoryTurns(): List<ChatTurn> {
-    return map { it.asModelMemoryTurn() }
-}
