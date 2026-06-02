@@ -1,0 +1,6 @@
+MODEL_PATH = "model/vosk-model-fr-0.6-linto-2.2.0"
+
+RATE = 16000
+CHUNK = 2048
+WINDOW_SECONDS = 1
+ALERT_THRESHOLD = 3

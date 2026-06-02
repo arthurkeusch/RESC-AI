@@ -56,7 +56,7 @@ last_fall_alert = 0
 
 TARGET_WIDTH = 640
 TARGET_HEIGHT = 360
-USE_RESIZE = False # Passer à True pour limiter la qualité de la vidéo
+USE_RESIZE = True # Passer à True pour limiter la qualité de la vidéo
 
 while True:
     ret, frame = cap.read()
