@@ -1,6 +1,7 @@
 package com.example.anhilyx.resc_ai;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -113,6 +114,12 @@ public class EmbeddingEngine {
                 .enqueue(
                         getOkHttp3Callback(vocabFile, callback)
                 );
+
+        // Save the model dimension
+        SharedPreferences prefs = context.getSharedPreferences("rag_prefs", Context.MODE_PRIVATE);
+        prefs.edit()
+                .putInt("model_dimension", model.getDimension())
+                .apply();
     }
 
     /**
@@ -149,8 +156,12 @@ public class EmbeddingEngine {
      */
     public float[] generateEmbedding(String text) {
 
+        // Retrieve the dimension
+        SharedPreferences prefs = context.getSharedPreferences("rag_prefs", Context.MODE_PRIVATE);
+        int dimension = prefs.getInt("model_dimension", 0);
+
         // Initialize empty embedding
-        float[] embedding = new float[384];
+        float[] embedding = new float[dimension];
         if (text == null || text.isEmpty()) return embedding;
 
         // Load the model if not already done
@@ -187,14 +198,14 @@ public class EmbeddingEngine {
                 for (int i = 0; i < maxLen; i++) {
                     if (tokens.attentionMask[i] == 1L) {
                         validTokens++;
-                        for (int j = 0; j < 384; j++) {
+                        for (int j = 0; j < dimension; j++) {
                             embedding[j] += outputEmbeddings[0][i][j];
                         }
                     }
                 }
 
                 if (validTokens > 0) {
-                    for (int j = 0; j < 384; j++) {
+                    for (int j = 0; j < dimension; j++) {
                         embedding[j] /= validTokens;
                     }
                 }
@@ -204,7 +215,7 @@ public class EmbeddingEngine {
                 for (float v : embedding) sum += v * v;
                 float norm = (float) Math.sqrt(sum);
                 if (norm > 0) {
-                    for (int i = 0; i < 384; i++) {
+                    for (int i = 0; i < dimension; i++) {
                         embedding[i] /= norm;
                     }
                 }

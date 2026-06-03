@@ -4,17 +4,20 @@ public class ModelDescriptor {
     private final String modelName;
     private final String modelUrl;
     private final String vocabUrl;
+    private final int dimension;
 
     /**
      * ModelDescriptor constructor.
      * @param modelName The name of the model.
      * @param modelUrl The URL of the model.
      * @param vocabUrl The URL of the model's vocabulary.
+     * @param dimension The dimension of the model.
      */
-    public ModelDescriptor(String modelName, String modelUrl, String vocabUrl) {
+    public ModelDescriptor(String modelName, String modelUrl, String vocabUrl, int dimension) {
         this.modelName = modelName;
         this.modelUrl = modelUrl;
         this.vocabUrl = vocabUrl;
+        this.dimension = dimension;
     }
 
     /**
@@ -39,6 +42,14 @@ public class ModelDescriptor {
      */
     public String getVocabUrl() {
         return vocabUrl;
+    }
+
+    /**
+     * Get the dimension of the model.
+     * @return The dimension of the model.
+     */
+    public int getDimension() {
+        return dimension;
     }
 
     @Override

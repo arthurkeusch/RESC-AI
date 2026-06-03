@@ -23,14 +23,16 @@ import com.tom_roush.pdfbox.pdmodel.PDDocument;
 import com.tom_roush.pdfbox.text.PDFTextStripper;
 
 import java.io.InputStream;
+import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class RagCreationFragment extends Fragment {
 
-    private static final int CHUNK_SIZE = 1024;
+    private static final int CHUNK_SIZE = 384;
 
     private Spinner modelSpinner;
     private Button pdfButton;
@@ -46,14 +48,22 @@ public class RagCreationFragment extends Fragment {
 
     private final static ModelDescriptor[] MODELS = {
             new ModelDescriptor(
+                    "Distiluse Base (multilingual)",
+                    "https://huggingface.co/sentence-transformers/distiluse-base-multilingual-cased-v2/resolve/main/onnx/model.onnx?download=true",
+                    "https://huggingface.co/sentence-transformers/distiluse-base-multilingual-cased-v2/resolve/main/vocab.txt?download=true",
+                    512
+            ),
+            new ModelDescriptor(
                     "MiniLM-L6",
                     "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/onnx/model.onnx?download=true",
-                    "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/vocab.txt?download=true"
+                    "https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/vocab.txt?download=true",
+                    384
             ),
             new ModelDescriptor(
                     "BGE Small (en)",
                     "https://huggingface.co/BAAI/bge-small-en-v1.5/resolve/main/onnx/model.onnx?download=true",
-                    "https://huggingface.co/BAAI/bge-small-en-v1.5/resolve/main/vocab.txt?download=true"
+                    "https://huggingface.co/BAAI/bge-small-en-v1.5/resolve/main/vocab.txt?download=true",
+                    384
             )
     };
 
@@ -104,7 +114,10 @@ public class RagCreationFragment extends Fragment {
                         InputStream is = requireContext().getContentResolver().openInputStream(uri);
                         PDDocument document = PDDocument.load(is);
                         PDFTextStripper stripper = new PDFTextStripper();
-                        pdfText = stripper.getText(document);
+                        pdfText = stripper.getText(document)
+                                .replaceAll("-\\s*\\r?\\n\\s*", "")
+                                .replaceAll("[\\r\\n\\t]+", " ")
+                                .replaceAll("\\s+", " ");  // Regex are here to cleanup the text
                         document.close();
                     } catch (Exception e) {
                         updateStatus("PDF error: " + e.getMessage(), true);
@@ -148,25 +161,48 @@ public class RagCreationFragment extends Fragment {
 
     /**
      * Split the given text into chunks of (more or less) the given size.
-     * In fact, the chunks have a minimum size of CHUNK_SIZE, but will only end at whitespaces or punctuation.
+     * In fact, the chunks have a minimum size of CHUNK_SIZE, but will continue until the end of a sentence.
      * @param text The text to split.
      * @return The list of chunks.
      */
     private List<String> splitIntoChunks(String text) {
         List<String> chunks = new ArrayList<>();
-        int i = 0;
-        int length = text.length();
-        while (i < length) {
-            int j = Math.min(i + RagCreationFragment.CHUNK_SIZE, length);
-            if (j < i + RagCreationFragment.CHUNK_SIZE) {
-                while (
-                        j < length &&
-                        Character.isLetterOrDigit(text.charAt(j))
-                ) { j++; }
-            }
-            chunks.add(text.substring(i, j));
-            i = j;
+        if (text == null || text.trim().isEmpty()) {
+            return chunks;
         }
+
+        // Extract all sentences
+        List<String> sentences = new ArrayList<>();
+        BreakIterator boundary = BreakIterator.getSentenceInstance(Locale.getDefault());
+        boundary.setText(text);
+        int start = boundary.first();
+        for (int end = boundary.next(); end != BreakIterator.DONE; start = end, end = boundary.next()) {
+            String sentence = text.substring(start, end);
+            if (!sentence.trim().isEmpty()) {
+                sentences.add(sentence);
+            }
+        }
+
+        // Build overlapping chunks
+        int idx = 0;
+        int n = sentences.size();
+        while (idx < n) {
+            StringBuilder chunk = new StringBuilder();
+            int chunkSize = 0;
+            int nSentences = 0;
+
+            while (idx < n && chunkSize < CHUNK_SIZE) {
+                String sentence = sentences.get(idx);
+                chunkSize += sentence.length();
+                chunk.append(sentence);
+                idx++;
+                nSentences++;
+            }
+
+            chunks.add(chunk.toString());
+            if (nSentences > 1) { idx--; }  // Include the previous sentence in the next chunk (unless the sentence is the whole chunk)
+        }
+
         return chunks;
     }
 
