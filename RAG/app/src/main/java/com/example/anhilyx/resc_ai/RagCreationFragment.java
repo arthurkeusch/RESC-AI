@@ -32,7 +32,7 @@ import java.util.concurrent.Executors;
 
 public class RagCreationFragment extends Fragment {
 
-    private static final int CHUNK_SIZE = 384;
+    private static final int CHUNK_SIZE = 1024;
 
     private Spinner modelSpinner;
     private Button pdfButton;

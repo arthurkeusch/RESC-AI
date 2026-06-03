@@ -11,7 +11,7 @@ public class DocumentChunk {
 
     public String text;
 
-    @HnswIndex(dimensions = 384)
+    @HnswIndex(dimensions = 512)
     public float[] embedding;
 
     public DocumentChunk() {}

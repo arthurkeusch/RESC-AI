@@ -27,6 +27,8 @@ import okhttp3.Request;
 
 public class EmbeddingEngine {
 
+    private static final int N_TOKENS = 512;
+
     private static final String TAG = "EmbeddingEngine";
     private final OkHttpClient client = new OkHttpClient();
     private final Context context;
@@ -173,9 +175,8 @@ public class EmbeddingEngine {
 
         try {
             // Tokenize the input text and define tensor dimensions
-            int maxLen = 128;
-            TokenizerResult tokens = tokenizer.tokenize(text, maxLen);
-            long[] shape = new long[]{1, maxLen};
+            TokenizerResult tokens = tokenizer.tokenize(text);
+            long[] shape = new long[]{1, N_TOKENS};
 
             // Convert token arrays into native ONNX tensors
             OnnxTensor inputIdsTensor = OnnxTensor.createTensor(env, LongBuffer.wrap(tokens.inputIds), shape);
@@ -195,7 +196,7 @@ public class EmbeddingEngine {
 
                 // Aggregate token embeddings using mean pooling (ignoring padding)
                 int validTokens = 0;
-                for (int i = 0; i < maxLen; i++) {
+                for (int i = 0; i < N_TOKENS; i++) {
                     if (tokens.attentionMask[i] == 1L) {
                         validTokens++;
                         for (int j = 0; j < dimension; j++) {
@@ -267,10 +268,9 @@ public class EmbeddingEngine {
          * Tokenize the given text.
          * This method should follow the "official BERT tokenizer algorithm"
          * @param text The text to tokenize.
-         * @param maxLen The maximum length of the tokenized sequence.
          * @return The tokenized sequence.
          */
-        TokenizerResult tokenize(String text, int maxLen) {
+        TokenizerResult tokenize(String text) {
 
             // Initialize token list and add CLS token
             List<Long> ids = new ArrayList<>();
@@ -282,7 +282,7 @@ public class EmbeddingEngine {
             // Process each word into tokens or subwords
             for (String word : words) {
                 if (word.isEmpty()) continue;
-                if (ids.size() >= maxLen - 1) break;
+                if (ids.size() >= N_TOKENS - 1) break;
 
                 // Check if the full word exists in the vocabulary
                 if (vocab.containsKey(word)) {
@@ -323,11 +323,11 @@ public class EmbeddingEngine {
 
                 // Append subword tokens or fall back to UNK token
                 if (isUnknown) {
-                    if (ids.size() >= maxLen - 1) break;
+                    if (ids.size() >= N_TOKENS - 1) break;
                     ids.add(100L);
                 } else {
                     for (Long subId : subwordIds) {
-                        if (ids.size() >= maxLen - 1) break;
+                        if (ids.size() >= N_TOKENS - 1) break;
                         ids.add(subId);
                     }
                 }
@@ -337,12 +337,12 @@ public class EmbeddingEngine {
             ids.add(102L);
 
             // Initialize model input arrays
-            long[] inputIds = new long[maxLen];
-            long[] attentionMask = new long[maxLen];
-            long[] tokenTypeIds = new long[maxLen];
+            long[] inputIds = new long[N_TOKENS];
+            long[] attentionMask = new long[N_TOKENS];
+            long[] tokenTypeIds = new long[N_TOKENS];
 
             // Apply padding and generate attention mask
-            for (int i = 0; i < maxLen; i++) {
+            for (int i = 0; i < N_TOKENS; i++) {
                 if (i < ids.size()) {
                     inputIds[i] = ids.get(i);
                     attentionMask[i] = 1L;
