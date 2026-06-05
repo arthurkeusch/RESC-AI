@@ -1,0 +1,159 @@
+[
+  {
+    "dataset": "Compréhension du langage",
+    "description": "Évalue la compréhension du langage naturel, des ambiguïtés, des reformulations et du sens implicite."
+  },
+  {
+    "prompt": "Résume le texte suivant en une seule phrase : 'Le Soleil est une étoile située au centre du système solaire. Il fournit la lumière et la chaleur nécessaires à la vie sur Terre.'"
+  },
+  {
+    "prompt": "Reformule cette phrase avec des mots plus simples : 'La biodiversité constitue un élément fondamental de l'équilibre des écosystèmes.'"
+  },
+  {
+    "prompt": "Traduis en anglais : 'Les pompiers sont intervenus rapidement pour maîtriser l'incendie.'"
+  },
+  {
+    "prompt": "Traduis en français : 'The patient is conscious but complains of severe chest pain.'"
+  },
+  {
+    "prompt": "Quel est le sujet principal du texte suivant : 'Les véhicules électriques connaissent une croissance importante grâce aux progrès réalisés dans les batteries.'"
+  },
+  {
+    "prompt": "Explique le sens de l'expression : 'Chercher une aiguille dans une botte de foin.'"
+  },
+  {
+    "prompt": "Dans la phrase 'Pierre a parlé à Paul avant qu'il ne parte', qui peut désigner le mot 'il' ?"
+  },
+  {
+    "prompt": "Corrige les fautes dans la phrase suivante : 'Les pompier sont arriver rapidement sur les lieux.'"
+  },
+  {
+    "prompt": "Identifie les informations importantes dans ce message : 'Accident de la route sur l'A36, deux véhicules impliqués, trois blessés dont un inconscient.'"
+  },
+  {
+    "prompt": "Résume ce paragraphe en trois points clés : 'L'eau est essentielle à la vie. Elle participe à de nombreuses réactions biologiques. Elle régule également la température corporelle.'"
+  },
+  {
+    "prompt": "Explique la différence de sens entre 'Je dois partir' et 'Je peux partir'."
+  },
+  {
+    "prompt": "Quel est le ton général de ce message : 'Merci beaucoup pour votre aide, votre intervention a été précieuse.'"
+  },
+  {
+    "prompt": "Détecte si cette phrase est une question, une affirmation ou un ordre : 'Fermez immédiatement la vanne principale.'"
+  },
+  {
+    "prompt": "Reformule cette phrase de manière plus polie : 'Donnez-moi ce document tout de suite.'"
+  },
+  {
+    "prompt": "Quelle information est implicite dans la phrase : 'Julie a oublié son parapluie et est arrivée trempée au bureau.'"
+  },
+  {
+    "prompt": "Identifie les personnes, lieux et dates dans le texte suivant : 'Le 14 juillet 2025, Marie Dupont s'est rendue à Lyon pour assister à une conférence.'"
+  },
+  {
+    "prompt": "Explique le sens du mot 'banc' dans les deux phrases suivantes : 'Le pêcheur s'est assis sur un banc.' et 'Le bateau naviguait au-dessus d'un banc de poissons.'"
+  },
+  {
+    "prompt": "Résume cette conversation en deux phrases : '— Où est le patient ? — Dans la salle d'attente. — Est-il seul ? — Non, il est accompagné de sa fille.'"
+  },
+  {
+    "prompt": "Réécris ce texte au présent : 'Les équipes sont arrivées sur place et ont sécurisé la zone.'"
+  },
+  {
+    "prompt": "Détermine si cette phrase est ambiguë et explique pourquoi : 'J'ai vu l'homme avec les jumelles.'"
+  },
+  {
+    "prompt": "Quelle est l'idée principale de ce texte : 'Les réseaux sociaux facilitent la communication mais soulèvent également des questions concernant la protection de la vie privée.'"
+  },
+  {
+    "prompt": "Transforme cette phrase active en phrase passive : 'Les pompiers ont évacué les habitants.'"
+  },
+  {
+    "prompt": "Identifie le sentiment dominant dans ce message : 'Je suis extrêmement soulagé que tout le monde soit sain et sauf.'"
+  },
+  {
+    "prompt": "Explique ce que signifie l'expression : 'Mettre la charrue avant les bœufs.'"
+  },
+  {
+    "prompt": "Classe les informations suivantes par ordre chronologique : 'Le patient a été admis à l'hôpital, il a été examiné, puis il est sorti le lendemain.'"
+  },
+  {
+    "prompt": "Résume cet article fictif en cinq lignes : 'Une nouvelle technologie de batteries permettrait d'augmenter l'autonomie des véhicules électriques de 30 %. Plusieurs constructeurs envisagent déjà son intégration dans leurs futurs modèles.'"
+  },
+  {
+    "prompt": "Quel est le référent du pronom dans la phrase suivante : 'Lorsque Sophie a rencontré Claire, elle était déjà arrivée.'"
+  },
+  {
+    "prompt": "Réécris ce texte en langage soutenu : 'Le camion est tombé en panne et les gars ont dû pousser.'"
+  },
+  {
+    "prompt": "Réécris ce texte en langage courant : 'L'intervenant procéda à l'évacuation des occupants.'"
+  },
+  {
+    "prompt": "Identifie les mots-clés dans le texte suivant : 'Incendie industriel, fumées toxiques, évacuation préventive, périmètre de sécurité.'"
+  },
+  {
+    "prompt": "Détermine si cette phrase exprime un fait ou une opinion : 'Les voitures électriques sont meilleures que les voitures thermiques.'"
+  },
+  {
+    "prompt": "Explique le double sens possible de la phrase : 'Le policier a arrêté le voleur avec une matraque.'"
+  },
+  {
+    "prompt": "Complète logiquement la phrase : 'Le patient ne respirait plus, les secours ont donc...'"
+  },
+  {
+    "prompt": "Réduis ce texte à 20 mots maximum : 'La commune a investi dans de nouveaux équipements afin d'améliorer la sécurité des habitants et la rapidité des interventions.'"
+  },
+  {
+    "prompt": "Identifie les informations manquantes dans ce message : 'Accident grave sur la route principale, plusieurs blessés.'"
+  },
+  {
+    "prompt": "Explique ce que veut dire l'auteur dans la phrase : 'La décision a été accueillie avec un enthousiasme mesuré.'"
+  },
+  {
+    "prompt": "Repère les informations contradictoires dans ce texte : 'Le patient est conscient. Quelques lignes plus loin, le rapport indique que le patient est inconscient.'"
+  },
+  {
+    "prompt": "Quelle est la conclusion la plus probable du texte suivant : 'Les analyses ont confirmé la présence d'une fuite de gaz dans le bâtiment. Les autorités ont immédiatement...' "
+  },
+  {
+    "prompt": "Transforme cette liste d'informations en un paragraphe cohérent : 'Feu dans un appartement ; aucune victime ; intervention de 15 minutes ; origine électrique.'"
+  },
+  {
+    "prompt": "Détecte l'information essentielle dans ce message radio : 'VSAV 1 pour CODIS, victime masculine de 65 ans, douleur thoracique intense, tension stable, transport demandé.'"
+  },
+  {
+    "prompt": "Résume ce rapport en une phrase : 'À l'arrivée des secours, la victime était consciente. Une immobilisation a été réalisée. Le patient a ensuite été transporté vers le centre hospitalier.'"
+  },
+  {
+    "prompt": "Explique la différence entre les mots 'urgence' et 'priorité'."
+  },
+  {
+    "prompt": "Réorganise ces informations pour produire un compte-rendu clair : 'transport hôpital ; accident moto ; homme 34 ans ; fracture suspectée ; conscient à l'arrivée.'"
+  },
+  {
+    "prompt": "Identifie si cette phrase contient une négation : 'Aucun risque immédiat n'a été détecté.'"
+  },
+  {
+    "prompt": "Détermine si ce message est complet pour une intervention : 'Incendie déclaré dans un bâtiment.'"
+  },
+  {
+    "prompt": "Explique le sens de la phrase : 'Le traitement a permis une amélioration significative de l'état du patient.'"
+  },
+  {
+    "prompt": "Détecte les informations redondantes dans ce texte : 'Le véhicule était en feu. Un incendie touchait la voiture.'"
+  },
+  {
+    "prompt": "Réécris ce message sous forme de rapport professionnel : 'On est arrivés, le feu était déjà presque éteint et personne n'était blessé.'"
+  },
+  {
+    "prompt": "Identifie les hypothèses et les certitudes dans ce message : 'La victime pourrait avoir inhalé de la fumée mais aucun signe de détresse respiratoire n'est observé.'"
+  },
+  {
+    "prompt": "Détermine si la phrase suivante est claire ou ambiguë : 'Le médecin a parlé à l'infirmier de son patient.'"
+  },
+  {
+    "prompt": "Explique le message principal du texte suivant : 'La prévention reste le moyen le plus efficace de réduire les accidents domestiques.'"
+  }
+]

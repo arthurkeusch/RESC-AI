@@ -1,0 +1,157 @@
+[
+  {
+    "dataset": "Gestion du contexte complexe",
+    "description": "Teste la capacité à suivre simultanément plusieurs entités, événements, mises à jour et corrections.",
+    "isConversational": true
+  },
+  {
+    "prompt": "Nous avons trois victimes : Alice (35 ans, consciente), Bernard (62 ans, inconscient) et Claire (28 ans, fracture du bras). Retiens ces informations pour la suite."
+  },
+  {
+    "prompt": "Quelle victime est inconsciente ?"
+  },
+  {
+    "prompt": "Alice est désormais inconsciente. Bernard est conscient. Mets à jour la situation."
+  },
+  {
+    "prompt": "Quelle est la liste actuelle des victimes inconscientes ?"
+  },
+  {
+    "prompt": "Nous ajoutons une quatrième victime : David, 41 ans, présentant des brûlures légères."
+  },
+  {
+    "prompt": "Résume l'état de chaque victime connue jusqu'à présent."
+  },
+  {
+    "prompt": "L'équipe Alpha prend en charge Alice et Claire. L'équipe Bravo prend en charge Bernard et David. Retiens cette répartition."
+  },
+  {
+    "prompt": "Quelle équipe est responsable de David ?"
+  },
+  {
+    "prompt": "Alice est transportée à l'hôpital et quitte l'intervention."
+  },
+  {
+    "prompt": "Quelles victimes sont encore présentes sur les lieux ?"
+  },
+  {
+    "prompt": "Un incendie est détecté dans le secteur Nord tandis qu'une fuite de gaz est signalée dans le secteur Sud. Retiens ces risques."
+  },
+  {
+    "prompt": "Quels sont les risques actuellement présents et dans quels secteurs se trouvent-ils ?"
+  },
+  {
+    "prompt": "Le secteur Sud est sécurisé. Mets à jour les risques."
+  },
+  {
+    "prompt": "Quel risque reste actif ?"
+  },
+  {
+    "prompt": "Nous disposons de trois véhicules : VSAV-1, VSAV-2 et FPT-1. VSAV-1 transporte Alice, VSAV-2 reste disponible, FPT-1 traite l'incendie."
+  },
+  {
+    "prompt": "Quel véhicule est encore disponible ?"
+  },
+  {
+    "prompt": "Un nouvel appel indique que Claire présente désormais une détresse respiratoire."
+  },
+  {
+    "prompt": "Quelle victime nécessite maintenant une prise en charge prioritaire ?"
+  },
+  {
+    "prompt": "David est confié à une équipe médicale externe et quitte notre périmètre opérationnel."
+  },
+  {
+    "prompt": "Quelles victimes restent sous notre responsabilité ?"
+  },
+  {
+    "prompt": "L'équipe Bravo quitte Bernard et est redéployée vers Claire."
+  },
+  {
+    "prompt": "Quelle est désormais la mission de l'équipe Bravo ?"
+  },
+  {
+    "prompt": "Ajoute les informations suivantes : le bâtiment comporte trois niveaux, un sous-sol et deux sorties de secours."
+  },
+  {
+    "prompt": "Décris les caractéristiques du bâtiment connues jusqu'à présent."
+  },
+  {
+    "prompt": "Une coupure électrique touche le bâtiment alors que l'incendie du secteur Nord continue."
+  },
+  {
+    "prompt": "Quels événements simultanés sont actuellement en cours ?"
+  },
+  {
+    "prompt": "Le courant est rétabli mais une fuite d'eau apparaît au sous-sol."
+  },
+  {
+    "prompt": "Liste tous les incidents actifs actuellement."
+  },
+  {
+    "prompt": "Claire est évacuée. Bernard refuse son transport mais reste sur place."
+  },
+  {
+    "prompt": "Quelles victimes sont encore physiquement présentes sur les lieux ?"
+  },
+  {
+    "prompt": "Le FPT-1 est remplacé par FPT-2 suite à une panne."
+  },
+  {
+    "prompt": "Quel véhicule lutte actuellement contre l'incendie ?"
+  },
+  {
+    "prompt": "Un second bâtiment adjacent est découvert. Il contient un laboratoire chimique."
+  },
+  {
+    "prompt": "Combien de bâtiments sont désormais impliqués dans l'intervention ?"
+  },
+  {
+    "prompt": "Le laboratoire contient du chlore et de l'ammoniac. Retiens ces informations."
+  },
+  {
+    "prompt": "Quels produits dangereux sont actuellement identifiés ?"
+  },
+  {
+    "prompt": "L'incendie est maîtrisé mais le laboratoire chimique reste à sécuriser."
+  },
+  {
+    "prompt": "Quels risques subsistent après la maîtrise de l'incendie ?"
+  },
+  {
+    "prompt": "Ajoute une équipe Charlie chargée exclusivement du laboratoire chimique."
+  },
+  {
+    "prompt": "Quelle est la mission de l'équipe Charlie ?"
+  },
+  {
+    "prompt": "Bernard accepte finalement son transport à l'hôpital."
+  },
+  {
+    "prompt": "Y a-t-il encore des victimes sur les lieux ?"
+  },
+  {
+    "prompt": "Le laboratoire est sécurisé. Tous les risques sont levés."
+  },
+  {
+    "prompt": "Quels risques restent actifs à la fin de l'intervention ?"
+  },
+  {
+    "prompt": "Résume l'état final des victimes, des équipes, des véhicules et des risques."
+  },
+  {
+    "prompt": "Liste toutes les modifications importantes intervenues depuis le début de la conversation."
+  },
+  {
+    "prompt": "Quels éléments ont quitté l'intervention au cours de la situation (victimes, véhicules ou risques) ?"
+  },
+  {
+    "prompt": "Fournis une chronologie complète des événements dans l'ordre où ils sont apparus."
+  },
+  {
+    "prompt": "Résume uniquement les informations concernant les victimes en tenant compte de toutes les mises à jour."
+  },
+  {
+    "prompt": "Résume uniquement les informations concernant les équipes, leurs missions et leurs changements d'affectation."
+  }
+]

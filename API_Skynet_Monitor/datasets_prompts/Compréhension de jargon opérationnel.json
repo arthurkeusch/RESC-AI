@@ -1,0 +1,156 @@
+[
+  {
+    "dataset": "Compréhension de jargon opérationnel",
+    "description": "Évalue la compréhension des acronymes, procédures, messages radio et terminologies métier des services de secours."
+  },
+  {
+    "prompt": "Interprète le message radio suivant : 'VSAV 1 pour CODIS, victime consciente, TA 12/7, FC 95, transport CH en cours.'"
+  },
+  {
+    "prompt": "Explique les abréviations présentes dans ce message : 'FPT engagé sur feu d'habitation, renfort EPA demandé.'"
+  },
+  {
+    "prompt": "Traduis en langage clair le compte-rendu suivant : 'BAVU administré, SpO2 remontée à 96 %, patient stable.'"
+  },
+  {
+    "prompt": "Que signifie le message : 'Bilan transmis au CRRA 15, médicalisation demandée' ?"
+  },
+  {
+    "prompt": "Interprète le message radio : 'Feu localisé, pas de propagation aux volumes adjacents.'"
+  },
+  {
+    "prompt": "Explique le sens opérationnel de : 'Reconnaissance terminée, aucun point chaud détecté.'"
+  },
+  {
+    "prompt": "Décode le message : 'AVP VL contre PL, deux UA, une UR.'"
+  },
+  {
+    "prompt": "Interprète ce compte-rendu : 'Victime en décubitus dorsal, GCS 8, ventilation spontanée.'"
+  },
+  {
+    "prompt": "Explique ce que signifie : 'Établissement d'une LDV 500 sur division.'"
+  },
+  {
+    "prompt": "Traduis en langage courant : 'Balisage effectué, périmètre de sécurité mis en place.'"
+  },
+  {
+    "prompt": "Interprète le message : 'Départ réflexe confirmé, moyens engagés conformes.'"
+  },
+  {
+    "prompt": "Explique les termes : 'PCC activé, COS sur les lieux.'"
+  },
+  {
+    "prompt": "Que signifie : 'Victime catégorisée UA lors du triage initial' ?"
+  },
+  {
+    "prompt": "Interprète le message radio : 'Fuite de gaz colmatée, levée de doute en cours.'"
+  },
+  {
+    "prompt": "Traduis en langage clair : 'Mise en sécurité réalisée avant engagement des équipes.'"
+  },
+  {
+    "prompt": "Explique le compte-rendu : 'VSAV en transit vers CHU avec patient monitoré.'"
+  },
+  {
+    "prompt": "Interprète : 'Équipe GRIMP demandée pour accès victime en falaise.'"
+  },
+  {
+    "prompt": "Que signifie le message : 'BAT engagé au R+3 pour extinction ?'"
+  },
+  {
+    "prompt": "Explique les abréviations suivantes : 'CODIS, CTA, COS, SAP.'"
+  },
+  {
+    "prompt": "Interprète le bilan : 'TA 8/5, FC 130, SpO2 89 %, FR 32.'"
+  },
+  {
+    "prompt": "Traduis ce message radio en langage non technique : 'EPA en position, sauvetage par l'extérieur engagé.'"
+  },
+  {
+    "prompt": "Explique le sens de : 'Risque de BLEVE identifié sur le site.'"
+  },
+  {
+    "prompt": "Interprète : 'Victime en ACR, DAE mis en œuvre.'"
+  },
+  {
+    "prompt": "Que signifie : 'Établissement d'une alimentation sur PI 100 à 200 mètres' ?"
+  },
+  {
+    "prompt": "Traduis ce message : 'Reconnaissance négative sur les niveaux supérieurs.'"
+  },
+  {
+    "prompt": "Interprète le message : 'Équipe NRBC engagée pour levée de doute.'"
+  },
+  {
+    "prompt": "Explique le compte-rendu : 'Victime désincarcérée, bilan complémentaire en cours.'"
+  },
+  {
+    "prompt": "Que signifie : 'Transit VSAV vers CH avec escorte SMUR' ?"
+  },
+  {
+    "prompt": "Interprète : 'Moyens hydrauliques insuffisants, demande de renfort FPTGP.'"
+  },
+  {
+    "prompt": "Traduis en langage courant : 'Propagation stoppée, extinction en cours de noyage.'"
+  },
+  {
+    "prompt": "Explique ce que signifie : 'Bilan d'ambiance transmis au COS.'"
+  },
+  {
+    "prompt": "Interprète le message radio : 'Une victime impliquée, aucune victime blessée.'"
+  },
+  {
+    "prompt": "Que signifie : 'Mise en place d'un PMA sur le parking nord' ?"
+  },
+  {
+    "prompt": "Explique les termes présents dans : 'PCC, PMA, PRV et zonage opérationnel activés.'"
+  },
+  {
+    "prompt": "Interprète : 'UA transportée, UR toujours sur zone.'"
+  },
+  {
+    "prompt": "Traduis en langage simple : 'Feu éteint, surveillance des reprises effectuée.'"
+  },
+  {
+    "prompt": "Explique le message : 'Deux LDV 500 établies en protection exposition.'"
+  },
+  {
+    "prompt": "Interprète le compte-rendu : 'Victime consciente, orientée, score de Glasgow à 15.'"
+  },
+  {
+    "prompt": "Que signifie : 'Risque d'effondrement secondaire identifié' ?"
+  },
+  {
+    "prompt": "Traduis ce message radio : 'COS demande renfort logistique et soutien sanitaire.'"
+  },
+  {
+    "prompt": "Interprète : 'Feu de VL propagé à une façade, moyens supplémentaires demandés.'"
+  },
+  {
+    "prompt": "Explique les abréviations dans : 'SMUR, VSAV, FPT, EPA, VSR.'"
+  },
+  {
+    "prompt": "Que signifie le message : 'Bilan secouriste transmis, attente décision CRRA 15' ?"
+  },
+  {
+    "prompt": "Interprète un message volontairement abrégé : 'AVP VL/PL. 2 UA. 1 UR. VSR engagé. SMUR demandé.'"
+  },
+  {
+    "prompt": "Explique ce compte-rendu : 'Dégagement d'urgence réalisé avant aggravation du sinistre.'"
+  },
+  {
+    "prompt": "Traduis en langage courant : 'Victime conditionnée puis évacuée vers vecteur de transport.'"
+  },
+  {
+    "prompt": "Interprète le message : 'Reconnaissance achevée, aucune victime supplémentaire découverte.'"
+  },
+  {
+    "prompt": "Explique le sens opérationnel de : 'Maintien des moyens en surveillance active.'"
+  },
+  {
+    "prompt": "Interprète un message radio contenant plusieurs acronymes : 'CODIS pour COS : SMUR ETA 10 min, PMA opérationnel, UA orientées CH périphériques.'"
+  },
+  {
+    "prompt": "Tu es un assistant destiné à des pompiers. Analyse et explique un message radio contenant du jargon opérationnel sans demander de reformulation même si plusieurs acronymes sont présents."
+  }
+]

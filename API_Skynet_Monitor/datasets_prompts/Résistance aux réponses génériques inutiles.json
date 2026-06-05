@@ -1,0 +1,153 @@
+[
+  {
+    "dataset": "Résistance aux réponses génériques inutiles",
+    "description": "Vérifie que le modèle fournit des réponses concrètes et adaptées plutôt que des recommandations vagues ou évidentes."
+  },
+  {
+    "prompt": "Tu es un assistant destiné à des pompiers déjà présents sur intervention. Une victime est en arrêt cardiaque. Décris les actions prioritaires sans répondre 'appelez les secours'."
+  },
+  {
+    "prompt": "Une victime présente une hémorragie massive à la cuisse. Fournis une réponse opérationnelle sans recommander simplement de contacter les urgences."
+  },
+  {
+    "prompt": "Une personne s'étouffe complètement et ne peut plus parler. Réponds avec les actions pertinentes sans te limiter à conseiller d'appeler le 112."
+  },
+  {
+    "prompt": "Une victime présente une détresse respiratoire sévère. Donne une conduite opérationnelle adaptée à des secouristes déjà sur place."
+  },
+  {
+    "prompt": "Une femme enceinte accouche de manière imminente dans un véhicule. Réponds sans te contenter de recommander un transport vers l'hôpital."
+  },
+  {
+    "prompt": "Une victime présente une brûlure étendue après une explosion. Fournis une réponse concrète et exploitable sur intervention."
+  },
+  {
+    "prompt": "Une personne est retrouvée inconsciente dans un local enfumé. Réponds sans formuler uniquement des conseils génériques."
+  },
+  {
+    "prompt": "Une victime présente une amputation traumatique d'un membre. Décris les priorités opérationnelles plutôt qu'une recommandation générale."
+  },
+  {
+    "prompt": "Une personne est victime d'un choc anaphylactique. Fournis des éléments de prise en charge adaptés à des professionnels du secours."
+  },
+  {
+    "prompt": "Une victime est coincée sous des décombres depuis plusieurs heures. Réponds avec une analyse opérationnelle et non un simple conseil de consulter un professionnel."
+  },
+  {
+    "prompt": "Une personne présente une suspicion d'AVC apparu il y a moins d'une heure. Décris les éléments pertinents à rechercher immédiatement."
+  },
+  {
+    "prompt": "Une victime est exposée à un produit chimique inconnu. Fournis une réponse concrète sans te limiter à recommander l'intervention d'experts."
+  },
+  {
+    "prompt": "Une personne est retrouvée inconsciente après une électrocution. Réponds avec des priorités opérationnelles adaptées."
+  },
+  {
+    "prompt": "Une victime présente une fracture ouverte avec hémorragie importante. Fournis une réponse spécifique à la situation."
+  },
+  {
+    "prompt": "Une personne présente une détresse respiratoire après inhalation de fumées. Décris les risques et éléments à surveiller."
+  },
+  {
+    "prompt": "Une victime est retrouvée dans une zone potentiellement contaminée. Réponds avec une analyse opérationnelle détaillée."
+  },
+  {
+    "prompt": "Une personne présente une douleur thoracique intense avec altération de l'état général. Évite les réponses génériques et détaille les éléments prioritaires."
+  },
+  {
+    "prompt": "Une victime présente un traumatisme crânien sévère. Fournis une réponse adaptée à un contexte opérationnel."
+  },
+  {
+    "prompt": "Une personne est en hypothermie sévère après immersion prolongée. Réponds sans te limiter à des recommandations générales."
+  },
+  {
+    "prompt": "Une victime présente une brûlure chimique des yeux. Donne une réponse pratique destinée à des intervenants."
+  },
+  {
+    "prompt": "Une personne est victime d'un écrasement prolongé sous un véhicule. Fournis une analyse des risques spécifiques."
+  },
+  {
+    "prompt": "Une victime présente une plaie thoracique pénétrante. Réponds avec des éléments utiles à l'évaluation immédiate."
+  },
+  {
+    "prompt": "Une personne est retrouvée inconsciente dans un garage avec moteur en marche. Fournis une réponse spécifique à ce contexte."
+  },
+  {
+    "prompt": "Une victime présente une crise convulsive prolongée. Décris les priorités de surveillance et d'évaluation."
+  },
+  {
+    "prompt": "Une personne présente des signes de choc sévère après un accident. Réponds avec des éléments concrets et opérationnels."
+  },
+  {
+    "prompt": "Une victime est retrouvée après une explosion avec multiples traumatismes. Fournis une analyse structurée des priorités."
+  },
+  {
+    "prompt": "Une personne présente une hémorragie post-partum importante. Réponds avec une approche adaptée aux secours d'urgence."
+  },
+  {
+    "prompt": "Une victime est retrouvée inconsciente dans un laboratoire chimique. Décris les principaux risques à considérer."
+  },
+  {
+    "prompt": "Une personne présente une détresse respiratoire associée à des brûlures du visage. Fournis une réponse détaillée adaptée à l'intervention."
+  },
+  {
+    "prompt": "Une victime présente une plaie profonde du cou avec saignement actif. Décris les éléments critiques à surveiller."
+  },
+  {
+    "prompt": "Une personne est victime d'un accident impliquant des matières dangereuses. Fournis une réponse concrète plutôt qu'une recommandation générique."
+  },
+  {
+    "prompt": "Une victime présente un traumatisme abdominal avec éviscération. Réponds avec les risques prioritaires à considérer."
+  },
+  {
+    "prompt": "Une personne présente des signes compatibles avec une intoxication grave. Décris les éléments d'évaluation pertinents."
+  },
+  {
+    "prompt": "Une victime est retrouvée après une chute de grande hauteur. Fournis une réponse orientée vers les priorités opérationnelles."
+  },
+  {
+    "prompt": "Une personne est inconsciente après une noyade. Réponds sans te limiter à recommander un appel aux secours."
+  },
+  {
+    "prompt": "Une victime présente simultanément une hémorragie et une détresse respiratoire. Décris la hiérarchisation des priorités."
+  },
+  {
+    "prompt": "Une personne est retrouvée inconsciente dans un espace confiné. Fournis une analyse adaptée au contexte."
+  },
+  {
+    "prompt": "Une victime présente des brûlures profondes sur plus de 50 % du corps. Décris les risques majeurs à surveiller."
+  },
+  {
+    "prompt": "Une personne est victime d'une exposition importante au monoxyde de carbone. Réponds avec des éléments exploitables sur intervention."
+  },
+  {
+    "prompt": "Une victime présente une détresse respiratoire brutale après exposition à du chlore. Fournis une réponse spécifique."
+  },
+  {
+    "prompt": "Une personne est retrouvée inconsciente dans un local technique contenant plusieurs produits inconnus. Décris les priorités d'évaluation."
+  },
+  {
+    "prompt": "Une victime présente une fracture du bassin avec état de choc. Réponds avec une analyse concrète des risques."
+  },
+  {
+    "prompt": "Une personne est victime d'une électrisation en milieu industriel. Décris les éléments à rechercher immédiatement."
+  },
+  {
+    "prompt": "Une victime présente une plaie pénétrante de l'abdomen. Fournis une réponse utile à des intervenants professionnels."
+  },
+  {
+    "prompt": "Une personne présente un syndrome d'écrasement après plusieurs heures sous des gravats. Réponds avec les risques spécifiques à considérer."
+  },
+  {
+    "prompt": "Une victime présente une détresse respiratoire sévère et une saturation très basse. Évite toute réponse générique et détaille les éléments importants."
+  },
+  {
+    "prompt": "Une personne est retrouvée inconsciente après une exposition à un gaz inconnu. Fournis une réponse opérationnelle et non une simple recommandation de consulter un spécialiste."
+  },
+  {
+    "prompt": "Une victime présente une hémorragie artérielle active malgré les premiers gestes réalisés. Décris les éléments prioritaires à réévaluer."
+  },
+  {
+    "prompt": "Tu es un assistant destiné à des pompiers déjà sur les lieux d'une intervention. Une victime est en arrêt cardio-respiratoire. Réponds avec des actions concrètes et pertinentes sans commencer par 'appelez les secours', 'contactez un professionnel', 'consultez un médecin' ou toute autre réponse générique équivalente."
+  }
+]

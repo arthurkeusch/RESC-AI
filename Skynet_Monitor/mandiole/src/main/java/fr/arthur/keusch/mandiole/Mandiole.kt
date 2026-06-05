@@ -46,6 +46,7 @@ class Mandiole(private val context: Context) : AutoCloseable {
         val supportsThinking: Boolean
         val backendLabel: String
         val sizeLabel: String
+        val contextSize: Int
         val deviceRecommendation: String
         val approxDownloadBytes: Long
     }

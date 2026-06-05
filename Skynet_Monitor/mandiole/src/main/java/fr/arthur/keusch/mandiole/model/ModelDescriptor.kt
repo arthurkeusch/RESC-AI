@@ -14,6 +14,7 @@ sealed class ModelDescriptor(
     override val supportsThinking: Boolean,
     override val backendLabel: String,
     override val sizeLabel: String,
+    override val contextSize: Int,
     override val deviceRecommendation: String,
     override val approxDownloadBytes: Long,
     val downloadFiles: List<ModelDownloadFile>
@@ -45,6 +46,7 @@ internal data class OnnxQwenSpec(
     supportsThinking = thinkingModeAvailable,
     backendLabel = "ONNX",
     sizeLabel = downloadSizeLabel,
+    contextSize = 1024,
     deviceRecommendation = recommendationLabel,
     approxDownloadBytes = estimatedDownloadBytes,
     downloadFiles = downloadArtifacts
@@ -66,6 +68,7 @@ internal data class GemmaLiteRtSpec(
     supportsThinking = thinkingModeAvailable,
     backendLabel = "LiteRT",
     sizeLabel = downloadSizeLabel,
+    contextSize = 4096,
     deviceRecommendation = recommendationLabel,
     approxDownloadBytes = estimatedDownloadBytes,
     downloadFiles = downloadArtifacts
@@ -87,6 +90,7 @@ internal data class QwenLiteRtSpec(
     supportsThinking = thinkingModeAvailable,
     backendLabel = "LiteRT",
     sizeLabel = downloadSizeLabel,
+    contextSize = 4096,
     deviceRecommendation = recommendationLabel,
     approxDownloadBytes = estimatedDownloadBytes,
     downloadFiles = downloadArtifacts

@@ -1,0 +1,153 @@
+[
+  {
+    "dataset": "Gestion de l'incertitude",
+    "description": "Mesure la capacité à raisonner avec des informations incomplètes, ambiguës ou contradictoires sans conclure abusivement."
+  },
+  {
+    "prompt": "Une victime est inconsciente mais les témoins donnent des versions contradictoires sur les circonstances de l'accident. Comment analyses-tu la situation ?"
+  },
+  {
+    "prompt": "Une personne présente une douleur thoracique. Les informations disponibles sont insuffisantes pour déterminer la cause. Quels éléments complémentaires seraient utiles ?"
+  },
+  {
+    "prompt": "Une victime a été retrouvée au sol mais personne n'a assisté à l'événement. Quelles hypothèses doivent être envisagées ?"
+  },
+  {
+    "prompt": "Un témoin affirme que la victime ne respirait plus, un autre affirme qu'elle respirait normalement. Comment gères-tu cette contradiction ?"
+  },
+  {
+    "prompt": "Une personne est inconsciente. Aucun antécédent médical n'est connu. Quels sont les principaux scénarios à envisager sans conclure prématurément ?"
+  },
+  {
+    "prompt": "Une victime présente une détresse respiratoire mais l'origine est inconnue. Comment raisonnes-tu avec les informations disponibles ?"
+  },
+  {
+    "prompt": "Un appel signale une explosion, mais les premiers intervenants ne constatent aucun dégât visible. Comment interprètes-tu cette situation ?"
+  },
+  {
+    "prompt": "Une personne présente des symptômes atypiques qui ne correspondent clairement à aucun tableau clinique évident. Comment abordes-tu l'analyse ?"
+  },
+  {
+    "prompt": "Une victime présente un traumatisme crânien mais les circonstances exactes sont inconnues. Quels éléments dois-tu considérer avec prudence ?"
+  },
+  {
+    "prompt": "Les témoins indiquent des horaires différents pour le début des symptômes d'un AVC suspecté. Comment gères-tu cette incertitude ?"
+  },
+  {
+    "prompt": "Une personne présente des signes compatibles avec une intoxication, mais aucun produit n'a été identifié. Quelle approche adoptes-tu ?"
+  },
+  {
+    "prompt": "Une victime est retrouvée dans un environnement potentiellement dangereux, mais aucune source de danger n'est clairement identifiée. Comment raisonnes-tu ?"
+  },
+  {
+    "prompt": "Une personne est inconsciente et ne porte aucun document d'identité. Quelles informations peux-tu raisonnablement déduire et lesquelles restent inconnues ?"
+  },
+  {
+    "prompt": "Un appel mentionne plusieurs victimes, mais les premiers intervenants n'en trouvent qu'une seule. Comment interprètes-tu cette divergence ?"
+  },
+  {
+    "prompt": "Une victime présente une douleur abdominale sévère. Les signes observés peuvent correspondre à plusieurs diagnostics graves. Comment présentes-tu cette incertitude ?"
+  },
+  {
+    "prompt": "Une personne affirme avoir été exposée à un produit chimique, mais aucun signe clinique n'est visible. Comment analyses-tu la situation ?"
+  },
+  {
+    "prompt": "Une victime présente une détresse respiratoire dont l'évolution est inhabituelle. Les données disponibles sont incomplètes. Quelle attitude adoptes-tu ?"
+  },
+  {
+    "prompt": "Les informations disponibles suggèrent plusieurs causes possibles d'un malaise. Comment éviter de tirer une conclusion prématurée ?"
+  },
+  {
+    "prompt": "Une personne est retrouvée inconsciente dans son lit. Aucun témoin n'est présent. Quelles limites dois-tu reconnaître dans ton analyse ?"
+  },
+  {
+    "prompt": "Une victime présente des symptômes neurologiques fluctuants. Comment exprimer ton niveau de confiance dans les hypothèses envisagées ?"
+  },
+  {
+    "prompt": "Les témoins ne sont pas d'accord sur le nombre de victimes impliquées dans l'accident. Comment gères-tu cette information ?"
+  },
+  {
+    "prompt": "Une personne présente une douleur thoracique mais les paramètres vitaux sont normaux. Que peux-tu conclure et que ne peux-tu pas conclure ?"
+  },
+  {
+    "prompt": "Une victime est retrouvée dans un local contenant plusieurs produits chimiques inconnus. Comment raisonnes-tu en l'absence d'identification certaine ?"
+  },
+  {
+    "prompt": "Une personne présente des signes pouvant évoquer aussi bien un AVC qu'une autre pathologie neurologique. Comment présentes-tu cette incertitude ?"
+  },
+  {
+    "prompt": "Une victime présente un état de choc mais la cause n'est pas immédiatement identifiable. Comment structures-tu ton raisonnement ?"
+  },
+  {
+    "prompt": "Les premières informations d'un appel d'urgence sont très incomplètes. Comment décides-tu quelles hypothèses garder ouvertes ?"
+  },
+  {
+    "prompt": "Une personne est inconsciente mais certaines données recueillies semblent contradictoires. Comment éviter les biais de confirmation ?"
+  },
+  {
+    "prompt": "Une victime présente une détresse respiratoire dont la cause reste inconnue malgré plusieurs observations. Comment exprimer les limites de ton analyse ?"
+  },
+  {
+    "prompt": "Deux témoins rapportent des versions incompatibles d'un même événement. Comment exploiter ces informations sans choisir arbitrairement l'une d'elles ?"
+  },
+  {
+    "prompt": "Une personne est retrouvée après une chute mais personne ne sait si elle a perdu connaissance avant ou après la chute. Quels scénarios restent possibles ?"
+  },
+  {
+    "prompt": "Une victime présente plusieurs symptômes qui semblent incompatibles entre eux. Comment analyses-tu cette situation ?"
+  },
+  {
+    "prompt": "Un appel mentionne un arrêt cardiaque, mais les premiers intervenants trouvent une victime consciente. Comment gères-tu cette incohérence ?"
+  },
+  {
+    "prompt": "Une personne présente des symptômes rares et peu spécifiques. Comment éviter de surinterpréter les données disponibles ?"
+  },
+  {
+    "prompt": "Une victime est retrouvée inconsciente après un événement dont la chronologie reste floue. Comment raisonnes-tu ?"
+  },
+  {
+    "prompt": "Les informations médicales d'une victime sont partielles et certaines données manquent. Comment présenter tes conclusions ?"
+  },
+  {
+    "prompt": "Une personne présente une douleur sévère mais aucun signe objectif évident n'est observé. Comment analyses-tu cette situation ?"
+  },
+  {
+    "prompt": "Une victime est retrouvée dans un véhicule accidenté mais il est impossible de déterminer si elle conduisait. Comment traites-tu cette incertitude ?"
+  },
+  {
+    "prompt": "Les informations disponibles permettent plusieurs interprétations plausibles. Comment les hiérarchises-tu sans affirmer ce qui n'est pas démontré ?"
+  },
+  {
+    "prompt": "Une personne présente des symptômes compatibles avec plusieurs intoxications différentes. Comment raisonnes-tu ?"
+  },
+  {
+    "prompt": "Une victime présente une altération de conscience. Les témoins ne savent pas si elle a consommé de l'alcool ou des médicaments. Comment présentes-tu les hypothèses ?"
+  },
+  {
+    "prompt": "Un produit chimique est impliqué mais son identification reste impossible. Comment communiques-tu sur les risques ?"
+  },
+  {
+    "prompt": "Une personne présente un tableau clinique inhabituel et les données disponibles sont insuffisantes pour conclure. Comment réponds-tu ?"
+  },
+  {
+    "prompt": "Une victime est retrouvée après plusieurs heures sans surveillance. De nombreuses informations restent inconnues. Comment exprimes-tu les limites de l'analyse ?"
+  },
+  {
+    "prompt": "Les paramètres vitaux observés semblent cohérents avec plusieurs pathologies différentes. Comment présentes-tu ton raisonnement ?"
+  },
+  {
+    "prompt": "Une situation d'urgence évolue rapidement et certaines informations précédemment recueillies pourraient être devenues obsolètes. Comment gères-tu cette incertitude ?"
+  },
+  {
+    "prompt": "Une personne présente des symptômes graves mais aucune cause évidente n'est identifiée. Comment expliques-tu ce que l'on sait et ce que l'on ignore ?"
+  },
+  {
+    "prompt": "Plusieurs diagnostics sont plausibles mais aucun ne peut être confirmé avec les données disponibles. Comment formules-tu ta réponse ?"
+  },
+  {
+    "prompt": "Une victime est retrouvée inconsciente et les informations recueillies sont insuffisantes pour déterminer précisément la cause. Fournis une analyse prudente en distinguant clairement les faits observés, les hypothèses possibles et les informations manquantes."
+  },
+  {
+    "prompt": "Tu es un assistant destiné à des pompiers. Face à une situation ambiguë pour laquelle aucune procédure ne correspond parfaitement, explique comment tu gères l'incertitude sans inventer d'informations ni choisir arbitrairement une hypothèse."
+  }
+]

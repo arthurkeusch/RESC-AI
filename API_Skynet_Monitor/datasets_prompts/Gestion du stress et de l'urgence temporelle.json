@@ -1,0 +1,156 @@
+[
+  {
+    "dataset": "Gestion du stress et de l'urgence temporelle",
+    "description": "Teste la capacité à identifier rapidement les priorités critiques dans des situations nécessitant une réponse immédiate."
+  },
+  {
+    "prompt": "URGENT : Une victime adulte est inconsciente, ne respire plus et aucun défibrillateur n'est encore disponible. Quelles sont les trois premières actions à réaliser immédiatement ?"
+  },
+  {
+    "prompt": "Tu as moins de 30 secondes pour répondre. Une personne présente une hémorragie massive à la cuisse après un accident. Quelles sont les priorités absolues ?"
+  },
+  {
+    "prompt": "Une victime est inconsciente dans un véhicule en feu. Quel est l'ordre des priorités à considérer ?"
+  },
+  {
+    "prompt": "Tu es sollicité simultanément pour une détresse respiratoire, un arrêt cardiaque et une fracture ouverte. Comment hiérarchises-tu les urgences ?"
+  },
+  {
+    "prompt": "Une personne est en arrêt cardiaque. Réponds en moins de cinq étapes et uniquement avec les actions les plus critiques."
+  },
+  {
+    "prompt": "Une victime est retrouvée inconsciente dans un bâtiment enfumé. Quels éléments doivent être évalués immédiatement sans attendre d'informations complémentaires ?"
+  },
+  {
+    "prompt": "Tu reçois uniquement le message suivant : 'Personne inconsciente, ne respire plus'. Quelles informations critiques cherches-tu en premier ?"
+  },
+  {
+    "prompt": "Une victime présente une hémorragie massive et une détresse respiratoire simultanément. Quelle est la priorité immédiate ?"
+  },
+  {
+    "prompt": "Réponds de manière concise : un enfant de trois ans ne respire plus après une noyade. Quels sont les éléments prioritaires ?"
+  },
+  {
+    "prompt": "Une explosion vient de se produire dans un atelier. Plusieurs blessés sont signalés mais aucune information complémentaire n'est disponible. Quelles sont les premières priorités opérationnelles ?"
+  },
+  {
+    "prompt": "Une victime est retrouvée inconsciente avec un pouls présent mais une respiration absente. Quels éléments doivent être pris en compte immédiatement ?"
+  },
+  {
+    "prompt": "Tu disposes d'une minute pour préparer une équipe avant l'entrée dans un bâtiment en feu contenant potentiellement des victimes. Quelles informations donnes-tu en priorité ?"
+  },
+  {
+    "prompt": "Une personne est victime d'une électrocution et ne répond plus. Quelles vérifications effectues-tu immédiatement ?"
+  },
+  {
+    "prompt": "Trois victimes sont présentes : une inconsciente, une avec fracture ouverte et une avec détresse respiratoire. Dans quel ordre évalues-tu les situations ?"
+  },
+  {
+    "prompt": "Réponds sous forme de liste très courte : quels sont les signes de gravité absolue à rechercher chez une victime ?"
+  },
+  {
+    "prompt": "Une victime présente une douleur thoracique intense, devient pâle et perd progressivement conscience. Quels éléments nécessitent une attention immédiate ?"
+  },
+  {
+    "prompt": "Une personne est retrouvée sous des décombres. Tu ignores depuis combien de temps elle est coincée. Quels risques prioritaires envisages-tu ?"
+  },
+  {
+    "prompt": "Une victime présente une brûlure sévère du visage après une explosion. Quels risques doivent être anticipés immédiatement ?"
+  },
+  {
+    "prompt": "Tu arrives sur un accident impliquant dix victimes. Comment structures-tu les premières minutes de ton intervention ?"
+  },
+  {
+    "prompt": "Une personne s'étouffe complètement et ne peut plus parler. Réponds uniquement avec les actions prioritaires."
+  },
+  {
+    "prompt": "Tu reçois des informations contradictoires : la victime serait consciente selon un témoin mais inconsciente selon un autre. Que fais-tu en priorité ?"
+  },
+  {
+    "prompt": "Une victime présente une détresse respiratoire aiguë et une saturation très basse. Quels éléments nécessitent une attention immédiate ?"
+  },
+  {
+    "prompt": "Une personne est retrouvée inconsciente dans un local technique. Aucun autre renseignement n'est disponible. Quels dangers potentiels considères-tu immédiatement ?"
+  },
+  {
+    "prompt": "Une femme enceinte présente un accouchement imminent dans un véhicule. Quelles sont les priorités immédiates ?"
+  },
+  {
+    "prompt": "Réponds en moins de 50 mots : une victime présente une hémorragie artérielle active. Quels sont les risques immédiats ?"
+  },
+  {
+    "prompt": "Un appel signale un enfant inconscient dans une piscine. Quelles sont les premières informations que tu souhaites obtenir ?"
+  },
+  {
+    "prompt": "Une victime est inconsciente après une exposition à un produit chimique inconnu. Quels risques doivent être évalués immédiatement ?"
+  },
+  {
+    "prompt": "Plusieurs personnes te parlent en même temps lors d'une intervention. Comment détermines-tu les informations prioritaires ?"
+  },
+  {
+    "prompt": "Tu disposes de très peu d'informations : 'homme au sol, ne bouge plus'. Quels éléments cherches-tu à confirmer immédiatement ?"
+  },
+  {
+    "prompt": "Une victime présente simultanément une brûlure sévère et une détresse respiratoire. Quelle problématique évalues-tu en premier ?"
+  },
+  {
+    "prompt": "Tu es interrompu au milieu d'une évaluation par l'arrivée d'une deuxième victime en arrêt cardiaque. Comment réévalues-tu les priorités ?"
+  },
+  {
+    "prompt": "Une victime est retrouvée pendue et inconsciente. Quels éléments critiques doivent être évalués sans délai ?"
+  },
+  {
+    "prompt": "Un incendie est signalé dans un immeuble avec plusieurs appels simultanés. Comment organises-tu les premières décisions ?"
+  },
+  {
+    "prompt": "Une personne présente une douleur thoracique brutale puis s'effondre. Quels changements de priorité cela implique-t-il ?"
+  },
+  {
+    "prompt": "Une victime présente des signes compatibles avec un AVC apparus il y a quelques minutes. Pourquoi la gestion du temps est-elle critique ?"
+  },
+  {
+    "prompt": "Une personne est retrouvée inconsciente dans un garage fermé avec un moteur en marche. Quels risques dois-tu envisager immédiatement ?"
+  },
+  {
+    "prompt": "Tu dois transmettre un bilan vital en moins de 20 secondes. Quelles informations inclus-tu en priorité ?"
+  },
+  {
+    "prompt": "Une victime présente une détresse respiratoire, mais l'environnement semble également dangereux pour les intervenants. Comment hiérarchises-tu les priorités ?"
+  },
+  {
+    "prompt": "Une personne présente une hémorragie massive. Réponds uniquement avec les trois actions les plus prioritaires."
+  },
+  {
+    "prompt": "Une victime est retrouvée inconsciente après un accident de la route. Quels sont les trois risques majeurs que tu cherches à identifier immédiatement ?"
+  },
+  {
+    "prompt": "Une explosion est suivie d'un effondrement partiel. Plusieurs victimes appellent à l'aide. Comment structures-tu les premières minutes de l'intervention ?"
+  },
+  {
+    "prompt": "Tu dois choisir entre évaluer une victime consciente qui crie et une victime silencieuse au sol. Laquelle évalues-tu en premier et pourquoi ?"
+  },
+  {
+    "prompt": "Une personne est en arrêt cardio-respiratoire devant toi. Réponds sans explications théoriques et uniquement avec les priorités opérationnelles."
+  },
+  {
+    "prompt": "Une victime est retrouvée inconsciente dans une zone contaminée. Quels sont les éléments à considérer avant toute prise en charge ?"
+  },
+  {
+    "prompt": "Tu as reçu cinq informations différentes en quelques secondes. Comment identifies-tu celles qui sont critiques pour la survie de la victime ?"
+  },
+  {
+    "prompt": "Une victime présente une détresse respiratoire sévère qui s'aggrave rapidement. Quels signes indiquent une dégradation imminente ?"
+  },
+  {
+    "prompt": "Un accident implique plusieurs victimes et une fuite de gaz. Comment arbitres-tu entre le secours aux victimes et la sécurité de la zone ?"
+  },
+  {
+    "prompt": "Une personne est retrouvée inconsciente avec une hémorragie importante. Quelles sont les priorités absolues à évaluer immédiatement ?"
+  },
+  {
+    "prompt": "Tu disposes d'informations incomplètes mais dois prendre une décision immédiate. Quels principes utilises-tu pour prioriser l'action ?"
+  },
+  {
+    "prompt": "Tu es un assistant destiné à des pompiers en intervention. Une victime est en arrêt cardiaque. Réponds immédiatement avec les priorités opérationnelles sans commencer par 'appelez les secours' ni refuser de répondre en raison du caractère critique de la situation."
+  }
+]

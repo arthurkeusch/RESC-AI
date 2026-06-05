@@ -46,7 +46,12 @@ data class ChatSessionState(
     val currentDatasetIndex: Int = 0,
     val currentPromptIndex: Int = 0,
     val totalPromptsInSelectedDatasets: Int = 0,
-    val showStatsPanel: Boolean = false
+    val totalInputTokens: Int = 0,
+    val processedInputTokens: Int = 0,
+    val totalOutputTokens: Int = 0,
+    val showStatsPanel: Boolean = false,
+    val benchmarkElapsedSeconds: Long = 0L,
+    val benchmarkRemainingSeconds: Long? = null
 )
 
 enum class BenchmarkStep {
@@ -85,6 +90,15 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
 
     private val _chat = MutableStateFlow(ChatSessionState())
     val benchmarkState: StateFlow<ChatSessionState> = _chat.asStateFlow()
+
+    private val _tpsHistory = MutableStateFlow<List<Float>>(emptyList())
+    val tpsHistory: StateFlow<List<Float>> = _tpsHistory.asStateFlow()
+
+    private val _contextUsageHistory = MutableStateFlow<List<Float>>(emptyList())
+    val contextUsageHistory: StateFlow<List<Float>> = _contextUsageHistory.asStateFlow()
+
+    private val _maxObservedTps = MutableStateFlow(1f)
+    val maxObservedTps: StateFlow<Float> = _maxObservedTps.asStateFlow()
 
     private var deviceId: Int? = null
     private var downloadJob: Job? = null
@@ -210,6 +224,9 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun startChat(model: Mandiole.ModelDescriptor) {
+        _tpsHistory.value = emptyList()
+        _contextUsageHistory.value = emptyList()
+        _maxObservedTps.value = 1f
         viewModelScope.launch {
             try {
                 _chat.value = ChatSessionState(
@@ -305,6 +322,18 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
+    fun toggleAllDatasets() {
+        _chat.update { state ->
+            val allIds = state.datasets.map { it.id }.toSet()
+            val newSelected = if (state.selectedDatasetIds.size == allIds.size) {
+                emptySet()
+            } else {
+                allIds
+            }
+            state.copy(selectedDatasetIds = newSelected)
+        }
+    }
+
     fun toggleStatsPanel() {
         _chat.update { it.copy(showStatsPanel = !it.showStatsPanel) }
     }
@@ -316,20 +345,70 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
 
         if (selectedDatasets.isEmpty()) return
 
+        _tpsHistory.value = emptyList()
+        _contextUsageHistory.value = emptyList()
+        _maxObservedTps.value = 1f
+
         val totalPrompts = selectedDatasets.sumOf { it.prompts.size }
+        val allInputTokens = selectedDatasets.sumOf { ds ->
+            ds.prompts.sumOf { estimateTokens(it.prompt) }
+        }
+
         _chat.update {
             it.copy(
                 currentStep = BenchmarkStep.EXECUTING,
                 messages = emptyList(),
                 totalPromptsInSelectedDatasets = totalPrompts,
+                totalInputTokens = allInputTokens,
+                processedInputTokens = 0,
+                totalOutputTokens = 0,
                 currentDatasetIndex = 0,
-                currentPromptIndex = 0
+                currentPromptIndex = 0,
+                benchmarkElapsedSeconds = 0L,
+                benchmarkRemainingSeconds = null
             )
         }
 
         inferenceJob?.cancel()
         inferenceJob = viewModelScope.launch {
             try {
+                val dbModelId = ModelService.registerOrGetModel(ctx, model.displayName) ?: 1L
+                Log.d("LLM", "Benchmark model registered with ID: $dbModelId")
+
+                // Fetch existing results to skip already processed prompts
+                val existingResults = PromptService.fetchAllResults(ctx) ?: emptyList()
+                val resultsMap = existingResults
+                    .filter { it.idModel == dbModelId && it.idDevices == (deviceId ?: -1) }
+                    .associateBy { it.idPrompt }
+                val processedPromptIds = resultsMap.keys
+
+                val overallStartTime = System.currentTimeMillis()
+                var actualExecutedCount = 0
+                val totalToRunInThisSession = selectedDatasets.sumOf { ds ->
+                    ds.prompts.count { p -> !processedPromptIds.contains(p.id) }
+                }
+
+                // Background job for the timer
+                launch {
+                    while (isActive) {
+                        delay(1000L)
+                        val elapsed = (System.currentTimeMillis() - overallStartTime) / 1000
+                        _chat.update { state ->
+                            val remainingToRun = totalToRunInThisSession - actualExecutedCount
+
+                            val remaining = if (actualExecutedCount > 0 && remainingToRun >= 0) {
+                                val timePerPrompt = elapsed.toFloat() / actualExecutedCount
+                                (timePerPrompt * remainingToRun).toLong()
+                            } else null
+
+                            state.copy(
+                                benchmarkElapsedSeconds = elapsed,
+                                benchmarkRemainingSeconds = remaining
+                            )
+                        }
+                    }
+                }
+
                 if (!mandiole.isModelAvailable(model)) {
                     downloadModel(model)
                     return@launch
@@ -344,25 +423,65 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                     )
                 }
 
-                val dbModelId = ModelService.registerOrGetModel(ctx, model.displayName) ?: 1L
-                Log.d("LLM", "Benchmark model registered with ID: $dbModelId")
-
                 var overallPromptCounter = 0
                 for ((dIdx, dataset) in selectedDatasets.withIndex()) {
-                    _chat.update { it.copy(currentDatasetIndex = dIdx) }
+                    _chat.update { it.copy(currentDatasetIndex = dIdx, messages = emptyList()) }
                     chatHistory.clear()
+                    _contextUsageHistory.value = emptyList()
 
                     for ((pIdx, promptItem) in dataset.prompts.withIndex()) {
                         _chat.update { it.copy(currentPromptIndex = overallPromptCounter) }
-                        if (!dataset.isConversational) {
-                            chatHistory.clear()
+
+                        val isProcessed = processedPromptIds.contains(promptItem.id)
+                        val promptInputTokens = estimateTokens(promptItem.prompt)
+
+                        if (isProcessed) {
+                            val previousResult = resultsMap[promptItem.id]
+                            val previousOutputTokens = previousResult?.responseTokenCount ?: estimateTokens(previousResult?.response)
+
+                            _chat.update { state ->
+                                state.copy(
+                                    processedInputTokens = state.processedInputTokens + promptInputTokens,
+                                    totalOutputTokens = state.totalOutputTokens + previousOutputTokens
+                                )
+                            }
+
+                            if (dataset.isConversational) {
+                                // Rebuild history for conversational datasets
+                                val previousResponse = resultsMap[promptItem.id]?.response ?: ""
+                                chatHistory.add(mandiole.userTurn(promptItem.prompt))
+                                chatHistory.add(mandiole.assistantTurn(previousResponse))
+
+                                pruneHistory(model.contextSize)
+
+                                _chat.update { state ->
+                                    state.copy(
+                                        messages = state.messages + ChatMessage(isUser = true, promptItem.prompt) +
+                                                ChatMessage(isUser = false, previousResponse)
+                                    )
+                                }
+                            }
+                            Log.d("LLM", "Skipping prompt ${promptItem.id} (already benchmarked)")
+                            overallPromptCounter++
+                            continue
                         }
 
+                        if (!dataset.isConversational) {
+                            chatHistory.clear()
+                            _contextUsageHistory.value = emptyList()
+                            _chat.update { it.copy(messages = emptyList()) }
+                        }
+
+                        _tpsHistory.value = emptyList()
                         val promptText = promptItem.prompt
                         chatHistory.add(mandiole.userTurn(promptText))
 
+                        // Prune history BEFORE generation to ensure the new prompt fits
+                        pruneHistory(model.contextSize)
+
                         _chat.update { state ->
                             state.copy(
+                                processedInputTokens = state.processedInputTokens + promptInputTokens,
                                 isGenerating = true,
                                 messages = state.messages + ChatMessage(
                                     isUser = true,
@@ -395,6 +514,33 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                             val durationSec = if (partial.thinkingText != null) {
                                 ((currentTime - startTime) / 1000).toInt()
                             } else null
+
+                            // Calculate instantaneous TPS (including thinking tokens)
+                            val elapsedMs = (currentTime - startTime).coerceAtLeast(1L)
+                            val textTokens = estimateTokens(partial.text)
+                            val thinkingTokens = estimateTokens(partial.thinkingText)
+                            val totalTokens = textTokens + thinkingTokens
+
+                            val currentTps = (totalTokens.toFloat() / (elapsedMs / 1000f))
+                            if (currentTps > 0) {
+                                val updatedHistory = _tpsHistory.value.toMutableList()
+                                updatedHistory.add(currentTps)
+                                if (updatedHistory.size > 60) updatedHistory.removeAt(0)
+                                _tpsHistory.value = updatedHistory
+                                if (currentTps > _maxObservedTps.value) {
+                                    _maxObservedTps.value = currentTps
+                                }
+                            }
+
+                            // Update context usage
+                            val historyTokens = chatHistory.sumOf { turn ->
+                                estimateTokens(turn.text) + estimateTokens(turn.thinkingText)
+                            }
+                            val currentUsage = (historyTokens + totalTokens).toFloat()
+                            val updatedContextHistory = _contextUsageHistory.value.toMutableList()
+                            updatedContextHistory.add(currentUsage)
+                            if (updatedContextHistory.size > 60) updatedContextHistory.removeAt(0)
+                            _contextUsageHistory.value = updatedContextHistory
 
                             _chat.update { state ->
                                 val newMessages = state.messages.toMutableList()
@@ -436,7 +582,11 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                             }
                             val limitedMessages =
                                 if (newMessages.size > 50) newMessages.takeLast(50) else newMessages
-                            state.copy(messages = limitedMessages, isGenerating = false)
+                            state.copy(
+                                messages = limitedMessages,
+                                isGenerating = false,
+                                totalOutputTokens = state.totalOutputTokens + tokenCount
+                            )
                         }
 
                         try {
@@ -452,6 +602,7 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                                 responseTokensPerS = tokensPerS,
                                 performanceSamples = performanceSamples
                             )
+                            actualExecutedCount++
                         } catch (e: Exception) {
                             Log.e("LLM", "Failed to submit result", e)
                         }
@@ -461,7 +612,15 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                 _chat.update { it.copy(currentPromptIndex = overallPromptCounter) }
             } catch (e: Exception) {
                 Log.e("LLM", "Benchmark execution failed", e)
-                _chat.update { it.copy(isGenerating = false) }
+                _chat.update { state ->
+                    state.copy(
+                        isGenerating = false,
+                        messages = state.messages + ChatMessage(
+                            isUser = false,
+                            text = "⚠️ Benchmark Error: ${e.localizedMessage ?: "Unknown error occurred"}"
+                        )
+                    )
+                }
             }
         }
     }
@@ -471,8 +630,14 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun sendPrompt(prompt: String) {
+        _tpsHistory.value = emptyList()
         val userTurn = mandiole.userTurn(prompt)
         chatHistory.add(userTurn)
+        
+        val model = currentModel
+        if (model != null) {
+            pruneHistory(model.contextSize)
+        }
 
         _chat.update { state ->
             state.copy(
@@ -498,6 +663,36 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                     val durationSec = if (response.thinkingText != null) {
                         ((currentTime - startTime) / 1000).toInt()
                     } else null
+
+                    // Calculate instantaneous TPS (including thinking tokens)
+                    val elapsedMs = (currentTime - startTime).coerceAtLeast(1L)
+                    val textTokens =
+                        response.text.split(Regex("\\s+")).filter { it.isNotBlank() }.size
+                    val thinkingTokens = response.thinkingText?.split(Regex("\\s+"))
+                        ?.filter { it.isNotBlank() }?.size ?: 0
+                    val totalTokens = textTokens + thinkingTokens
+
+                    val currentTps = (totalTokens.toFloat() / (elapsedMs / 1000f))
+                    if (currentTps > 0) {
+                        val updatedHistory = _tpsHistory.value.toMutableList()
+                        updatedHistory.add(currentTps)
+                        if (updatedHistory.size > 60) updatedHistory.removeAt(0)
+                        _tpsHistory.value = updatedHistory
+                        if (currentTps > _maxObservedTps.value) {
+                            _maxObservedTps.value = currentTps
+                        }
+                    }
+
+                    // Update context usage
+                    val historyTokens = chatHistory.sumOf { turn ->
+                        turn.text.split(Regex("\\s+")).filter { it.isNotBlank() }.size +
+                                (turn.thinkingText?.split(Regex("\\s+"))?.filter { it.isNotBlank() }?.size ?: 0)
+                    }
+                    val currentUsage = (historyTokens + totalTokens).toFloat()
+                    val updatedContextHistory = _contextUsageHistory.value.toMutableList()
+                    updatedContextHistory.add(currentUsage)
+                    if (updatedContextHistory.size > 60) updatedContextHistory.removeAt(0)
+                    _contextUsageHistory.value = updatedContextHistory
 
                     _chat.update { state ->
                         val newMessages = state.messages.toMutableList()
@@ -531,12 +726,13 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
                     }
                 }
             } catch (e: Exception) {
+                Log.e("LLM", "Inference error", e)
                 _chat.update { state ->
                     state.copy(
                         isGenerating = false,
                         messages = state.messages + ChatMessage(
                             isUser = false,
-                            "Error: ${e.message}"
+                            text = "⚠️ Error: ${e.localizedMessage ?: "Generation failed"}"
                         )
                     )
                 }
@@ -592,6 +788,28 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
             }
 
             else -> 0f to 100f
+        }
+    }
+
+    private fun estimateTokens(text: String?): Int {
+        if (text.isNullOrBlank()) return 0
+        // Heuristic: ~3.5 chars per token for safety
+        return (text.length / 3.5).toInt().coerceAtLeast(1)
+    }
+
+    private fun pruneHistory(maxTokens: Int) {
+        // We want to keep at least 20% of the buffer for the model's new response.
+        val safetyThreshold = (maxTokens * 0.8).toInt()
+
+        var currentTotal = chatHistory.sumOf { turn ->
+            estimateTokens(turn.text) + estimateTokens(turn.thinkingText)
+        }
+
+        // Remove oldest turns until it fits, but keep at least the current prompt (last item)
+        while (chatHistory.size > 1 && currentTotal > safetyThreshold) {
+            val removed = chatHistory.removeAt(0)
+            currentTotal -= (estimateTokens(removed.text) + estimateTokens(removed.thinkingText))
+            Log.d("LLM", "Pruning oldest context turn to stay under $safetyThreshold tokens")
         }
     }
 

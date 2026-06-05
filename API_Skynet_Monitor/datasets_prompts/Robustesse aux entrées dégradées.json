@@ -1,0 +1,156 @@
+[
+  {
+    "dataset": "Robustesse aux entrées dégradées",
+    "description": "Teste la compréhension de messages incomplets, bruités, mal orthographiés, abrégés ou partiellement corrompus."
+  },
+  {
+    "prompt": "vctm inconsc resp?? saignmt imp jambe gch qf"
+  },
+  {
+    "prompt": "Feu batim R+4 fumee noire victime ??? escalier bloque"
+  },
+  {
+    "prompt": "Une personne est retrouvée inco... dans un garage avec moteur all..."
+  },
+  {
+    "prompt": "accidnt voiture 2 victm 1 respire plu lotr cri bcp"
+  },
+  {
+    "prompt": "CO? victime mal tete nausee plusieurs pers concernées"
+  },
+  {
+    "prompt": "Victime 45 ans TA 8/5 FC 130 SpO2 ??? conduite ?"
+  },
+  {
+    "prompt": "plz hlp victim not breathing after pool accident"
+  },
+  {
+    "prompt": "chlore fuite usine yeux qui piquent plusieurs blessés"
+  },
+  {
+    "prompt": "🔥🏢😷👨‍🚒❓"
+  },
+  {
+    "prompt": "Victime présente une détresse respi     saturation     très basse"
+  },
+  {
+    "prompt": "accident moto ////// hémorragie ////// inconscient"
+  },
+  {
+    "prompt": "FPT sur place mais EPA pas accès façade nord victime fenêtre 4e"
+  },
+  {
+    "prompt": "p3rsonn3 1nc0nsc13nt3 apr3s 3l3ctr0cut10n"
+  },
+  {
+    "prompt": "Un enfant s'étouffe aec un objt et ne pe plus parlr"
+  },
+  {
+    "prompt": "feu cave fumées cage escalier habitants étages supérieurs ???"
+  },
+  {
+    "prompt": "Victime ACR mais DAE indispo pour le moment"
+  },
+  {
+    "prompt": "....victime.....brulure.....visage.....respiration.....difficile...."
+  },
+  {
+    "prompt": "Accident train. Multi victimes. Besoin triage. Infos limitées."
+  },
+  {
+    "prompt": "personne coincée sous véhicule depuis longtemps risque ?"
+  },
+  {
+    "prompt": "g@z t0x!qu3 ? plusi3urs p3rsonn3s m4l4d3s"
+  },
+  {
+    "prompt": "Victime inconsciente. Pas de témoin. Pas d'antécédents connus. Analyse."
+  },
+  {
+    "prompt": "Une personne est tombée de ??? mètres et présente ???"
+  },
+  {
+    "prompt": "fuite gaz sous sol immeuble 200 personnes évac ?"
+  },
+  {
+    "prompt": "🚗💥🚚 2 UA 1 UR"
+  },
+  {
+    "prompt": "Victime respire mal après mélange eau + produit inconnu"
+  },
+  {
+    "prompt": "PMA installé 30 victimes dont ?? détresses vitales"
+  },
+  {
+    "prompt": "Fumées noires odeur forte personnes toussent intervention"
+  },
+  {
+    "prompt": "une femme enceinte de 8 mois présente..."
+  },
+  {
+    "prompt": "plusieurs appels parlent d'explosion mais rien visible sur place"
+  },
+  {
+    "prompt": "Feu localisé mais température très élevée dans local fermé"
+  },
+  {
+    "prompt": "victime présente saignement important région génitale après accident"
+  },
+  {
+    "prompt": "NRBC ? victime inconsciente local industriel"
+  },
+  {
+    "prompt": "VSAV arrive 5 min victime ne répond plus que faire en attendant"
+  },
+  {
+    "prompt": "bâtiment ancien craquements fumée victime encore dedans"
+  },
+  {
+    "prompt": "Personne consciente mais GCS 8 selon bilan"
+  },
+  {
+    "prompt": "AVP VL/PL. 1 ACR. 2 détresses respi. Priorités ?"
+  },
+  {
+    "prompt": "chlore ammoniac ensemble fuite danger ?"
+  },
+  {
+    "prompt": "Un enfant de 2 ans présente une température de 41 et..."
+  },
+  {
+    "prompt": "victime électrisée toujours en contact avec source"
+  },
+  {
+    "prompt": "Accident usine. Produit inconnu. Étiquette détruite."
+  },
+  {
+    "prompt": "satur 82 freq resp 35 cyanose analyse rapide"
+  },
+  {
+    "prompt": "Feu forêt vent fort habitations proche"
+  },
+  {
+    "prompt": "blessure pénétrante thorax bruit aspiration"
+  },
+  {
+    "prompt": "local technique plusieurs victimes même symptômes"
+  },
+  {
+    "prompt": "🚒➡️🏭☣️❓"
+  },
+  {
+    "prompt": "victime inconsciente respiration présente pouls ? non confirmé"
+  },
+  {
+    "prompt": "AVC ? parole bizarre bras faible début inconnu"
+  },
+  {
+    "prompt": "batterie lithium fumée blanche sifflement"
+  },
+  {
+    "prompt": "Plusieurs informations contradictoires provenant des témoins. Comment raisonner ?"
+  },
+  {
+    "prompt": "Tu es un assistant destiné à des pompiers. Une question est transmise sous forme incomplète, avec fautes, abréviations, jargon, données manquantes ou caractères parasites. Analyse ce qui est compréhensible, identifie les ambiguïtés et réponds utilement sans inventer les informations absentes."
+  }
+]

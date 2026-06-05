@@ -199,7 +199,9 @@ object PromptService {
         name: String,
         description: String,
         isConversational: Boolean,
-        jsonUri: Uri
+        jsonUri: Uri,
+        onProgress: (Int, Int) -> Unit = { _, _ -> },
+        onDatasetCreated: (Int) -> Unit = {}
     ): Boolean = withContext(Dispatchers.IO) {
         try {
             val apiBase = getApiBase(context)
@@ -212,16 +214,31 @@ object PromptService {
             val jsonText = reader.use { it.readText() }
             val jsonArray = JSONArray(jsonText)
 
-            val datasetId = createDataset(context, apiBase, name, description, isConversational)
-                ?: return@withContext false
-
+            val promptsToCreate = mutableListOf<String>()
             for (i in 0 until jsonArray.length()) {
                 val obj = jsonArray.getJSONObject(i)
-                val promptText = obj.getString("prompt")
-                if (!createPromptInternal(context, apiBase, promptText, datasetId)) {
+                if (obj.has("prompt")) {
+                    promptsToCreate.add(obj.getString("prompt"))
+                }
+            }
+
+            if (promptsToCreate.isEmpty()) {
+                errorToast(context, "No prompts found in file")
+                return@withContext false
+            }
+
+            val datasetId = createDataset(context, apiBase, name, description, isConversational)
+                ?: return@withContext false
+            
+            onDatasetCreated(datasetId)
+
+            onProgress(0, promptsToCreate.size)
+            for (i in promptsToCreate.indices) {
+                if (!createPromptInternal(context, apiBase, promptsToCreate[i], datasetId)) {
                     errorToast(context, "Failed to create prompt at index $i")
                     return@withContext false
                 }
+                onProgress(i + 1, promptsToCreate.size)
             }
             true
         } catch (e: Exception) {

@@ -62,7 +62,7 @@ fun ModelCard(
             }
 
             Text(
-                text = "${model.backendLabel} • ${model.deviceRecommendation}",
+                text = "${model.backendLabel} • ${model.contextSize} ctx • ${model.deviceRecommendation}",
                 fontSize = 13.sp,
                 color = Color.White,
                 maxLines = 2,

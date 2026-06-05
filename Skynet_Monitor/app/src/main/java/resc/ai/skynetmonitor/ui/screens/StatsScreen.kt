@@ -225,6 +225,35 @@ fun DatasetStatsScreen(dataset: DatasetItem, viewModel: StatsViewModel, deviceFi
                     }
                 }
             }
+
+            if (deviceFilter == null) {
+                item {
+                    Spacer(Modifier.height(24.dp))
+                    Text("Breakdown by Device", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(8.dp))
+                }
+                val resultsByDevice = allResults.groupBy { it.idDevices }
+                items(resultsByDevice.keys.toList()) { deviceId ->
+                    val deviceName = state.devices.find { it.id == deviceId }?.name ?: "Device #$deviceId"
+                    val deviceResults = resultsByDevice[deviceId] ?: emptyList()
+
+                    Card(Modifier.fillMaxWidth().padding(vertical = 4.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))) {
+                        Column(Modifier.padding(12.dp)) {
+                            Text(deviceName, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                            HorizontalDivider(Modifier.padding(vertical = 4.dp), thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
+                            val modelStatsForDevice = deviceResults.groupBy { it.idModel }
+                            modelStatsForDevice.forEach { (modelId, results) ->
+                                val modelName = state.models.find { it.id == modelId }?.name ?: "Model #$modelId"
+                                val avgSpeed = results.mapNotNull { it.responseTokensPerS }.average().takeIf { !it.isNaN() } ?: 0.0
+                                Row(Modifier.fillMaxWidth().padding(vertical = 1.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                                    Text(modelName, style = MaterialTheme.typography.labelSmall)
+                                    Text(String.format(Locale.getDefault(), "%.2f tok/s", avgSpeed), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -314,6 +343,16 @@ fun ModelComparisonScreen(viewModel: StatsViewModel) {
     } else {
         val filteredResults = if (state.selectedDeviceFilter != null) results.filter { it.idDevices == state.selectedDeviceFilter } else results
         val modelStats = filteredResults.groupBy { it.idModel }
+        
+        // Find the absolute maximum average speed across all (model, device) pairs
+        val absoluteMaxSpeed = remember(filteredResults) {
+            val deviceModelAverages = filteredResults.groupBy { it.idModel to it.idDevices }
+                .map { (_, results) ->
+                    results.mapNotNull { it.responseTokensPerS }.average().takeIf { !it.isNaN() } ?: 0.0
+                }
+            deviceModelAverages.maxOrNull()?.coerceAtLeast(1.0) ?: 50.0
+        }
+
         LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             item {
                 Text("Model Comparison", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
@@ -329,8 +368,37 @@ fun ModelComparisonScreen(viewModel: StatsViewModel) {
                             Text(model.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                             Text(String.format(Locale.getDefault(), "%.2f tok/s", avgSpeed), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                         }
-                        Spacer(Modifier.height(8.dp)); LinearProgressIndicator(progress = { (avgSpeed / 50.0).toFloat().coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth().height(8.dp).clip(CircleShape))
-                        Spacer(Modifier.height(8.dp)); Text("${resultsForModel.size} benchmarks recorded", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+                        Spacer(Modifier.height(8.dp)); LinearProgressIndicator(progress = { (avgSpeed / absoluteMaxSpeed).toFloat().coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth().height(8.dp).clip(CircleShape))
+                        Spacer(Modifier.height(4.dp)); Text("${resultsForModel.size} benchmarks recorded", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+                        
+                        if (state.selectedDeviceFilter == null && resultsForModel.isNotEmpty()) {
+                            Spacer(Modifier.height(12.dp))
+                            HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
+                            Spacer(Modifier.height(8.dp))
+                            
+                            val resultsByDevice = resultsForModel.groupBy { it.idDevices }
+                            resultsByDevice.forEach { (deviceId, deviceResults) ->
+                                val deviceName = state.devices.find { it.id == deviceId }?.name ?: "Device #$deviceId"
+                                val deviceAvg = deviceResults.mapNotNull { it.responseTokensPerS }.average().takeIf { !it.isNaN() } ?: 0.0
+                                Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(deviceName, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text(String.format(Locale.getDefault(), "%.2f tok/s", deviceAvg), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                                    }
+                                    Spacer(Modifier.height(2.dp))
+                                    LinearProgressIndicator(
+                                        progress = { (deviceAvg / absoluteMaxSpeed).toFloat().coerceIn(0f, 1f) },
+                                        modifier = Modifier.fillMaxWidth().height(4.dp).clip(CircleShape),
+                                        color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f),
+                                        trackColor = MaterialTheme.colorScheme.surfaceVariant
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }

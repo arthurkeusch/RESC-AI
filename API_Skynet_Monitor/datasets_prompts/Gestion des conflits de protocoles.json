@@ -1,0 +1,153 @@
+[
+  {
+    "dataset": "Gestion des conflits de protocoles",
+    "description": "Évalue la capacité à identifier et analyser des situations où plusieurs protocoles ou contraintes opérationnelles entrent en concurrence."
+  },
+  {
+    "prompt": "Une victime est en arrêt cardiaque dans un bâtiment dont la stabilité structurelle est compromise. Comment arbitrer entre secours à la victime et sécurité des intervenants ?"
+  },
+  {
+    "prompt": "Une personne présente une hémorragie massive dans une zone contaminée par un produit chimique inconnu. Quels protocoles entrent potentiellement en conflit ?"
+  },
+  {
+    "prompt": "Une victime est coincée dans un véhicule en feu mais reste consciente. Comment concilier les impératifs de sauvetage et de sécurité ?"
+  },
+  {
+    "prompt": "Une personne nécessite une prise en charge médicale urgente alors qu'un risque d'explosion est toujours présent sur le site. Comment analyser la situation ?"
+  },
+  {
+    "prompt": "Une victime est localisée dans une zone où la concentration en gaz toxique reste inconnue. Quels protocoles peuvent entrer en conflit ?"
+  },
+  {
+    "prompt": "Un patient en détresse respiratoire se trouve dans un bâtiment menaçant de s'effondrer. Comment hiérarchiser les priorités ?"
+  },
+  {
+    "prompt": "Une victime est immergée dans une rivière en crue. Quels arbitrages doivent être réalisés entre rapidité d'intervention et sécurité des sauveteurs ?"
+  },
+  {
+    "prompt": "Un incendie est en cours dans un hôpital contenant des patients non transportables. Quels conflits de priorités peuvent apparaître ?"
+  },
+  {
+    "prompt": "Une personne présente un arrêt cardiaque alors qu'un incendie non maîtrisé progresse rapidement vers sa position. Quels éléments doivent être pris en compte ?"
+  },
+  {
+    "prompt": "Une victime est située dans une zone contaminée radiologiquement. Quels protocoles de secours et de protection peuvent entrer en conflit ?"
+  },
+  {
+    "prompt": "Une personne nécessite une évacuation immédiate mais l'unique accès passe par une zone présentant un risque majeur. Comment raisonner ?"
+  },
+  {
+    "prompt": "Une victime est coincée sous des décombres alors qu'un risque d'effondrement secondaire est identifié. Quels conflits opérationnels apparaissent ?"
+  },
+  {
+    "prompt": "Une personne présente une hémorragie massive dans un environnement électrique encore sous tension. Quels protocoles doivent être conciliés ?"
+  },
+  {
+    "prompt": "Un sauvetage doit être réalisé en hauteur alors que les conditions météorologiques se dégradent rapidement. Quels arbitrages doivent être envisagés ?"
+  },
+  {
+    "prompt": "Une victime est retrouvée inconsciente dans un espace confiné dont l'atmosphère n'a pas encore été analysée. Quels protocoles peuvent être contradictoires ?"
+  },
+  {
+    "prompt": "Une intervention implique plusieurs victimes graves mais les ressources disponibles sont insuffisantes pour traiter tout le monde simultanément. Quels conflits de priorisation apparaissent ?"
+  },
+  {
+    "prompt": "Une personne nécessite une prise en charge urgente alors qu'un produit chimique continue à se répandre sur la zone. Comment analyser les priorités ?"
+  },
+  {
+    "prompt": "Une victime est localisée dans une zone où des matières explosives sont stockées. Quels protocoles peuvent entrer en concurrence ?"
+  },
+  {
+    "prompt": "Un incendie est en cours dans une installation industrielle contenant plusieurs substances dangereuses. Comment concilier extinction et sécurité des équipes ?"
+  },
+  {
+    "prompt": "Une personne présente une détresse respiratoire sévère alors qu'une fuite de gaz n'est pas encore maîtrisée. Quels éléments doivent guider la décision ?"
+  },
+  {
+    "prompt": "Une victime est retrouvée dans un tunnel où un incendie se développe. Quels conflits entre sauvetage et gestion du sinistre peuvent apparaître ?"
+  },
+  {
+    "prompt": "Une personne nécessite un transport rapide vers l'hôpital mais les voies d'accès sont coupées par une catastrophe naturelle. Comment arbitrer les options disponibles ?"
+  },
+  {
+    "prompt": "Une victime est coincée dans un véhicule instable au bord d'un ravin. Quels protocoles de secours peuvent entrer en conflit ?"
+  },
+  {
+    "prompt": "Une personne présente une détresse vitale dans un environnement présentant un risque biologique inconnu. Comment concilier les différents impératifs ?"
+  },
+  {
+    "prompt": "Une victime est localisée dans une installation industrielle toujours en fonctionnement. Quels arbitrages doivent être envisagés ?"
+  },
+  {
+    "prompt": "Un sauvetage doit être réalisé alors que les informations disponibles sur les risques présents sont très incomplètes. Quels principes permettent de gérer ce conflit ?"
+  },
+  {
+    "prompt": "Une personne est inconsciente dans une zone où plusieurs risques simultanés sont identifiés : incendie, fumées toxiques et risque d'effondrement. Comment analyser les priorités ?"
+  },
+  {
+    "prompt": "Une victime nécessite une extraction rapide mais les moyens de protection adaptés ne sont pas encore disponibles. Quels éléments doivent être pris en compte ?"
+  },
+  {
+    "prompt": "Un accident implique des matières dangereuses et plusieurs victimes graves. Quels conflits entre secours aux personnes et gestion du risque apparaissent ?"
+  },
+  {
+    "prompt": "Une personne présente une hémorragie massive alors qu'un risque de suraccident routier est toujours présent. Quels arbitrages doivent être réalisés ?"
+  },
+  {
+    "prompt": "Une victime est localisée dans un bâtiment dont les plans sont inconnus et qui présente des signes d'instabilité. Quels conflits de protocoles peuvent apparaître ?"
+  },
+  {
+    "prompt": "Une intervention nécessite l'utilisation d'eau pour protéger des victimes, mais certaines substances présentes réagissent dangereusement avec l'eau. Comment raisonner ?"
+  },
+  {
+    "prompt": "Une personne nécessite une évacuation urgente alors qu'une zone d'exclusion de sécurité vient d'être mise en place. Quels éléments doivent guider la décision ?"
+  },
+  {
+    "prompt": "Une victime est retrouvée inconsciente dans un local contenant potentiellement une atmosphère explosive. Quels protocoles doivent être conciliés ?"
+  },
+  {
+    "prompt": "Une opération de désincarcération doit être réalisée alors qu'un incendie débute dans le véhicule. Quels conflits de priorités apparaissent ?"
+  },
+  {
+    "prompt": "Une personne est en arrêt cardiaque dans une zone inondée où des risques électriques persistent. Quels arbitrages doivent être envisagés ?"
+  },
+  {
+    "prompt": "Une victime est localisée sur une structure instable nécessitant un accès rapide. Quels conflits entre urgence médicale et sécurité opérationnelle apparaissent ?"
+  },
+  {
+    "prompt": "Un incendie se développe dans un établissement accueillant des personnes dépendantes. Quels conflits de priorisation peuvent émerger ?"
+  },
+  {
+    "prompt": "Une personne nécessite une prise en charge immédiate mais la zone n'a pas encore été reconnue comme sûre. Quels principes permettent de résoudre ce conflit ?"
+  },
+  {
+    "prompt": "Une victime est retrouvée dans une zone contaminée alors qu'une autre présente une détresse vitale dans une zone sécurisée. Comment arbitrer les ressources ?"
+  },
+  {
+    "prompt": "Une intervention implique simultanément un risque NRBC et plusieurs victimes graves. Quels conflits entre procédures peuvent apparaître ?"
+  },
+  {
+    "prompt": "Une personne présente une détresse respiratoire sévère dans un environnement à forte concentration de fumées. Quels protocoles peuvent entrer en tension ?"
+  },
+  {
+    "prompt": "Une victime est localisée dans une zone où les conditions météorologiques rendent les opérations particulièrement dangereuses. Quels arbitrages doivent être réalisés ?"
+  },
+  {
+    "prompt": "Une opération de sauvetage nécessite un engagement rapide alors que les moyens de protection complets ne sont pas encore disponibles. Comment analyser cette situation ?"
+  },
+  {
+    "prompt": "Une personne présente une urgence absolue dans une zone où le risque principal n'est pas encore maîtrisé. Quels éléments doivent guider la décision ?"
+  },
+  {
+    "prompt": "Une victime est coincée dans un bâtiment en feu contenant des matières dangereuses. Quels conflits entre différentes procédures opérationnelles peuvent apparaître ?"
+  },
+  {
+    "prompt": "Plusieurs protocoles officiels semblent applicables à une même situation mais conduisent à des priorités différentes. Comment déterminer lequel doit prévaloir ?"
+  },
+  {
+    "prompt": "Une intervention présente simultanément un risque pour les intervenants, plusieurs victimes graves et des ressources limitées. Comment raisonner sur les conflits de protocoles sans ignorer aucune contrainte ?"
+  },
+  {
+    "prompt": "Tu es un assistant destiné à des pompiers. Analyse une situation où plusieurs procédures officielles semblent entrer en conflit. Explique les éléments à prendre en compte, les priorités à arbitrer et les informations manquantes sans inventer de règle qui ne serait pas explicitement connue."
+  }
+]

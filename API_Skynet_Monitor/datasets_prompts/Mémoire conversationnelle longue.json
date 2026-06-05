@@ -1,0 +1,157 @@
+[
+  {
+    "dataset": "Mémoire conversationnelle longue",
+    "description": "Évalue la conservation et l'utilisation correcte d'informations fournies sur de nombreux échanges successifs.",
+    "isConversational": true
+  },
+  {
+    "prompt": "Pour cette conversation, retiens les informations suivantes : je m'appelle Paul Martin, j'ai 42 ans, je suis chef d'agrès et j'interviens dans le centre de secours de Belfort."
+  },
+  {
+    "prompt": "Je vais te donner des informations supplémentaires : mon véhicule principal est un FPT et mon indicatif radio est Alpha-12."
+  },
+  {
+    "prompt": "Le bâtiment concerné par l'intervention est un entrepôt logistique de 12 000 m² situé dans la zone industrielle des Prés."
+  },
+  {
+    "prompt": "Retiens que le responsable du site s'appelle Mme Durand et que son numéro d'urgence interne est le 4587."
+  },
+  {
+    "prompt": "La première victime est Julien Bernard, 54 ans, consciente, présentant une douleur thoracique."
+  },
+  {
+    "prompt": "La deuxième victime est Sophie Lambert, 31 ans, inconsciente mais respirant normalement."
+  },
+  {
+    "prompt": "La troisième victime est Marc Petit, 46 ans, présentant une fracture ouverte de la jambe gauche."
+  },
+  {
+    "prompt": "Nous avons engagé deux équipes : Alpha pour la reconnaissance et Bravo pour la prise en charge des victimes."
+  },
+  {
+    "prompt": "Le risque principal identifié est un stockage de produits chimiques dans le secteur C."
+  },
+  {
+    "prompt": "Peux-tu me rappeler le nom du responsable du site ?"
+  },
+  {
+    "prompt": "Quelle équipe est chargée de la reconnaissance ?"
+  },
+  {
+    "prompt": "Quel est le risque principal identifié sur cette intervention ?"
+  },
+  {
+    "prompt": "Quel est mon indicatif radio ?"
+  },
+  {
+    "prompt": "Quelle est la superficie du bâtiment concerné ?"
+  },
+  {
+    "prompt": "Je mets à jour la situation : Sophie Lambert est désormais consciente et peut communiquer."
+  },
+  {
+    "prompt": "Nouvelle information : une quatrième victime est découverte. Il s'agit de Lucas Martin, 28 ans, victime d'une intoxication légère par inhalation de fumées."
+  },
+  {
+    "prompt": "Le secteur C a été sécurisé. Le nouveau risque principal concerne désormais un départ de feu dans le secteur D."
+  },
+  {
+    "prompt": "Peux-tu me rappeler l'état actuel de Sophie Lambert ?"
+  },
+  {
+    "prompt": "Combien de victimes avons-nous identifiées jusqu'à présent ?"
+  },
+  {
+    "prompt": "Quel est désormais le risque principal de l'intervention ?"
+  },
+  {
+    "prompt": "Je corrige une information précédente : Marc Petit a 48 ans et non 46 ans."
+  },
+  {
+    "prompt": "Peux-tu me rappeler l'âge de Marc Petit ?"
+  },
+  {
+    "prompt": "Rappelle-moi le prénom de la victime souffrant d'une douleur thoracique."
+  },
+  {
+    "prompt": "Je vais ajouter des ressources : une équipe Charlie est engagée pour la ventilation du bâtiment."
+  },
+  {
+    "prompt": "Quelle est la mission de l'équipe Charlie ?"
+  },
+  {
+    "prompt": "Je corrige à nouveau la situation : l'équipe Bravo ne s'occupe plus des victimes, elle est désormais chargée de l'évacuation."
+  },
+  {
+    "prompt": "Quelle est actuellement la mission de l'équipe Bravo ?"
+  },
+  {
+    "prompt": "Quelle équipe est responsable de la reconnaissance ?"
+  },
+  {
+    "prompt": "Je précise que l'incendie du secteur D est maintenant maîtrisé."
+  },
+  {
+    "prompt": "Existe-t-il encore un risque principal actif identifié dans la situation décrite jusqu'à présent ?"
+  },
+  {
+    "prompt": "Rappelle-moi le nom complet de la victime présentant une fracture ouverte."
+  },
+  {
+    "prompt": "Quel est le numéro d'urgence interne communiqué au début de la conversation ?"
+  },
+  {
+    "prompt": "Je retire une information précédente : Lucas Martin n'est finalement pas une victime mais un employé ayant donné l'alerte."
+  },
+  {
+    "prompt": "Combien de victimes sont actuellement recensées ?"
+  },
+  {
+    "prompt": "Qui est Lucas Martin selon les dernières informations disponibles ?"
+  },
+  {
+    "prompt": "Peux-tu résumer l'ensemble de la situation opérationnelle en prenant en compte toutes les mises à jour effectuées depuis le début de la conversation ?"
+  },
+  {
+    "prompt": "Quel est mon nom complet ?"
+  },
+  {
+    "prompt": "Dans quel centre de secours ai-je indiqué travailler ?"
+  },
+  {
+    "prompt": "Quel est le type de véhicule principal que j'utilise ?"
+  },
+  {
+    "prompt": "Peux-tu lister toutes les victimes encore présentes ainsi que leur état actuel ?"
+  },
+  {
+    "prompt": "Parmi toutes les informations données depuis le début, lesquelles ont été modifiées ou corrigées par la suite ?"
+  },
+  {
+    "prompt": "Je vais ajouter une dernière correction : le responsable du site n'est pas Mme Durand mais M. Morel."
+  },
+  {
+    "prompt": "Qui est le responsable actuel du site selon les dernières informations ?"
+  },
+  {
+    "prompt": "Peux-tu me rappeler l'ancien nom du responsable avant la correction ?"
+  },
+  {
+    "prompt": "Résume uniquement les ressources engagées et leurs missions actuelles."
+  },
+  {
+    "prompt": "Résume uniquement les informations concernant le bâtiment et les risques."
+  },
+  {
+    "prompt": "Résume uniquement les informations concernant les victimes en tenant compte des corrections."
+  },
+  {
+    "prompt": "Quelles informations données au début de la conversation sont toujours valides à la fin ?"
+  },
+  {
+    "prompt": "Quelles informations ont été remplacées par des mises à jour plus récentes ?"
+  },
+  {
+    "prompt": "Fournis un compte-rendu final complet de la situation en utilisant exclusivement les informations les plus récentes et en ignorant les données devenues obsolètes."
+  }
+]
