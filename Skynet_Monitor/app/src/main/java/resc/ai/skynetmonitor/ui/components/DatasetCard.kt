@@ -17,6 +17,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -180,17 +181,19 @@ fun DatasetCard(
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Edit,
-                            contentDescription = "Edit dataset",
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Icon(
-                            imageVector = Icons.Filled.Delete,
-                            contentDescription = "Delete dataset",
-                            tint = Color(0xFFFF0000),
-                            modifier = Modifier.size(24.dp)
-                        )
+                        IconButton(onClick = { showEditDataset = true }) {
+                            Icon(
+                                imageVector = Icons.Filled.Edit,
+                                contentDescription = "Edit dataset"
+                            )
+                        }
+                        IconButton(onClick = { showConfirmDatasetDelete = true }) {
+                            Icon(
+                                imageVector = Icons.Filled.Delete,
+                                contentDescription = "Delete dataset",
+                                tint = Color(0xFFFF0000)
+                            )
+                        }
                     }
                 }
 
@@ -301,21 +304,19 @@ private fun PromptRow(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Edit,
-                    contentDescription = "Edit prompt",
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clickable { showEdit = true }
-                )
-                Icon(
-                    imageVector = Icons.Filled.Delete,
-                    contentDescription = "Delete prompt",
-                    tint = Color(0xFFFF0000),
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clickable { showDeleteConfirm = true }
-                )
+                IconButton(onClick = { showEdit = true }) {
+                    Icon(
+                        imageVector = Icons.Filled.Edit,
+                        contentDescription = "Edit prompt"
+                    )
+                }
+                IconButton(onClick = { showDeleteConfirm = true }) {
+                    Icon(
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = "Delete prompt",
+                        tint = Color(0xFFFF0000)
+                    )
+                }
             }
         }
     }

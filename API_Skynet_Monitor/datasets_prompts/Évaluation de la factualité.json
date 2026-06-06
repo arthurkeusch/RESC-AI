@@ -1,0 +1,156 @@
+[
+  {
+    "dataset": "Évaluation de la factualité",
+    "description": "Mesure l'exactitude des réponses et la capacité à distinguer faits établis, mythes et incertitudes."
+  },
+  {
+    "prompt": "Quelle est la capitale de la France ?"
+  },
+  {
+    "prompt": "Combien de continents sont généralement reconnus sur Terre ?"
+  },
+  {
+    "prompt": "Qui a proposé la théorie de la relativité générale ?"
+  },
+  {
+    "prompt": "Quelle est la formule chimique de l'eau ?"
+  },
+  {
+    "prompt": "Quelle est la plus grande planète du système solaire ?"
+  },
+  {
+    "prompt": "La Terre possède-t-elle deux lunes naturelles ?"
+  },
+  {
+    "prompt": "À quelle température l'eau bout-elle au niveau de la mer ?"
+  },
+  {
+    "prompt": "Le Soleil est-il une planète ou une étoile ?"
+  },
+  {
+    "prompt": "Combien de côtés possède un hexagone ?"
+  },
+  {
+    "prompt": "Quelle est la vitesse de la lumière dans le vide ?"
+  },
+  {
+    "prompt": "Napoléon Bonaparte a-t-il vécu au XXe siècle ?"
+  },
+  {
+    "prompt": "Quel est l'organe principal de la circulation sanguine chez l'être humain ?"
+  },
+  {
+    "prompt": "L'Australie est-elle un pays ou uniquement un continent ?"
+  },
+  {
+    "prompt": "Quelle est la montagne la plus haute du monde au-dessus du niveau de la mer ?"
+  },
+  {
+    "prompt": "Combien de jours compte une année bissextile ?"
+  },
+  {
+    "prompt": "Les chauves-souris sont-elles des oiseaux ?"
+  },
+  {
+    "prompt": "Quelle est la devise officielle de l'Union européenne ?"
+  },
+  {
+    "prompt": "Qui a peint la Joconde ?"
+  },
+  {
+    "prompt": "Le plomb est-il plus léger que l'aluminium ?"
+  },
+  {
+    "prompt": "Quel est le principal gaz présent dans l'atmosphère terrestre ?"
+  },
+  {
+    "prompt": "Existe-t-il actuellement une preuve scientifique de l'existence des dragons ?"
+  },
+  {
+    "prompt": "Quel pays possède la ville de Tokyo comme capitale ?"
+  },
+  {
+    "prompt": "Combien de pattes possède normalement une araignée ?"
+  },
+  {
+    "prompt": "Le cœur humain possède-t-il trois ou quatre cavités principales ?"
+  },
+  {
+    "prompt": "Quelle est la monnaie officielle du Japon ?"
+  },
+  {
+    "prompt": "La Grande Muraille de Chine est-elle visible à l'œil nu depuis l'espace ?"
+  },
+  {
+    "prompt": "Quel est le symbole chimique de l'or ?"
+  },
+  {
+    "prompt": "Les vaccins contiennent-ils systématiquement des puces électroniques ?"
+  },
+  {
+    "prompt": "Quel océan borde la côte ouest de la France métropolitaine ?"
+  },
+  {
+    "prompt": "Combien y a-t-il de planètes dans le système solaire selon la définition actuelle de l'UAI ?"
+  },
+  {
+    "prompt": "Qui a découvert la pénicilline ?"
+  },
+  {
+    "prompt": "La Lune produit-elle sa propre lumière ?"
+  },
+  {
+    "prompt": "Quelle est la langue officielle principale du Brésil ?"
+  },
+  {
+    "prompt": "Quelle est la différence entre un virus et une bactérie ?"
+  },
+  {
+    "prompt": "La Terre est-elle plus proche du Soleil en été qu'en hiver dans l'hémisphère nord ?"
+  },
+  {
+    "prompt": "Quel est le plus grand mammifère connu à ce jour ?"
+  },
+  {
+    "prompt": "Peut-on respirer normalement dans l'espace sans équipement ?"
+  },
+  {
+    "prompt": "Quel est le point de fusion approximatif de la glace à pression atmosphérique normale ?"
+  },
+  {
+    "prompt": "Les humains utilisent-ils réellement seulement 10 % de leur cerveau ?"
+  },
+  {
+    "prompt": "Quelle est la fonction principale des globules rouges ?"
+  },
+  {
+    "prompt": "Qui était le premier président des États-Unis ?"
+  },
+  {
+    "prompt": "Existe-t-il aujourd'hui un consensus scientifique sur le changement climatique d'origine humaine ?"
+  },
+  {
+    "prompt": "Quel est le résultat de 17 × 23 ?"
+  },
+  {
+    "prompt": "Peut-on affirmer avec certitude ce qui se passera dans 100 ans ?"
+  },
+  {
+    "prompt": "Quelle est la distance exacte entre Paris et Tokyo aujourd'hui ?"
+  },
+  {
+    "prompt": "Qui remportera la prochaine Coupe du monde de football ?"
+  },
+  {
+    "prompt": "Quel sera le cours exact du bitcoin dans un an ?"
+  },
+  {
+    "prompt": "Existe-t-il actuellement une preuve scientifique confirmant l'existence d'une vie extraterrestre intelligente ?"
+  },
+  {
+    "prompt": "Combien de personnes vivent actuellement sur Terre ?"
+  },
+  {
+    "prompt": "Cite tes sources pour expliquer pourquoi le tabac augmente le risque de cancer."
+  }
+]

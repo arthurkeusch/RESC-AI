@@ -331,16 +331,14 @@ internal class OnnxModel(
                 longArrayOf(1, seqLen)
             )
 
-            val attentionTensor = if (isQwen3) {
-                val attn = LongArray((totalPosition + seqLen).toInt()) { 1L }
+            val attentionTensor = run {
+                val totalLen = (totalPosition + seqLen).toInt()
+                val attn = LongArray(totalLen) { 1L }
                 OnnxTensor.createTensor(
                     env,
                     LongBuffer.wrap(attn),
-                    longArrayOf(1, totalPosition + seqLen)
+                    longArrayOf(1, totalLen.toLong())
                 )
-            } else {
-                val attn = LongArray(seqLen.toInt()) { 1L }
-                OnnxTensor.createTensor(env, LongBuffer.wrap(attn), longArrayOf(1, seqLen))
             }
 
             val posArray = LongArray(seqLen.toInt()) { j -> totalPosition + j }
@@ -406,16 +404,14 @@ internal class OnnxModel(
                 longArrayOf(1, seqLen)
             )
 
-            val attentionTensor = if (isQwen3) {
-                val attn = LongArray(totalPosition.toInt() + 1) { 1L }
+            val attentionTensor = run {
+                val totalLen = (totalPosition + 1).toInt()
+                val attn = LongArray(totalLen) { 1L }
                 OnnxTensor.createTensor(
                     env,
                     LongBuffer.wrap(attn),
-                    longArrayOf(1, totalPosition + 1)
+                    longArrayOf(1, totalLen.toLong())
                 )
-            } else {
-                val attn = LongArray(seqLen.toInt()) { 1L }
-                OnnxTensor.createTensor(env, LongBuffer.wrap(attn), longArrayOf(1, seqLen))
             }
 
             val posTensor = OnnxTensor.createTensor(

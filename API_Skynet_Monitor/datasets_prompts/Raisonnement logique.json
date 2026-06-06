@@ -1,0 +1,156 @@
+[
+  {
+    "dataset": "Raisonnement logique",
+    "description": "Mesure la capacité du modèle à résoudre des problèmes logiques, déduire des conclusions et détecter des incohérences."
+  },
+  {
+    "prompt": "Tous les pompiers portent un casque. Sophie porte un casque. Peut-on conclure que Sophie est pompier ? Explique ton raisonnement."
+  },
+  {
+    "prompt": "Dans une pièce se trouvent trois interrupteurs et une ampoule dans une autre pièce. Tu peux manipuler les interrupteurs autant que tu veux mais n'entrer qu'une seule fois dans la pièce de l'ampoule. Comment déterminer quel interrupteur contrôle l'ampoule ?"
+  },
+  {
+    "prompt": "Si tous les A sont des B, et que certains B sont des C, peut-on conclure que certains A sont des C ? Justifie."
+  },
+  {
+    "prompt": "Paul est plus grand que Marie. Marie est plus grande que Lucas. Qui est le plus petit des trois ?"
+  },
+  {
+    "prompt": "Un train parcourt 120 km en 2 heures puis 180 km en 3 heures. Quelle est sa vitesse moyenne sur l'ensemble du trajet ?"
+  },
+  {
+    "prompt": "Quatre personnes doivent traverser un pont de nuit avec une seule lampe. Chaque personne marche à une vitesse différente. Comment minimiser le temps total de traversée ?"
+  },
+  {
+    "prompt": "Une boîte contient uniquement des boules rouges et bleues. Si je retire deux boules rouges, puis une boule bleue, puis encore une boule rouge, que peux-tu déduire sur le contenu initial ?"
+  },
+  {
+    "prompt": "Un médecin donne trois comprimés à prendre toutes les 30 minutes. Combien de temps faut-il pour prendre l'ensemble des comprimés ?"
+  },
+  {
+    "prompt": "Un homme regarde une photographie. Il dit : 'Je n'ai ni frère ni sœur, mais le père de cette personne est le fils de mon père.' Qui est sur la photo ?"
+  },
+  {
+    "prompt": "Si aujourd'hui est un mardi, quel jour serons-nous dans 100 jours ?"
+  },
+  {
+    "prompt": "Cinq maisons sont alignées. La maison rouge est à gauche de la bleue. La verte est à droite de la bleue. Quelle couleur ne peut pas être au milieu ?"
+  },
+  {
+    "prompt": "Un panier contient 5 pommes. Tu en prends 3. Combien de pommes possèdes-tu ?"
+  },
+  {
+    "prompt": "Une montre avance de 5 minutes toutes les heures. Après 24 heures réelles, de combien sera-t-elle en avance ?"
+  },
+  {
+    "prompt": "Trois interrupteurs contrôlent trois ventilateurs. Comment déterminer quel interrupteur correspond à quel ventilateur avec un minimum de manipulations ?"
+  },
+  {
+    "prompt": "Si la moitié d'un nombre vaut 24, quel est ce nombre ?"
+  },
+  {
+    "prompt": "Un fermier possède 17 moutons. Tous sauf 9 meurent. Combien lui en reste-t-il ?"
+  },
+  {
+    "prompt": "Dans une course, tu dépasses la personne en deuxième position. Quelle est désormais ta position ?"
+  },
+  {
+    "prompt": "Une mère a 35 ans et son fils 5 ans. Dans combien d'années la mère aura-t-elle trois fois l'âge de son fils ?"
+  },
+  {
+    "prompt": "On lance deux dés équilibrés. Quelle est la probabilité d'obtenir une somme égale à 7 ?"
+  },
+  {
+    "prompt": "Si tous les chats sont des mammifères et qu'aucun mammifère n'est un oiseau, un chat peut-il être un oiseau ?"
+  },
+  {
+    "prompt": "Trois personnes A, B et C font chacune une déclaration. Une seule dit la vérité. Détermine qui dit vrai à partir des déclarations suivantes : A dit 'B ment', B dit 'C ment', C dit 'A et B mentent'."
+  },
+  {
+    "prompt": "Une pièce est lancée 10 fois et tombe 10 fois sur pile. Quelle est la probabilité d'obtenir face au prochain lancer ?"
+  },
+  {
+    "prompt": "Un père et son fils ont ensemble 60 ans. Le père a le triple de l'âge du fils. Quels sont leurs âges ?"
+  },
+  {
+    "prompt": "Tu disposes de deux cordes qui brûlent chacune en exactement une heure mais pas à vitesse constante. Comment mesurer 45 minutes ?"
+  },
+  {
+    "prompt": "Une personne ment toujours le lundi, mardi et mercredi, dit toujours la vérité le jeudi, vendredi et samedi, et alterne le dimanche. Elle déclare : 'Hier je mentais.' Quel jour sommes-nous probablement ?"
+  },
+  {
+    "prompt": "Un village compte uniquement des chevaliers qui disent toujours la vérité et des menteurs qui mentent toujours. Un habitant dit : 'Nous sommes tous des menteurs.' Que peut-on en déduire ?"
+  },
+  {
+    "prompt": "Deux trains partent simultanément de deux villes distantes de 300 km l'une de l'autre. L'un roule à 100 km/h, l'autre à 50 km/h. Quand se croisent-ils ?"
+  },
+  {
+    "prompt": "Dans une famille, chaque fille a le même nombre de frères que de sœurs. Chaque garçon a deux fois plus de sœurs que de frères. Combien y a-t-il de garçons et de filles ?"
+  },
+  {
+    "prompt": "Une suite commence par 2, 4, 8, 16, 32. Quel est le prochain terme et pourquoi ?"
+  },
+  {
+    "prompt": "Une suite commence par 1, 1, 2, 3, 5, 8. Quel est le prochain terme et quelle règle semble être utilisée ?"
+  },
+  {
+    "prompt": "Si un véhicule parcourt la moitié de son trajet à 60 km/h et l'autre moitié à 120 km/h, quelle est sa vitesse moyenne ?"
+  },
+  {
+    "prompt": "Trois boîtes sont étiquetées 'Pommes', 'Oranges' et 'Pommes et Oranges'. Toutes les étiquettes sont fausses. Comment corriger les étiquettes en ne regardant qu'un seul fruit dans une seule boîte ?"
+  },
+  {
+    "prompt": "Un escalier comporte 10 marches. Tu peux monter une ou deux marches à la fois. Combien existe-t-il de façons différentes d'atteindre la dernière marche ?"
+  },
+  {
+    "prompt": "Un gardien surveille deux portes. L'une mène à la liberté, l'autre à un piège. Un gardien ment toujours, l'autre dit toujours la vérité. Quelle unique question permet de trouver la bonne porte ?"
+  },
+  {
+    "prompt": "Quatre cartes sont posées sur une table. Les faces visibles montrent A, D, 4 et 7. Quelle(s) carte(s) faut-il retourner pour vérifier la règle : 'Si une carte comporte une voyelle d'un côté, alors elle comporte un nombre pair de l'autre' ?"
+  },
+  {
+    "prompt": "Si cinq machines fabriquent cinq objets en cinq minutes, combien de temps faut-il à cent machines pour fabriquer cent objets ?"
+  },
+  {
+    "prompt": "Un lac contient des nénuphars dont la surface double chaque jour. Si le lac est entièrement couvert au bout de 30 jours, au bout de combien de jours est-il couvert à moitié ?"
+  },
+  {
+    "prompt": "Une bouteille et son bouchon coûtent 1,10 €. La bouteille coûte 1 € de plus que le bouchon. Combien coûte le bouchon ?"
+  },
+  {
+    "prompt": "Trois personnes ont respectivement un chapeau rouge ou bleu sur la tête. Chacune voit les chapeaux des autres mais pas le sien. Comment l'une d'elles peut-elle déduire la couleur de son chapeau après réflexion ?"
+  },
+  {
+    "prompt": "Une pièce contient 100 prisonniers et un interrupteur. Ils peuvent élaborer une stratégie avant leur enfermement. Comment peuvent-ils garantir leur libération ?"
+  },
+  {
+    "prompt": "Un avion s'écrase exactement sur la frontière entre deux pays. Dans quel pays enterre-t-on les survivants ?"
+  },
+  {
+    "prompt": "Une personne possède deux sabliers : l'un mesure 7 minutes, l'autre 11 minutes. Comment mesurer exactement 15 minutes ?"
+  },
+  {
+    "prompt": "Si la probabilité qu'il pleuve demain est de 60 % et que celle qu'il pleuve après-demain est de 50 %, peut-on conclure que la probabilité qu'il pleuve au moins un des deux jours est de 110 % ? Explique."
+  },
+  {
+    "prompt": "Un homme habite au 20e étage. Lorsqu'il est seul, il monte par l'ascenseur jusqu'au 10e étage puis termine à pied. Lorsqu'il est accompagné, il monte jusqu'au 20e étage. Pourquoi ?"
+  },
+  {
+    "prompt": "Tu disposes de 8 billes visuellement identiques, mais l'une est plus lourde. Quel est le nombre minimal de pesées avec une balance à plateaux pour identifier la bille plus lourde ?"
+  },
+  {
+    "prompt": "Deux personnes jouent à pile ou face. La première gagne si deux piles consécutifs apparaissent. La seconde gagne si la séquence pile-face apparaît. Qui a l'avantage ?"
+  },
+  {
+    "prompt": "Une ville possède deux hôpitaux. Le grand hôpital réalise environ 100 naissances par jour, le petit environ 10. Lequel enregistre le plus souvent des journées où plus de 60 % des naissances sont des garçons ?"
+  },
+  {
+    "prompt": "Un commerçant augmente un prix de 20 %, puis applique une réduction de 20 %. Le prix final est-il identique au prix initial ?"
+  },
+  {
+    "prompt": "Trois lampes sont derrière un mur. Tu ne peux voir les lampes qu'une seule fois. Comment identifier quel interrupteur commande quelle lampe ?"
+  },
+  {
+    "prompt": "Un roi veut tester l'intelligence de trois sages. Chacun reçoit un chapeau rouge ou bleu. Ils voient les autres mais pas le leur. Comment l'un d'eux peut-il déduire la couleur de son chapeau après plusieurs secondes de silence ?"
+  }
+]

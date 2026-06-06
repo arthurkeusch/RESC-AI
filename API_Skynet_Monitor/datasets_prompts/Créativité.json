@@ -1,0 +1,156 @@
+[
+  {
+    "dataset": "Créativité",
+    "description": "Évalue la capacité du modèle à produire des idées originales, variées et adaptées au contexte."
+  },
+  {
+    "prompt": "Écris une courte histoire de science-fiction se déroulant sur Mars en moins de 300 mots."
+  },
+  {
+    "prompt": "Imagine une civilisation vivant au fond des océans. Décris son mode de vie."
+  },
+  {
+    "prompt": "Invente un animal fantastique et explique ses caractéristiques."
+  },
+  {
+    "prompt": "Rédige un dialogue entre un robot et un humain qui se rencontrent pour la première fois."
+  },
+  {
+    "prompt": "Imagine une ville où les voitures n'ont jamais existé. Décris à quoi elle ressemble."
+  },
+  {
+    "prompt": "Écris une histoire dont la dernière phrase change complètement la compréhension du récit."
+  },
+  {
+    "prompt": "Invente une nouvelle fête célébrée partout dans le monde et explique ses traditions."
+  },
+  {
+    "prompt": "Décris une planète où la gravité est deux fois plus faible que sur Terre."
+  },
+  {
+    "prompt": "Imagine qu'un chat puisse parler pendant une journée. Raconte ce qui se passe."
+  },
+  {
+    "prompt": "Écris le début d'un roman policier dont l'enquête se déroule dans une station spatiale."
+  },
+  {
+    "prompt": "Crée une légende expliquant l'origine des éclairs."
+  },
+  {
+    "prompt": "Imagine une technologie révolutionnaire qui n'existe pas encore et explique son fonctionnement."
+  },
+  {
+    "prompt": "Rédige un conte pour enfants mettant en scène une forêt magique."
+  },
+  {
+    "prompt": "Imagine qu'un historien du futur découvre notre époque. Que penserait-il de la société actuelle ?"
+  },
+  {
+    "prompt": "Écris une histoire se déroulant dans un monde où les rêves peuvent être enregistrés et partagés."
+  },
+  {
+    "prompt": "Invente un nouveau sport et décris ses règles."
+  },
+  {
+    "prompt": "Décris une journée typique dans une colonie humaine installée sur Europe, lune de Jupiter."
+  },
+  {
+    "prompt": "Imagine un détective capable de lire les souvenirs des objets. Raconte une enquête."
+  },
+  {
+    "prompt": "Écris un dialogue humoristique entre deux intelligences artificielles."
+  },
+  {
+    "prompt": "Invente un pays fictif et présente sa culture, sa géographie et son système politique."
+  },
+  {
+    "prompt": "Imagine qu'une bibliothèque contienne tous les livres qui n'ont jamais été écrits. Décris-la."
+  },
+  {
+    "prompt": "Crée un super-héros dont le pouvoir semble inutile mais devient essentiel dans certaines situations."
+  },
+  {
+    "prompt": "Rédige une lettre écrite par un explorateur découvrant une nouvelle espèce intelligente."
+  },
+  {
+    "prompt": "Imagine un monde où le temps s'écoule différemment selon les régions."
+  },
+  {
+    "prompt": "Écris une histoire dans laquelle le personnage principal reçoit un message provenant du futur."
+  },
+  {
+    "prompt": "Invente une langue fictive et décris quelques-unes de ses particularités."
+  },
+  {
+    "prompt": "Imagine une société où personne ne peut mentir. Décris ses conséquences."
+  },
+  {
+    "prompt": "Écris une scène de film d'aventure se déroulant dans une cité perdue."
+  },
+  {
+    "prompt": "Imagine une intelligence artificielle qui développe une passion inattendue pour l'art."
+  },
+  {
+    "prompt": "Crée un personnage principal original et décris son histoire."
+  },
+  {
+    "prompt": "Imagine que les animaux deviennent soudainement aussi intelligents que les humains. Que se passe-t-il ?"
+  },
+  {
+    "prompt": "Écris un récit de survie sur une île mystérieuse."
+  },
+  {
+    "prompt": "Invente un objet magique avec des règles d'utilisation très particulières."
+  },
+  {
+    "prompt": "Imagine une ville construite à l'intérieur d'un volcan éteint."
+  },
+  {
+    "prompt": "Rédige un poème sur l'exploration spatiale."
+  },
+  {
+    "prompt": "Imagine qu'un archéologue découvre une preuve irréfutable d'une civilisation disparue très avancée."
+  },
+  {
+    "prompt": "Écris une histoire dont le narrateur n'est pas humain."
+  },
+  {
+    "prompt": "Crée un scénario de jeu vidéo original en quelques paragraphes."
+  },
+  {
+    "prompt": "Imagine une planète où la météo est contrôlée artificiellement."
+  },
+  {
+    "prompt": "Écris un dialogue entre un voyageur temporel et son propre futur."
+  },
+  {
+    "prompt": "Invente une créature vivant dans les nuages et décris son comportement."
+  },
+  {
+    "prompt": "Imagine une école destinée aux explorateurs interstellaires."
+  },
+  {
+    "prompt": "Rédige la description d'un musée consacré à des technologies du futur."
+  },
+  {
+    "prompt": "Imagine qu'une porte apparaisse soudainement dans chaque maison du monde. Que se passe-t-il lorsqu'on l'ouvre ?"
+  },
+  {
+    "prompt": "Écris une courte histoire de fantasy dans laquelle la magie a un coût inattendu."
+  },
+  {
+    "prompt": "Invente une religion fictive et décris ses croyances principales."
+  },
+  {
+    "prompt": "Imagine un futur où les humains vivent principalement sous terre."
+  },
+  {
+    "prompt": "Écris la première page d'un journal intime tenu par un extraterrestre sur Terre."
+  },
+  {
+    "prompt": "Imagine une entreprise dont le métier consiste à vendre des souvenirs."
+  },
+  {
+    "prompt": "Crée un univers original capable de servir de cadre à une série de romans ou de films."
+  }
+]

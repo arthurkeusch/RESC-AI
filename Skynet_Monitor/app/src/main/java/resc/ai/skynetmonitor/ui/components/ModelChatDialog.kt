@@ -35,12 +35,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import fr.arthur.keusch.mandiole.Mandiole
 import resc.ai.skynetmonitor.viewmodel.BenchmarkStep
 import resc.ai.skynetmonitor.viewmodel.ChatMessage
 import resc.ai.skynetmonitor.viewmodel.DeviceInfoViewModel
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,7 +56,18 @@ fun ModelChatDialog(
     val listState = rememberLazyListState()
     var autoScrollEnabled by remember { mutableStateOf(true) }
 
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val isCompactScreen = configuration.screenWidthDp < 600
+
     val isDragged by listState.interactionSource.collectIsDraggedAsState()
+
+    val currentView = LocalView.current
+    DisposableEffect(Unit) {
+        currentView.keepScreenOn = true
+        onDispose {
+            currentView.keepScreenOn = false
+        }
+    }
 
     LaunchedEffect(isDragged) {
         if (isDragged) {
@@ -107,6 +120,7 @@ fun ModelChatDialog(
                             selectedIds = chat.selectedDatasetIds,
                             thinkingEnabled = chat.thinkingEnabled,
                             onThinkingToggle = { viewModel.setThinkingEnabled(it) },
+                            onToggleAll = { viewModel.toggleAllDatasets() },
                             onToggle = { viewModel.toggleDatasetSelection(it) },
                             onConfirm = { viewModel.runBenchmark() },
                             onBack = { viewModel.startBenchmarkFlow() })
@@ -166,8 +180,14 @@ fun ModelChatDialog(
                                         fontWeight = FontWeight.Bold,
                                         modifier = Modifier.padding(bottom = 8.dp)
                                     )
+                                    val tpsHistory by viewModel.tpsHistory.collectAsState()
+                                    val contextUsageHistory by viewModel.contextUsageHistory.collectAsState()
+                                    val maxTps by viewModel.maxObservedTps.collectAsState()
+                                    val currentModelDesc = localModels.find { it.displayName == chat.modelName }
+                                    val maxContext = currentModelDesc?.contextSize ?: 1024
+
                                     LazyColumn(
-                                        modifier = Modifier.fillMaxSize(),
+                                        modifier = Modifier.weight(1f),
                                         verticalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
                                         val systemState = viewModel.systemState.value
@@ -201,20 +221,35 @@ fun ModelChatDialog(
                                                 )
                                             ) {
                                                 Column(modifier = Modifier.padding(8.dp)) {
-                                                    Row(
-                                                        modifier = Modifier.fillMaxWidth(),
-                                                        horizontalArrangement = Arrangement.SpaceBetween
-                                                    ) {
-                                                        Text(
-                                                            label,
-                                                            style = MaterialTheme.typography.labelSmall,
-                                                            color = MaterialTheme.colorScheme.primary
-                                                        )
-                                                        Text(
-                                                            value,
-                                                            style = MaterialTheme.typography.labelSmall,
-                                                            fontWeight = FontWeight.Bold
-                                                        )
+                                                    if (isCompactScreen) {
+                                                        Column {
+                                                            Text(
+                                                                label,
+                                                                style = MaterialTheme.typography.labelSmall,
+                                                                color = MaterialTheme.colorScheme.primary
+                                                            )
+                                                            Text(
+                                                                value,
+                                                                style = MaterialTheme.typography.labelSmall,
+                                                                fontWeight = FontWeight.Bold
+                                                            )
+                                                        }
+                                                    } else {
+                                                        Row(
+                                                            modifier = Modifier.fillMaxWidth(),
+                                                            horizontalArrangement = Arrangement.SpaceBetween
+                                                        ) {
+                                                            Text(
+                                                                label,
+                                                                style = MaterialTheme.typography.labelSmall,
+                                                                color = MaterialTheme.colorScheme.primary
+                                                            )
+                                                            Text(
+                                                                value,
+                                                                style = MaterialTheme.typography.labelSmall,
+                                                                fontWeight = FontWeight.Bold
+                                                            )
+                                                        }
                                                     }
                                                     if (history.isNotEmpty()) {
                                                         Spacer(Modifier.height(4.dp))
@@ -225,6 +260,151 @@ fun ModelChatDialog(
                                                             maxValue = bounds.second
                                                         )
                                                     }
+                                                }
+                                            }
+                                        }
+
+                                        item {
+                                            Spacer(Modifier.height(if (isCompactScreen) 8.dp else 16.dp))
+                                            Card(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                colors = CardDefaults.cardColors(
+                                                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(
+                                                        alpha = 0.2f
+                                                    )
+                                                )
+                                            ) {
+                                                Column(modifier = Modifier.padding(if (isCompactScreen) 8.dp else 10.dp)) {
+                                                    if (isCompactScreen) {
+                                                        Column {
+                                                            Text(
+                                                                "Speed",
+                                                                style = MaterialTheme.typography.labelSmall,
+                                                                fontWeight = FontWeight.Bold,
+                                                                color = MaterialTheme.colorScheme.primary
+                                                            )
+                                                            val currentTps = tpsHistory.lastOrNull() ?: 0f
+                                                            Text(
+                                                                String.format(
+                                                                    Locale.getDefault(),
+                                                                    "%.1f",
+                                                                    currentTps
+                                                                ),
+                                                                style = MaterialTheme.typography.labelSmall,
+                                                                fontWeight = FontWeight.Bold
+                                                            )
+                                                        }
+                                                    } else {
+                                                        Row(
+                                                            modifier = Modifier.fillMaxWidth(),
+                                                            horizontalArrangement = Arrangement.SpaceBetween
+                                                        ) {
+                                                            Text(
+                                                                "Tokens/s Speed",
+                                                                style = MaterialTheme.typography.labelSmall,
+                                                                fontWeight = FontWeight.Bold,
+                                                                color = MaterialTheme.colorScheme.primary
+                                                            )
+                                                            val currentTps = tpsHistory.lastOrNull() ?: 0f
+                                                            Text(
+                                                                String.format(
+                                                                    Locale.getDefault(),
+                                                                    "%.1f",
+                                                                    currentTps
+                                                                ),
+                                                                style = MaterialTheme.typography.labelSmall,
+                                                                fontWeight = FontWeight.Bold
+                                                            )
+                                                        }
+                                                    }
+                                                    Spacer(Modifier.height(6.dp))
+                                                    CompactMiniGraph(
+                                                        data = tpsHistory,
+                                                        color = MaterialTheme.colorScheme.primary,
+                                                        minValue = 0f,
+                                                        maxValue = if (maxTps > 1f) maxTps else 1f
+                                                    )
+                                                    if (!isCompactScreen) {
+                                                        Row(
+                                                            modifier = Modifier.fillMaxWidth(),
+                                                            horizontalArrangement = Arrangement.SpaceBetween
+                                                        ) {
+                                                            Text(
+                                                                "0",
+                                                                style = MaterialTheme.typography.labelSmall,
+                                                                color = MaterialTheme.colorScheme.outline,
+                                                                fontSize = 8.sp
+                                                            )
+                                                            Text(
+                                                                String.format(
+                                                                    Locale.getDefault(),
+                                                                    "%.1f max",
+                                                                    maxTps
+                                                                ),
+                                                                style = MaterialTheme.typography.labelSmall,
+                                                                color = MaterialTheme.colorScheme.outline,
+                                                                fontSize = 8.sp
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        item {
+                                            Spacer(Modifier.height(if (isCompactScreen) 6.dp else 12.dp))
+                                            Card(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                colors = CardDefaults.cardColors(
+                                                    containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(
+                                                        alpha = 0.2f
+                                                    )
+                                                )
+                                            ) {
+                                                Column(modifier = Modifier.padding(if (isCompactScreen) 8.dp else 10.dp)) {
+                                                    if (isCompactScreen) {
+                                                        Column {
+                                                            Text(
+                                                                "Context",
+                                                                style = MaterialTheme.typography.labelSmall,
+                                                                fontWeight = FontWeight.Bold,
+                                                                color = MaterialTheme.colorScheme.secondary
+                                                            )
+                                                            val currentUsage =
+                                                                contextUsageHistory.lastOrNull()?.toInt() ?: 0
+                                                            Text(
+                                                                "$currentUsage / $maxContext",
+                                                                style = MaterialTheme.typography.labelSmall,
+                                                                fontWeight = FontWeight.Bold
+                                                            )
+                                                        }
+                                                    } else {
+                                                        Row(
+                                                            modifier = Modifier.fillMaxWidth(),
+                                                            horizontalArrangement = Arrangement.SpaceBetween
+                                                        ) {
+                                                            Text(
+                                                                "Context Usage",
+                                                                style = MaterialTheme.typography.labelSmall,
+                                                                fontWeight = FontWeight.Bold,
+                                                                color = MaterialTheme.colorScheme.secondary
+                                                            )
+                                                            val currentUsage =
+                                                                contextUsageHistory.lastOrNull()?.toInt() ?: 0
+                                                            Text(
+                                                                "$currentUsage / $maxContext",
+                                                                style = MaterialTheme.typography.labelSmall,
+                                                                fontWeight = FontWeight.Bold
+                                                            )
+                                                        }
+                                                    }
+                                                    Spacer(Modifier.height(6.dp))
+                                                    CompactMiniGraph(
+                                                        data = contextUsageHistory,
+                                                        color = MaterialTheme.colorScheme.secondary,
+                                                        minValue = 0f,
+                                                        maxValue = maxContext.toFloat()
+                                                    )
                                                 }
                                             }
                                         }
@@ -240,7 +420,12 @@ fun ModelChatDialog(
                                 currentDatasetIdx = chat.currentDatasetIndex,
                                 totalDatasets = chat.selectedDatasetIds.size,
                                 currentPromptIdx = chat.currentPromptIndex,
-                                totalPrompts = chat.totalPromptsInSelectedDatasets
+                                totalPrompts = chat.totalPromptsInSelectedDatasets,
+                                elapsedSec = chat.benchmarkElapsedSeconds,
+                                remainingSec = chat.benchmarkRemainingSeconds,
+                                processedInputTokens = chat.processedInputTokens,
+                                totalInputTokens = chat.totalInputTokens,
+                                totalOutputTokens = chat.totalOutputTokens
                             )
                         } else {
                             InputSection(
@@ -277,7 +462,15 @@ fun ModelChatDialog(
 
 @Composable
 fun BenchmarkProgressSection(
-    currentDatasetIdx: Int, totalDatasets: Int, currentPromptIdx: Int, totalPrompts: Int
+    currentDatasetIdx: Int,
+    totalDatasets: Int,
+    currentPromptIdx: Int,
+    totalPrompts: Int,
+    elapsedSec: Long,
+    remainingSec: Long?,
+    processedInputTokens: Int,
+    totalInputTokens: Int,
+    totalOutputTokens: Int
 ) {
     Column(
         modifier = Modifier
@@ -289,11 +482,18 @@ fun BenchmarkProgressSection(
             if (totalPrompts > 0) currentPromptIdx.toFloat() / totalPrompts else 0f
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(
-                "Benchmark Progress",
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold
-            )
+            Column {
+                Text(
+                    "Benchmark Progress",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    "Elapsed: ${formatDuration(elapsedSec)}${remainingSec?.let { " • ETA: ${formatDuration(it)}" } ?: ""}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
             Text(
                 "${currentPromptIdx}/${totalPrompts} Prompts",
                 style = MaterialTheme.typography.labelSmall
@@ -310,11 +510,34 @@ fun BenchmarkProgressSection(
             trackColor = MaterialTheme.colorScheme.surfaceVariant
         )
 
-        Text(
-            text = "Dataset ${currentDatasetIdx + 1} of ${totalDatasets}",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.outline
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Dataset ${currentDatasetIdx + 1} of ${totalDatasets}",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.outline
+            )
+            
+            Text(
+                text = "Tokens: IN $processedInputTokens/$totalInputTokens • OUT $totalOutputTokens",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.secondary,
+                fontWeight = FontWeight.Medium
+            )
+        }
+    }
+}
+
+private fun formatDuration(seconds: Long): String {
+    val h = seconds / 3600
+    val m = (seconds % 3600) / 60
+    val s = seconds % 60
+    return if (h > 0) {
+        String.format(Locale.getDefault(), "%dh %02dm %02ds", h, m, s)
+    } else {
+        String.format(Locale.getDefault(), "%02dm %02ds", m, s)
     }
 }
 
@@ -389,6 +612,7 @@ fun DatasetSelectionStep(
     selectedIds: Set<Int>,
     thinkingEnabled: Boolean,
     onThinkingToggle: (Boolean) -> Unit,
+    onToggleAll: () -> Unit,
     onToggle: (Int) -> Unit,
     onConfirm: () -> Unit,
     onBack: () -> Unit
@@ -398,11 +622,22 @@ fun DatasetSelectionStep(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text(
-            "Step 2: Select Datasets",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "Step 2: Select Datasets",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            
+            TextButton(onClick = onToggleAll) {
+                val allSelected = datasets.isNotEmpty() && selectedIds.size == datasets.size
+                Text(if (allSelected) "Deselect All" else "Select All")
+            }
+        }
         Spacer(Modifier.height(16.dp))
         if (datasets.isNotEmpty()) {
             Row(

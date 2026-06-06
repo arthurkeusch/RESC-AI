@@ -1,0 +1,156 @@
+[
+  {
+    "dataset": "Raisonnement spatial et opérationnel",
+    "description": "Mesure la capacité à raisonner sur les accès, distances, obstacles, bâtiments, risques de propagation et contraintes géographiques."
+  },
+  {
+    "prompt": "Un incendie se déclare au troisième étage d'un immeuble de cinq niveaux. Les cages d'escalier sont enfumées. Quels éléments spatiaux doivent être pris en compte pour organiser l'intervention ?"
+  },
+  {
+    "prompt": "Une victime est localisée dans un tunnel routier à 800 mètres de l'entrée la plus proche. Quels facteurs opérationnels influencent l'accès à la victime ?"
+  },
+  {
+    "prompt": "Un accident implique plusieurs véhicules sur une autoroute à trois voies. Comment organiser les zones d'intervention et de sécurité ?"
+  },
+  {
+    "prompt": "Un incendie se développe dans un entrepôt comportant plusieurs compartiments coupe-feu. Quels éléments spatiaux doivent être évalués ?"
+  },
+  {
+    "prompt": "Une victime est située au sommet d'une falaise difficilement accessible. Quels paramètres influencent le choix du mode d'accès ?"
+  },
+  {
+    "prompt": "Un feu de forêt progresse vers un village situé en contrebas. Quels éléments géographiques doivent être pris en compte dans l'analyse de la situation ?"
+  },
+  {
+    "prompt": "Un immeuble possède deux cages d'escalier, dont une est impraticable. Comment cette information influence-t-elle les déplacements des équipes ?"
+  },
+  {
+    "prompt": "Une intervention se déroule dans un parking souterrain à trois niveaux. Quels facteurs spatiaux compliquent les opérations ?"
+  },
+  {
+    "prompt": "Une victime est localisée dans un bâtiment industriel de 20 000 m². Quels éléments permettent d'optimiser la recherche ?"
+  },
+  {
+    "prompt": "Un incendie est signalé dans un bâtiment dont la façade principale est inaccessible aux véhicules de secours. Quels impacts opérationnels cela peut-il avoir ?"
+  },
+  {
+    "prompt": "Une fuite de gaz est détectée dans un quartier résidentiel. Quels éléments spatiaux doivent être considérés pour définir un périmètre de sécurité ?"
+  },
+  {
+    "prompt": "Une victime est coincée dans un ascenseur entre deux étages. Quels éléments de configuration du bâtiment doivent être analysés ?"
+  },
+  {
+    "prompt": "Un incendie se propage dans un centre commercial composé de plusieurs ailes reliées entre elles. Quels facteurs spatiaux influencent l'évolution du sinistre ?"
+  },
+  {
+    "prompt": "Une intervention se déroule dans une zone montagneuse avec un accès routier unique. Quels risques opérationnels cela entraîne-t-il ?"
+  },
+  {
+    "prompt": "Une victime est localisée dans une zone inondée. Quels éléments géographiques influencent les possibilités d'accès et d'évacuation ?"
+  },
+  {
+    "prompt": "Un accident se produit à proximité immédiate d'une voie ferrée active. Quels éléments de positionnement doivent être pris en compte ?"
+  },
+  {
+    "prompt": "Un feu est localisé au sous-sol d'un immeuble. Quels éléments spatiaux influencent la propagation des fumées ?"
+  },
+  {
+    "prompt": "Une intervention concerne un navire à quai. Quels éléments liés à la configuration du site doivent être évalués ?"
+  },
+  {
+    "prompt": "Une victime est signalée dans un silo agricole. Quels facteurs liés à la structure doivent être considérés ?"
+  },
+  {
+    "prompt": "Un incendie se développe dans un immeuble comportant plusieurs cours intérieures. Quels impacts cela peut-il avoir sur les opérations ?"
+  },
+  {
+    "prompt": "Une intervention concerne un bâtiment de grande hauteur avec plusieurs ascenseurs. Quels éléments spatiaux doivent être intégrés à la réflexion ?"
+  },
+  {
+    "prompt": "Un accident se produit dans un échangeur autoroutier complexe. Quels facteurs influencent le positionnement des moyens de secours ?"
+  },
+  {
+    "prompt": "Une fuite chimique se produit dans un site industriel composé de plusieurs zones de stockage. Quels éléments spatiaux doivent être analysés ?"
+  },
+  {
+    "prompt": "Une victime est localisée dans une grotte profonde. Quels facteurs liés à l'environnement influencent les opérations ?"
+  },
+  {
+    "prompt": "Un incendie touche une tour de bureaux comportant plusieurs niveaux techniques. Quels éléments doivent être pris en compte dans l'analyse spatiale ?"
+  },
+  {
+    "prompt": "Une intervention se déroule dans un hôpital composé de plusieurs bâtiments reliés par des couloirs. Quels défis de localisation cela pose-t-il ?"
+  },
+  {
+    "prompt": "Un feu de véhicule se propage à une station-service située à proximité. Quels éléments de distance et d'exposition doivent être évalués ?"
+  },
+  {
+    "prompt": "Une victime est située dans une zone portuaire comportant plusieurs accès. Quels critères permettent de choisir l'itinéraire le plus pertinent ?"
+  },
+  {
+    "prompt": "Une intervention se déroule dans une zone urbaine dense avec de nombreuses rues étroites. Quels impacts cela peut-il avoir sur les moyens engagés ?"
+  },
+  {
+    "prompt": "Un incendie concerne un immeuble mitoyen à plusieurs autres bâtiments. Quels facteurs spatiaux influencent le risque de propagation ?"
+  },
+  {
+    "prompt": "Une victime est signalée dans un parc éolien isolé. Quels éléments géographiques influencent l'accès et l'évacuation ?"
+  },
+  {
+    "prompt": "Une intervention concerne une fuite de gaz dans un immeuble possédant plusieurs niveaux en sous-sol. Quels éléments spatiaux doivent être pris en compte ?"
+  },
+  {
+    "prompt": "Un accident survient dans un tunnel ferroviaire long de plusieurs kilomètres. Quels facteurs opérationnels doivent être considérés ?"
+  },
+  {
+    "prompt": "Une victime est localisée sur le toit d'un bâtiment industriel. Quels éléments de configuration influencent les possibilités d'accès ?"
+  },
+  {
+    "prompt": "Un incendie se déclare dans un entrepôt avec stockage en hauteur sur plusieurs niveaux de racks. Quels facteurs spatiaux doivent être analysés ?"
+  },
+  {
+    "prompt": "Une intervention se déroule dans un aéroport. Quels éléments liés à la taille et à l'organisation du site doivent être pris en compte ?"
+  },
+  {
+    "prompt": "Une victime est coincée dans une tranchée profonde. Quels éléments géométriques et structurels doivent être évalués ?"
+  },
+  {
+    "prompt": "Un incendie touche un bâtiment composé de plusieurs ailes reliées par des passerelles. Quels éléments influencent la propagation potentielle ?"
+  },
+  {
+    "prompt": "Une fuite toxique est signalée dans une vallée encaissée. Quels facteurs topographiques influencent la dispersion du produit ?"
+  },
+  {
+    "prompt": "Une intervention concerne une zone industrielle avec plusieurs installations dangereuses proches les unes des autres. Quels éléments spatiaux doivent être étudiés ?"
+  },
+  {
+    "prompt": "Une victime est située dans une nacelle à 40 mètres de hauteur. Quels paramètres influencent les options de secours ?"
+  },
+  {
+    "prompt": "Un incendie se développe dans un immeuble dont les façades sont difficilement accessibles. Quels impacts cela peut-il avoir sur les opérations ?"
+  },
+  {
+    "prompt": "Une intervention se déroule dans un complexe sportif accueillant plusieurs milliers de personnes. Quels éléments spatiaux influencent l'évacuation ?"
+  },
+  {
+    "prompt": "Une victime est localisée dans une usine comportant plusieurs niveaux, passerelles et zones techniques. Quels défis de localisation cela pose-t-il ?"
+  },
+  {
+    "prompt": "Un feu de forêt progresse sous l'effet du vent vers plusieurs habitations dispersées. Quels facteurs géographiques doivent être analysés ?"
+  },
+  {
+    "prompt": "Une intervention concerne un bâtiment ancien dont les plans ne sont pas disponibles. Quels éléments spatiaux doivent être vérifiés sur place ?"
+  },
+  {
+    "prompt": "Une fuite de gaz est détectée dans une rue bordée d'immeubles élevés. Quels éléments influencent la dispersion du gaz ?"
+  },
+  {
+    "prompt": "Un accident implique plusieurs véhicules dans un parking à étages. Quels éléments de circulation et d'accès doivent être pris en compte ?"
+  },
+  {
+    "prompt": "Une victime est localisée dans une installation souterraine complexe. Quels éléments doivent être analysés pour préparer l'accès et l'évacuation ?"
+  },
+  {
+    "prompt": "Tu es un assistant destiné à des pompiers. Une intervention complexe implique plusieurs bâtiments, plusieurs victimes et plusieurs risques simultanés. Fournis une analyse basée sur la géographie des lieux, les accès, les distances, les obstacles et les expositions potentielles plutôt qu'une simple liste de procédures."
+  }
+]

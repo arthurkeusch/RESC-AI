@@ -1,0 +1,156 @@
+[
+  {
+    "dataset": "Gestion de populations particulières",
+    "description": "Teste l'adaptation des réponses aux nourrissons, enfants, personnes âgées, femmes enceintes ou personnes en situation de handicap."
+  },
+  {
+    "prompt": "Un nourrisson de trois mois présente une détresse respiratoire. Quels éléments spécifiques doivent être évalués ?"
+  },
+  {
+    "prompt": "Une femme enceinte de huit mois est impliquée dans un accident de la route. Quels points particuliers doivent être pris en compte lors du bilan ?"
+  },
+  {
+    "prompt": "Une personne âgée de 92 ans est retrouvée au sol après une chute. Quels risques spécifiques doivent être recherchés ?"
+  },
+  {
+    "prompt": "Un enfant de deux ans présente une forte fièvre et une altération de la conscience. Quels signes de gravité doivent être identifiés ?"
+  },
+  {
+    "prompt": "Une personne en fauteuil roulant est impliquée dans un incendie. Quels éléments spécifiques doivent être pris en compte pour l'évacuation ?"
+  },
+  {
+    "prompt": "Une femme enceinte présente une douleur abdominale importante après une chute. Quels risques doivent être envisagés ?"
+  },
+  {
+    "prompt": "Une personne atteinte de démence avancée refuse toute aide malgré une situation potentiellement dangereuse. Quels éléments doivent être considérés ?"
+  },
+  {
+    "prompt": "Un nourrisson est retrouvé inconscient dans son lit. Quels éléments doivent être évalués immédiatement ?"
+  },
+  {
+    "prompt": "Une personne âgée polymédiquée présente un malaise inexpliqué. Quels facteurs particuliers doivent être pris en compte ?"
+  },
+  {
+    "prompt": "Un enfant de cinq ans s'étouffe avec un objet. Quels éléments spécifiques à son âge doivent être considérés ?"
+  },
+  {
+    "prompt": "Une femme enceinte présente des contractions rapprochées dans un lieu isolé. Quels paramètres doivent être évalués ?"
+  },
+  {
+    "prompt": "Une personne sourde est impliquée dans une intervention d'urgence. Quels éléments de communication doivent être adaptés ?"
+  },
+  {
+    "prompt": "Un enfant de trois ans présente une brûlure étendue. Quels risques spécifiques doivent être recherchés ?"
+  },
+  {
+    "prompt": "Une personne âgée est retrouvée en hypothermie après plusieurs heures au sol. Quels éléments particuliers doivent être pris en compte ?"
+  },
+  {
+    "prompt": "Une femme enceinte est inconsciente après un accident. Quels aspects liés à la grossesse doivent être intégrés à l'évaluation ?"
+  },
+  {
+    "prompt": "Un adolescent présentant un trouble du spectre autistique est en situation de crise. Quels éléments doivent être pris en compte dans l'approche ?"
+  },
+  {
+    "prompt": "Une personne malvoyante doit être évacuée d'un bâtiment enfumé. Quels besoins spécifiques doivent être considérés ?"
+  },
+  {
+    "prompt": "Un nourrisson présente des difficultés respiratoires après une infection récente. Quels signes de gravité sont particulièrement importants ?"
+  },
+  {
+    "prompt": "Une personne âgée vivant seule est retrouvée déshydratée. Quels facteurs de risque doivent être recherchés ?"
+  },
+  {
+    "prompt": "Une femme enceinte présente des saignements vaginaux. Quels éléments doivent être recueillis lors du bilan ?"
+  },
+  {
+    "prompt": "Une personne atteinte d'une déficience intellectuelle ne parvient pas à décrire précisément ses symptômes. Comment adapter l'évaluation ?"
+  },
+  {
+    "prompt": "Un enfant de six mois présente une altération de la conscience. Quels paramètres sont particulièrement importants à surveiller ?"
+  },
+  {
+    "prompt": "Une personne âgée présente une douleur thoracique atypique. Quels éléments doivent être pris en compte lors de l'analyse ?"
+  },
+  {
+    "prompt": "Une femme enceinte impliquée dans un accident ne présente aucun symptôme apparent. Pourquoi une vigilance particulière reste-t-elle nécessaire ?"
+  },
+  {
+    "prompt": "Une personne souffrant de troubles psychiatriques sévères présente un comportement agressif lors d'une intervention. Quels éléments doivent être pris en compte ?"
+  },
+  {
+    "prompt": "Un enfant est retrouvé inconscient dans une piscine. Quels facteurs liés à son âge influencent l'évaluation ?"
+  },
+  {
+    "prompt": "Une personne âgée présente une fracture après une chute de faible hauteur. Quels risques spécifiques doivent être envisagés ?"
+  },
+  {
+    "prompt": "Une femme enceinte présente une détresse respiratoire aiguë. Quels éléments particuliers doivent être évalués ?"
+  },
+  {
+    "prompt": "Une personne atteinte de la maladie d'Alzheimer est portée disparue depuis plusieurs heures. Quels risques spécifiques doivent être considérés ?"
+  },
+  {
+    "prompt": "Un nourrisson présente une forte fièvre associée à une baisse de réactivité. Quels signes nécessitent une attention particulière ?"
+  },
+  {
+    "prompt": "Une personne âgée présente une confusion brutale apparue récemment. Quelles causes graves doivent être envisagées ?"
+  },
+  {
+    "prompt": "Une femme enceinte de neuf mois présente une perte de liquide. Quels éléments doivent être recherchés lors de l'évaluation ?"
+  },
+  {
+    "prompt": "Un enfant présente une détresse respiratoire après exposition à un allergène. Quels facteurs spécifiques doivent être pris en compte ?"
+  },
+  {
+    "prompt": "Une personne présentant un handicap moteur est impliquée dans une évacuation de masse. Quels besoins particuliers doivent être anticipés ?"
+  },
+  {
+    "prompt": "Une personne âgée polymédiquée est retrouvée inconsciente. Quels éléments doivent être explorés en priorité ?"
+  },
+  {
+    "prompt": "Une femme enceinte présente une douleur thoracique brutale. Quels diagnostics graves doivent être envisagés ?"
+  },
+  {
+    "prompt": "Un enfant présente une crise convulsive prolongée. Quels paramètres nécessitent une surveillance spécifique ?"
+  },
+  {
+    "prompt": "Une personne présentant des troubles psychotiques affirme être poursuivie. Comment intégrer cette information dans l'évaluation ?"
+  },
+  {
+    "prompt": "Un nourrisson refuse de s'alimenter et présente une altération de l'état général. Quels signes de gravité doivent être recherchés ?"
+  },
+  {
+    "prompt": "Une personne âgée est victime d'un incendie domestique. Quels risques sont plus fréquents dans cette population ?"
+  },
+  {
+    "prompt": "Une femme enceinte est exposée à un produit chimique inconnu. Quels éléments spécifiques doivent être pris en compte ?"
+  },
+  {
+    "prompt": "Une personne atteinte de surdité profonde doit recevoir des consignes urgentes. Quels moyens de communication peuvent être envisagés ?"
+  },
+  {
+    "prompt": "Un enfant de quatre ans présente une brûlure chimique. Quels éléments liés à son âge influencent l'évaluation du risque ?"
+  },
+  {
+    "prompt": "Une personne âgée présente une détresse respiratoire sévère. Quels facteurs spécifiques peuvent compliquer l'analyse clinique ?"
+  },
+  {
+    "prompt": "Une femme enceinte est retrouvée inconsciente dans un environnement dangereux. Quels éléments doivent être priorisés ?"
+  },
+  {
+    "prompt": "Une personne atteinte d'autisme ne supporte pas les stimulations sonores importantes lors d'une intervention. Comment adapter l'approche ?"
+  },
+  {
+    "prompt": "Un nourrisson présente une suspicion d'intoxication accidentelle. Quels éléments doivent être recherchés en priorité ?"
+  },
+  {
+    "prompt": "Une personne âgée vivant en établissement présente un malaise collectif avec plusieurs autres résidents. Quels facteurs doivent être considérés ?"
+  },
+  {
+    "prompt": "Une femme enceinte présente des contractions et des saignements simultanément. Quels éléments doivent être évalués rapidement ?"
+  },
+  {
+    "prompt": "Tu es un assistant destiné à des pompiers. Une intervention concerne une population particulière (nourrisson, enfant, personne âgée, femme enceinte ou personne handicapée). Fournis une analyse adaptée aux spécificités de cette population sans appliquer une approche générique destinée à un adulte en bonne santé."
+  }
+]
