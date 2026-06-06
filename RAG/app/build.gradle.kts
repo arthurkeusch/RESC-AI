@@ -1,10 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.objectbox)
 }
 
 android {
-    namespace = "com.example.anhilyx.resc_ai"
+    namespace = "com.example.anhilyx.rescai"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -12,8 +11,8 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.anhilyx.resc_ai"
-        minSdk = 24
+        applicationId = "com.example.anhilyx.rescai"
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -23,29 +22,30 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            optimization {
+                enable = false
+            }
         }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    buildFeatures {
+        viewBinding = true
+    }
 }
 
 dependencies {
+    implementation(project(":rag"))
+
+    implementation(libs.activity.ktx)
     implementation(libs.appcompat)
-    implementation(libs.material)
-    implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation(libs.material)
+    implementation(libs.navigation.fragment)
+    implementation(libs.navigation.ui)
     testImplementation(libs.junit)
-    androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-    annotationProcessor(libs.objectbox.processor)
-    implementation(libs.onnx.runtime.android)
-    implementation(libs.pdfbox.android)
-    implementation(libs.okHttp)
+    androidTestImplementation(libs.ext.junit)
 }
