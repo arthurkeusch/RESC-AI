@@ -6,6 +6,7 @@ import com.tom_roush.pdfbox.android.PDFBoxResourceLoader;
 
 import java.io.File;
 import java.io.InputStream;
+import java.io.ObjectInputFilter.Config;
 
 import ai.onnxruntime.OrtException;
 
@@ -55,17 +56,17 @@ public class RAG {
      * Initialize the RAG system by loading the tokenizer, embedding engine, and ObjectBox database.
      * @param context The Android context, used to access the app's file directory for loading the tokenizer and model files.
      * @param callback A callback interface to report progress and handle success or error during initialization.
-     * @param forceReinstall If true, the model will be reinstalled even if it already exists.
+     * @param repo The repository ID to download the model from.
      */
-    public static void init(Context context, RAGCallback callback, boolean forceReinstall) {
+    public static void init(Context context, RAGCallback callback, String repo) {
 
         // Check if the model file already exists to avoid unnecessary reinstallation
         if (
                 !new File(context.getFilesDir(), Config.MODEL_FILE).exists() ||
-                forceReinstall
+                repo != null
         ) {
             // Install the model
-            HFDownloader.downloadRepository(context.getFilesDir(), Config.REPO_ID, new Downloader.DownloadCallback() {
+            HFDownloader.downloadRepository(context.getFilesDir(), repo != null ? repo : Config.REPO_ID, new Downloader.DownloadCallback() {
                 @Override
                 public void onSuccess() {
                     _init2(context, callback);
@@ -86,6 +87,15 @@ public class RAG {
         else {
             _init2(context, callback);
         }
+    }
+
+    /**
+     * Initialize the RAG system by loading the tokenizer, embedding engine, and ObjectBox database.
+     * @param context The Android context, used to access the app's file directory for loading the tokenizer and model files.
+     * @param callback A callback interface to report progress and handle success or error during initialization.
+     */
+    public static void init(Context context, RAGCallback callback) {
+        init(context, callback, null);
     }
 
     /**
@@ -119,15 +129,6 @@ public class RAG {
         }
 
         callback.onSuccess();
-    }
-
-    /**
-     * Initialize the RAG system by loading the tokenizer, embedding engine, and ObjectBox database.
-     * @param context The Android context, used to access the app's file directory for loading the tokenizer and model files.
-     * @param callback A callback interface to report progress and handle success or error during initialization.
-     */
-    public static void init(Context context, RAGCallback callback) {
-        init(context, callback, false);
     }
 
     /**
