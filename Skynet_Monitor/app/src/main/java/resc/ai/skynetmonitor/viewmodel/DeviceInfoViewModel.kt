@@ -5,9 +5,11 @@ import android.app.ActivityManager
 import android.app.Application
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.anhilyx.rescai.rag.RAG
 import fr.arthur.keusch.mandiole.Mandiole
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -27,8 +29,21 @@ data class ChatMessage(
     val isUser: Boolean,
     val text: String,
     val thinkingText: String? = null,
-    val thinkingDurationSeconds: Int? = null
+    val thinkingDurationSeconds: Int? = null,
+    val ragQuery: String? = null,
+    val ragResults: List<String>? = null,
+    val ragReasoning: String? = null,
+    val ragStatus: RagStatus = RagStatus.IDLE
 )
+
+enum class RagStatus {
+    IDLE,
+    ANALYZING,
+    SEARCHING,
+    SYNTHESIZING,
+    SUCCESS,
+    NOT_NEEDED
+}
 
 data class ChatSessionState(
     val isRunning: Boolean = false,
@@ -36,6 +51,7 @@ data class ChatSessionState(
     val isGenerating: Boolean = false,
     val isBenchmarking: Boolean = false,
     val thinkingEnabled: Boolean = false,
+    val ragEnabled: Boolean = false,
     val canThink: Boolean = false,
     val modelName: String = "",
     val executionUnit: String? = null,
@@ -629,11 +645,19 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
         _chat.update { it.copy(thinkingEnabled = enabled) }
     }
 
+    fun setRagEnabled(enabled: Boolean) {
+        _chat.update { it.copy(ragEnabled = enabled) }
+    }
+
     fun sendPrompt(prompt: String) {
         _tpsHistory.value = emptyList()
-        val userTurn = mandiole.userTurn(prompt)
-        chatHistory.add(userTurn)
-        
+        Log.d("LLM", "--- sendPrompt pipeline started ---")
+        Log.d("LLM", "User input: $prompt")
+        Log.d("LLM", "RAG state: ${_chat.value.ragEnabled}")
+
+        val originalHistory = chatHistory.toList()
+        chatHistory.add(mandiole.userTurn(prompt))
+
         val model = currentModel
         if (model != null) {
             pruneHistory(model.contextSize)
@@ -642,98 +666,236 @@ class DeviceInfoViewModel(application: Application) : AndroidViewModel(applicati
         _chat.update { state ->
             state.copy(
                 isGenerating = true,
-                messages = state.messages + ChatMessage(
-                    isUser = true,
-                    prompt
-                ) + ChatMessage(isUser = false, "")
+                messages = state.messages + ChatMessage(isUser = true, prompt) + ChatMessage(isUser = false, "")
             )
         }
 
         inferenceJob?.cancel()
         inferenceJob = viewModelScope.launch {
             try {
+                var ragQuery: String? = null
+                var ragResults: List<String>? = null
+                var finalContextSynthesis: String? = null
+                var ragAnalysisSteps = StringBuilder()
+
+                if (_chat.value.ragEnabled) {
+                    Log.d("LLM", "Phase 1: LLM 1 Audit")
+                    
+                    _chat.update { state ->
+                        val newMessages = state.messages.toMutableList()
+                        if (newMessages.isNotEmpty()) {
+                            newMessages[newMessages.size - 1] = ChatMessage(
+                                isUser = false,
+                                text = "LLM 1: Analyzing intention...",
+                                ragStatus = RagStatus.ANALYZING
+                            )
+                        }
+                        state.copy(messages = newMessages)
+                    }
+
+                    val auditInstruction = """
+                        SYSTEM: You are an Intention Auditor. 
+                        Your job is to decide if the user's latest message requires information from external PDF documents.
+                        - If the user asks about salary, contracts, dates, specific names, or data likely in their documents: Respond 'YES'.
+                        - If it's a greeting, casual chat, or general knowledge: Respond 'NO'.
+                        RESPOND ONLY WITH 'YES' OR 'NO'.
+                        USER MESSAGE: $prompt
+                    """.trimIndent()
+
+                    val auditTurn = mandiole.userTurn(auditInstruction)
+                    val auditResponse = mandiole.streamReply(listOf(auditTurn), thinkingEnabled = false) {}.text.trim()
+                    Log.d("LLM", "LLM 1 Audit Response: $auditResponse")
+                    ragAnalysisSteps.append("Intention Audit: $auditResponse\n")
+
+                    if (auditResponse.contains("YES", ignoreCase = true)) {
+                        Log.d("LLM", "Phase 2: LLM 1 Query Generation")
+                        
+                        _chat.update { state ->
+                            val newMessages = state.messages.toMutableList()
+                            if (newMessages.isNotEmpty()) {
+                                newMessages[newMessages.size - 1] = newMessages.last().copy(
+                                    text = "LLM 1: Formulating search query...",
+                                    ragStatus = RagStatus.ANALYZING,
+                                    ragReasoning = ragAnalysisSteps.toString()
+                                )
+                            }
+                            state.copy(messages = newMessages)
+                        }
+
+                        val queryInstruction = "Generate a short search query to find the answer for '$prompt' in PDF documents. Output ONLY the search query."
+                        val queryResponse = mandiole.streamReply(originalHistory.map { mandiole.userTurn(it.text) } + mandiole.userTurn(queryInstruction), thinkingEnabled = false) {}.text.trim()
+                        ragQuery = queryResponse.removePrefix("\"").removeSuffix("\"")
+                        Log.d("LLM", "LLM 1 Search Query: $ragQuery")
+                        ragAnalysisSteps.append("Generated Query: $ragQuery\n")
+
+                        _chat.update { state ->
+                            val newMessages = state.messages.toMutableList()
+                            if (newMessages.isNotEmpty()) {
+                                newMessages[newMessages.size - 1] = newMessages.last().copy(
+                                    text = "LLM 1: Searching documents for '$ragQuery'...",
+                                    ragStatus = RagStatus.SEARCHING,
+                                    ragQuery = ragQuery,
+                                    ragReasoning = ragAnalysisSteps.toString()
+                                )
+                            }
+                            state.copy(messages = newMessages)
+                        }
+
+                        // Search 1
+                        var results = RAG.queryRAG(ragQuery).toList()
+                        Log.d("LLM", "Search 1 found ${results.size} chunks")
+
+                        // LLM 1: Validation
+                        Log.d("LLM", "Phase 3: LLM 1 Validation")
+                        val validationInstruction = "Does the following context contain the answer for '$prompt'?\n\nCONTEXT:\n${results.joinToString("\n")}\n\nRespond ONLY with 'YES' or 'NO'."
+                        val validationResponse = mandiole.streamReply(listOf(mandiole.userTurn(validationInstruction)), thinkingEnabled = false) {}.text.trim()
+                        Log.d("LLM", "LLM 1 Validation: $validationResponse")
+                        ragAnalysisSteps.append("Context Validation: $validationResponse\n")
+
+                        if (validationResponse.contains("NO", ignoreCase = true)) {
+                            Log.d("LLM", "Phase 4: LLM 1 Retry with Query 2")
+                            val query2Instruction = "The first search for '$ragQuery' failed. Generate a DIFFERENT query to find information for '$prompt'. Output ONLY the query."
+                            val query2Response = mandiole.streamReply(listOf(mandiole.userTurn(query2Instruction)), thinkingEnabled = false) {}.text.trim()
+                            val ragQuery2 = query2Response.removePrefix("\"").removeSuffix("\"")
+                            Log.d("LLM", "LLM 1 Query 2: $ragQuery2")
+                            ragAnalysisSteps.append("Retry Query: $ragQuery2\n")
+                            
+                            val results2 = RAG.queryRAG(ragQuery2).toList()
+                            results = (results + results2).distinct()
+                            Log.d("LLM", "Search 2 added ${results2.size} chunks")
+                        }
+
+                        // LLM 1: Synthesis
+                        Log.d("LLM", "Phase 5: LLM 1 Synthesis")
+                        _chat.update { state ->
+                            val newMessages = state.messages.toMutableList()
+                            if (newMessages.isNotEmpty()) {
+                                newMessages[newMessages.size - 1] = newMessages.last().copy(
+                                    text = "LLM 1: Extracting facts...",
+                                    ragStatus = RagStatus.SYNTHESIZING,
+                                    ragReasoning = ragAnalysisSteps.toString()
+                                )
+                            }
+                            state.copy(messages = newMessages)
+                        }
+
+                        val synthesisInstruction = "Extract ONLY the specific facts from these chunks to answer '$prompt'. Be extremely brief. If not found, say 'NONE'.\n\nCHUNKS:\n${results.joinToString("\n")}"
+                        val synthesis = mandiole.streamReply(listOf(mandiole.userTurn(synthesisInstruction)), thinkingEnabled = false) {}.text.trim()
+                        
+                        if (!synthesis.contains("NONE", ignoreCase = true)) {
+                            finalContextSynthesis = synthesis
+                            Log.d("LLM", "LLM 1 Synthesis: $finalContextSynthesis")
+                            ragAnalysisSteps.append("Facts Extracted: $finalContextSynthesis\n")
+                        } else {
+                            Log.d("LLM", "LLM 1: Info not found in RAG.")
+                            ragAnalysisSteps.append("Info not found in RAG.\n")
+                        }
+                        
+                        ragResults = results
+                        
+                        _chat.update { state ->
+                            val newMessages = state.messages.toMutableList()
+                            if (newMessages.isNotEmpty()) {
+                                newMessages[newMessages.size - 1] = newMessages.last().copy(
+                                    ragStatus = RagStatus.SUCCESS,
+                                    ragReasoning = ragAnalysisSteps.toString(),
+                                    ragResults = ragResults
+                                )
+                            }
+                            state.copy(messages = newMessages)
+                        }
+                    } else {
+                        _chat.update { state ->
+                            val newMessages = state.messages.toMutableList()
+                            if (newMessages.isNotEmpty()) {
+                                newMessages[newMessages.size - 1] = newMessages.last().copy(
+                                    ragStatus = RagStatus.NOT_NEEDED,
+                                    ragReasoning = "LLM 1 determined no search is needed."
+                                )
+                            }
+                            state.copy(messages = newMessages)
+                        }
+                    }
+                }
+
+                // LLM 2: Final Response
+                Log.d("LLM", "Phase 6: LLM 2 Final Output")
+                val llm2History = originalHistory.toMutableList()
+                val finalMessageWithContext = if (finalContextSynthesis != null) {
+                    "FACTS FROM DOCUMENTS: $finalContextSynthesis\n\nUSER QUESTION: $prompt\n\nTask: Use the facts above to answer the user question naturally."
+                } else {
+                    prompt
+                }
+                llm2History.add(mandiole.userTurn(finalMessageWithContext))
+
                 val isThinkingModeActive = _chat.value.thinkingEnabled
                 val startTime = System.currentTimeMillis()
 
                 mandiole.streamReply(
-                    chatHistory,
+                    llm2History,
                     thinkingEnabled = isThinkingModeActive
                 ) { response ->
                     val currentTime = System.currentTimeMillis()
-                    val durationSec = if (response.thinkingText != null) {
-                        ((currentTime - startTime) / 1000).toInt()
-                    } else null
-
-                    // Calculate instantaneous TPS (including thinking tokens)
+                    
+                    // Stats Calculation
                     val elapsedMs = (currentTime - startTime).coerceAtLeast(1L)
-                    val textTokens =
-                        response.text.split(Regex("\\s+")).filter { it.isNotBlank() }.size
-                    val thinkingTokens = response.thinkingText?.split(Regex("\\s+"))
-                        ?.filter { it.isNotBlank() }?.size ?: 0
+                    val textTokens = response.text.split(Regex("\\s+")).filter { it.isNotBlank() }.size
+                    val thinkingTokens = response.thinkingText?.split(Regex("\\s+"))?.filter { it.isNotBlank() }?.size ?: 0
                     val totalTokens = textTokens + thinkingTokens
-
                     val currentTps = (totalTokens.toFloat() / (elapsedMs / 1000f))
+
                     if (currentTps > 0) {
                         val updatedHistory = _tpsHistory.value.toMutableList()
                         updatedHistory.add(currentTps)
                         if (updatedHistory.size > 60) updatedHistory.removeAt(0)
                         _tpsHistory.value = updatedHistory
-                        if (currentTps > _maxObservedTps.value) {
-                            _maxObservedTps.value = currentTps
-                        }
+                        if (currentTps > _maxObservedTps.value) _maxObservedTps.value = currentTps
                     }
 
-                    // Update context usage
-                    val historyTokens = chatHistory.sumOf { turn ->
-                        turn.text.split(Regex("\\s+")).filter { it.isNotBlank() }.size +
-                                (turn.thinkingText?.split(Regex("\\s+"))?.filter { it.isNotBlank() }?.size ?: 0)
+                    val historyTokens = llm2History.sumOf { turn ->
+                        turn.text.split(Regex("\\s+")).filter { it.isNotBlank() }.size
                     }
-                    val currentUsage = (historyTokens + totalTokens).toFloat()
                     val updatedContextHistory = _contextUsageHistory.value.toMutableList()
-                    updatedContextHistory.add(currentUsage)
+                    updatedContextHistory.add((historyTokens + totalTokens).toFloat())
                     if (updatedContextHistory.size > 60) updatedContextHistory.removeAt(0)
                     _contextUsageHistory.value = updatedContextHistory
 
                     _chat.update { state ->
                         val newMessages = state.messages.toMutableList()
                         if (newMessages.isNotEmpty()) {
-                            newMessages[newMessages.size - 1] = ChatMessage(
-                                isUser = false,
+                            newMessages[newMessages.size - 1] = newMessages.last().copy(
                                 text = response.text,
                                 thinkingText = response.thinkingText,
-                                thinkingDurationSeconds = durationSec
+                                thinkingDurationSeconds = if (response.thinkingText != null) ((currentTime - startTime)/1000).toInt() else null,
+                                ragQuery = ragQuery,
+                                ragResults = ragResults
                             )
                         }
                         state.copy(messages = newMessages)
                     }
                 }.also { finalResponse ->
-                    val totalDurationSec = if (finalResponse.thinkingText != null) {
-                        ((System.currentTimeMillis() - startTime) / 1000).toInt()
-                    } else null
-
+                    Log.d("LLM", "LLM 2 Response completed")
                     chatHistory.add(mandiole.assistantTurn(finalResponse.text))
                     _chat.update { state ->
                         val newMessages = state.messages.toMutableList()
                         if (newMessages.isNotEmpty()) {
-                            newMessages[newMessages.size - 1] = ChatMessage(
-                                isUser = false,
+                            newMessages[newMessages.size - 1] = newMessages.last().copy(
                                 text = finalResponse.text,
                                 thinkingText = finalResponse.thinkingText,
-                                thinkingDurationSeconds = totalDurationSec
+                                thinkingDurationSeconds = if (finalResponse.thinkingText != null) ((System.currentTimeMillis() - startTime)/1000).toInt() else null,
+                                ragQuery = ragQuery,
+                                ragResults = ragResults
                             )
                         }
                         state.copy(messages = newMessages, isGenerating = false)
                     }
                 }
             } catch (e: Exception) {
-                Log.e("LLM", "Inference error", e)
+                Log.e("LLM", "Multi-LLM Pipeline Error", e)
                 _chat.update { state ->
                     state.copy(
                         isGenerating = false,
-                        messages = state.messages + ChatMessage(
-                            isUser = false,
-                            text = "⚠️ Error: ${e.localizedMessage ?: "Generation failed"}"
-                        )
+                        messages = state.messages + ChatMessage(isUser = false, text = "⚠️ Pipeline Error: ${e.localizedMessage}")
                     )
                 }
             }
