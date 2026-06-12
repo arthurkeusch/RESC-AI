@@ -60,7 +60,7 @@ public class BuildFragment extends Fragment {
 
         executor.execute(() -> {
                 try {
-                    RAG.createRAG(requireActivity().getContentResolver().openInputStream(uri), new RAG.RAGCallback() {
+                    RAG.inflateRAG(requireActivity().getContentResolver().openInputStream(uri), new RAG.RAGCallback() {
                         @Override
                         public void onSuccess() {
                             status.setText("Done.");

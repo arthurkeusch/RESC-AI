@@ -55,7 +55,7 @@ public class InitActivity extends AppCompatActivity {
                             progressBar.setProgress((int) (1000.0f * progress), true);
                         }
                     }
-                }, false)
+                })
         );
     }
 }
