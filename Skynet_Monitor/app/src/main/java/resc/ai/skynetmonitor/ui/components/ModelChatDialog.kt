@@ -135,6 +135,8 @@ fun ModelChatDialog(
                             canThink = chat.canThink,
                             thinkingEnabled = chat.thinkingEnabled,
                             onThinkingToggle = { viewModel.setThinkingEnabled(it) },
+                            ragEnabled = chat.ragEnabled,
+                            onRagToggle = { viewModel.setRagEnabled(it) },
                             isBenchmarking = chat.isBenchmarking,
                             showStatsPanel = chat.showStatsPanel,
                             onToggleStats = { viewModel.toggleStatsPanel() })
@@ -728,6 +730,8 @@ fun HeaderSection(
     canThink: Boolean,
     thinkingEnabled: Boolean,
     onThinkingToggle: (Boolean) -> Unit,
+    ragEnabled: Boolean,
+    onRagToggle: (Boolean) -> Unit,
     isBenchmarking: Boolean,
     showStatsPanel: Boolean,
     onToggleStats: () -> Unit
@@ -751,19 +755,51 @@ fun HeaderSection(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.weight(1f, fill = false)
                     )
-                    if (canThink && isLoaded) {
+                    if (isLoaded) {
                         Spacer(Modifier.width(8.dp))
+                        
+                        val context = androidx.compose.ui.platform.LocalContext.current
+                        // RAG Toggle
                         IconToggleButton(
-                            checked = thinkingEnabled,
-                            onCheckedChange = onThinkingToggle,
+                            checked = ragEnabled,
+                            onCheckedChange = { enabled ->
+                                if (enabled) {
+                                    val indexedFiles = com.example.anhilyx.rescai.rag.RAG.getIndexedFiles()
+                                    if (indexedFiles.isEmpty()) {
+                                        android.widget.Toast.makeText(
+                                            context,
+                                            "⚠️ RAG index is empty. Please add PDF files first.",
+                                            android.widget.Toast.LENGTH_LONG
+                                        ).show()
+                                        return@IconToggleButton
+                                    }
+                                }
+                                onRagToggle(enabled)
+                            },
                             modifier = Modifier.size(24.dp)
                         ) {
                             Icon(
-                                imageVector = if (thinkingEnabled) Icons.Default.Lightbulb else Icons.Outlined.Lightbulb,
-                                contentDescription = "Toggle Thinking",
-                                tint = if (thinkingEnabled) Color(0xFFFFC107) else MaterialTheme.colorScheme.outline,
+                                imageVector = if (ragEnabled) Icons.Default.Dataset else Icons.Default.DatasetLinked,
+                                contentDescription = "Toggle RAG",
+                                tint = if (ragEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                                 modifier = Modifier.size(18.dp)
                             )
+                        }
+
+                        if (canThink) {
+                            Spacer(Modifier.width(8.dp))
+                            IconToggleButton(
+                                checked = thinkingEnabled,
+                                onCheckedChange = onThinkingToggle,
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Icon(
+                                    imageVector = if (thinkingEnabled) Icons.Default.Lightbulb else Icons.Outlined.Lightbulb,
+                                    contentDescription = "Toggle Thinking",
+                                    tint = if (thinkingEnabled) Color(0xFFFFC107) else MaterialTheme.colorScheme.outline,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
                         }
                     }
                 }
@@ -773,12 +809,21 @@ fun HeaderSection(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary
                     )
-                } else if (canThink && isLoaded) {
-                    Text(
-                        text = if (thinkingEnabled) "Reasoning active" else "Reasoning disabled",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (thinkingEnabled) Color(0xFFFFC107) else MaterialTheme.colorScheme.outline
-                    )
+                } else if (isLoaded) {
+                    val statusText = buildString {
+                        if (ragEnabled) append("RAG active")
+                        if (canThink && thinkingEnabled) {
+                            if (isNotEmpty()) append(" • ")
+                            append("Reasoning active")
+                        }
+                    }
+                    if (statusText.isNotEmpty()) {
+                        Text(
+                            text = statusText,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                        )
+                    }
                 }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -881,6 +926,87 @@ fun ChatBubble(message: ChatMessage, isThinkingModeActive: Boolean) {
             modifier = Modifier.widthIn(max = 300.dp)
         ) {
             Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+                // Multi-LLM RAG Pipeline Display
+                if (message.ragStatus != resc.ai.skynetmonitor.viewmodel.RagStatus.IDLE) {
+                    var isRagExpanded by remember { mutableStateOf(false) }
+                    val statusLabel = when(message.ragStatus) {
+                        resc.ai.skynetmonitor.viewmodel.RagStatus.ANALYZING -> "LLM 1: Analyzing intention..."
+                        resc.ai.skynetmonitor.viewmodel.RagStatus.SEARCHING -> "LLM 1: Searching documents..."
+                        resc.ai.skynetmonitor.viewmodel.RagStatus.SYNTHESIZING -> "LLM 1: Synthesizing facts..."
+                        resc.ai.skynetmonitor.viewmodel.RagStatus.SUCCESS -> "Used RAG context for this answer"
+                        resc.ai.skynetmonitor.viewmodel.RagStatus.NOT_NEEDED -> "LLM 1: No search needed"
+                        else -> ""
+                    }
+                    
+                    Surface(
+                        onClick = { isRagExpanded = !isRagExpanded },
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                        contentColor = contentColor,
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.padding(vertical = 4.dp).fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(8.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = if (message.ragStatus == resc.ai.skynetmonitor.viewmodel.RagStatus.NOT_NEEDED) Icons.Default.DatasetLinked else Icons.Default.Dataset,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = if (message.ragStatus == resc.ai.skynetmonitor.viewmodel.RagStatus.SUCCESS) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                Text(
+                                    text = statusLabel,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(Modifier.weight(1f))
+                                Icon(
+                                    imageVector = if (isRagExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                            if (isRagExpanded) {
+                                Spacer(Modifier.height(4.dp))
+                                if (message.ragReasoning != null) {
+                                    Text(
+                                        text = "LLM 1 Thinking Process:",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = message.ragReasoning,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontStyle = FontStyle.Italic,
+                                        fontSize = 10.sp
+                                    )
+                                }
+                                if (message.ragQuery != null) {
+                                    HorizontalDivider(Modifier.padding(vertical = 4.dp), color = contentColor.copy(alpha = 0.2f))
+                                    Text(
+                                        "Search Query: ${message.ragQuery}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+                                message.ragResults?.let { results ->
+                                    HorizontalDivider(Modifier.padding(vertical = 4.dp), color = contentColor.copy(alpha = 0.2f))
+                                    Text("Retrieved References (${results.size}):", style = MaterialTheme.typography.labelSmall)
+                                    results.take(3).forEachIndexed { index, result ->
+                                        Text(
+                                            "Ref ${index + 1}: ${result.take(80)}...",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            fontSize = 9.sp,
+                                            lineHeight = 12.sp
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 if (message.thinkingText != null && message.thinkingText.isNotBlank()) {
                     var isExpanded by remember { mutableStateOf(false) }
                     Surface(

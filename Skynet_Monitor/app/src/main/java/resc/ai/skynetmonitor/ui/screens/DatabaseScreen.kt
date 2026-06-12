@@ -2,6 +2,8 @@ package resc.ai.skynetmonitor.ui.screens
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -11,11 +13,12 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 @Composable
 fun DatabaseScreen(innerPadding: PaddingValues) {
-    val tabs = listOf("Models", "Prompts")
+    val tabs = listOf("Models", "Prompts", "RAG")
     var selectedTab by remember { mutableIntStateOf(0) }
 
     Column(
@@ -35,6 +38,7 @@ fun DatabaseScreen(innerPadding: PaddingValues) {
         when (selectedTab) {
             0 -> ModelScreen(innerPadding)
             1 -> PromptScreen(innerPadding)
+            2 -> RagScreen(innerPadding)
         }
     }
 }
