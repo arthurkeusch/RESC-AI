@@ -8,3 +8,4 @@ matplotlib==3.10.7
 optuna==4.6.0
 pymysql==1.1.2
 cryptography==46.0.3
+openai
