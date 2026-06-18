@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.anhilyx.rescai.rag.ObjectBox;
 import com.example.anhilyx.rescai.rag.RAG;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 
@@ -63,11 +64,13 @@ public class BuildFragment extends Fragment {
                     RAG.inflateRAG(requireActivity().getContentResolver().openInputStream(uri), new RAG.RAGCallback() {
                         @Override
                         public void onSuccess() {
-                            status.setText("Done.");
-                            RAGActivity activity = (RAGActivity) requireActivity();
-                            activity.toggleQueryTab(true);
-                            activity.view.setCurrentItem(1, true);
-                            selector.setEnabled(true);
+                            requireActivity().runOnUiThread(() -> {
+                                status.setText("Done.");
+                                RAGActivity activity = (RAGActivity) requireActivity();
+                                activity.toggleQueryTab(true);
+                                activity.view.setCurrentItem(1, true);
+                                selector.setEnabled(true);
+                            });
                         }
 
                         @Override

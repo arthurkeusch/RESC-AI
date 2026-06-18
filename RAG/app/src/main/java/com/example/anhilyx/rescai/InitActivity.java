@@ -31,29 +31,35 @@ public class InitActivity extends AppCompatActivity {
                     // On success, move to the RAGActivity
                     @Override
                     public void onSuccess() {
-                        Intent intent = new Intent(InitActivity.this, RAGActivity.class);
-                        startActivity(intent);
-                        finish();
+                        runOnUiThread(() -> {
+                            Intent intent = new Intent(InitActivity.this, RAGActivity.class);
+                            startActivity(intent);
+                            finish();
+                        });
                     }
 
                     // On error, display the error in ErrorActivity
                     @Override
                     public void onError(Exception e, int step) {
-                        Intent intent = new Intent(InitActivity.this, ErrorActivity.class);
-                        intent.putExtra("error_message", e.toString());
-                        startActivity(intent);
-                        finish();
+                        runOnUiThread(() -> {
+                            Intent intent = new Intent(InitActivity.this, ErrorActivity.class);
+                            intent.putExtra("error_message", e.toString());
+                            startActivity(intent);
+                            finish();
+                        });
                     }
 
                     @Override
                     public void onProgress(float progress, int step) {
-                        if (step == RAG.RAGCallback.STEP_INITIALIZING) {
-                            statusTextView.setText("Status: Initializing...");
-                        } else if (step == RAG.RAGCallback.STEP_INSTALLING_MODEL) {
-                            statusTextView.setText(String.format(Locale.US, "Status: Downloading model... %.1f%%", 100.0f * progress));
+                        runOnUiThread(() -> {
+                            if (step == RAG.RAGCallback.STEP_INITIALIZING) {
+                                statusTextView.setText("Status: Initializing...");
+                            } else if (step == RAG.RAGCallback.STEP_INSTALLING_MODEL) {
+                                statusTextView.setText(String.format(Locale.US, "Status: Downloading model... %.1f%%", 100.0f * progress));
 
-                            progressBar.setProgress((int) (1000.0f * progress), true);
-                        }
+                                progressBar.setProgress((int) (1000.0f * progress), true);
+                            }
+                        });
                     }
                 })
         );

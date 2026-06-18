@@ -27,10 +27,22 @@ public class ObjectBox {
      * @return the initialized BoxStore instance
      */
     public static BoxStore init(Context context) {
-        boxStore = MyObjectBox.builder()
-                .androidContext(context)
-                .build();
+        if (boxStore == null) {
+            boxStore = MyObjectBox.builder()
+                    .androidContext(context)
+                    .build();
+        }
         return boxStore;
+    }
+
+    /**
+     * Empty the ObjectBox database by removing all items from the item box.
+     */
+    public static void empty() {
+        if (boxStore != null) {
+            Box<Item> itemBox = boxStore.boxFor(Item.class);
+            itemBox.removeAll();
+        }
     }
 
     /**

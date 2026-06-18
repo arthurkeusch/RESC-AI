@@ -1,22 +1,17 @@
 package com.example.anhilyx.rescai.benchmark;
 
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
 
 import com.example.anhilyx.rescai.rag.RAG;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 
 import org.json.JSONException;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -25,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class BenchmarkActivity extends AppCompatActivity {
 
-    private InputStream getPDFFromURL(String url) throws IOException {
+    private byte[] getPDFFromURL(String url) throws IOException {
 
         // Connect to the URL
         URLConnection connection = new URL(url).openConnection();
@@ -40,7 +35,7 @@ public class BenchmarkActivity extends AppCompatActivity {
             baos.write(buffer, 0, bytesRead);
         }
 
-        return new ByteArrayInputStream(baos.toByteArray());
+        return baos.toByteArray();
     }
 
     @Override
@@ -123,11 +118,11 @@ public class BenchmarkActivity extends AppCompatActivity {
 
             // Define the models for the benchmark
             Benchmark.ModelBenchmark[] models = new Benchmark.ModelBenchmark[]{
-                    new Benchmark.ModelBenchmark("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", documents),
-                    new Benchmark.ModelBenchmark("intfloat/multilingual-e5-small", documents),
-                    new Benchmark.ModelBenchmark("ibm-granite/granite-embedding-97m-multilingual-r2", documents),
-                    new Benchmark.ModelBenchmark("sentence-transformers/all-MiniLM-L6-v2", documents),
-                    new Benchmark.ModelBenchmark("Lajavaness/bilingual-embedding-small", documents)
+                    new Benchmark.ModelBenchmark("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", 128, documents),
+                    new Benchmark.ModelBenchmark("intfloat/multilingual-e5-small",                              512, documents),
+                    new Benchmark.ModelBenchmark("ibm-granite/granite-embedding-97m-multilingual-r2",           512, documents),
+                    new Benchmark.ModelBenchmark("sentence-transformers/all-MiniLM-L6-v2",                      128, documents),
+                    new Benchmark.ModelBenchmark("Lajavaness/bilingual-embedding-small",                        1,   documents)
             };
 
             // Run the benchmark and update the UI with progress
@@ -171,34 +166,54 @@ public class BenchmarkActivity extends AppCompatActivity {
                         }
                     })
                     .thenAcceptAsync(results -> {
-                        // When the benchmark is complete, save the results to a file
-                        File file = new File(getExternalFilesDir(null), "benchmark_results.json");
-                        try (FileWriter writer = new FileWriter(file)) {
-                            writer.write(results.toString(4));
+                        // Reset the UI after the benchmark is complete
+                        runOnUiThread(() -> {
+                            modelName.setText("");
+                            modelProgress.setProgress(0, false);
+                            documentName.setText("");
+                            documentProgress.setProgress(0, false);
+                            promptName.setText("");
+                            promptProgress.setProgress(0, false);
+                            stepName.setText("Done!");
+                            stepProgress.setProgress(100, false);
+                        });
 
-                            // Open the results file
-                            runOnUiThread(() -> {
-                                Uri uri = FileProvider.getUriForFile(
-                                        BenchmarkActivity.this,
-                                        getPackageName() + ".fileprovider",
-                                        file
-                                );
-                                Intent intent = new Intent(Intent.ACTION_VIEW);
-                                intent.setDataAndType(uri, "application/json");
-                                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                try {
-                                    startActivity(intent);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
+                        // Prepare to save the results to a file in the public "Download" folder
+                        android.content.ContentValues values = new android.content.ContentValues();
+                        values.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, "benchmark_results.json");
+                        values.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "application/json");
+                        values.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS);
+                        android.content.ContentResolver resolver = getContentResolver();
+                        android.net.Uri uri = resolver.insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+
+                        // Write the results to the file in the public "Download" folder
+                        if (uri != null) {
+                            try (java.io.OutputStream os = resolver.openOutputStream(uri)) {
+                                if (os != null) {
+                                    os.write(results.toString(4).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+                                    // Open the results file
+                                    runOnUiThread(() -> {
+                                        android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW);
+                                        intent.setDataAndType(uri, "application/json");
+                                        intent.addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                        intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+                                        try {
+                                            startActivity(intent);
+                                        } catch (Exception e) {
+                                            Log.e("BENCHMARK_ACTIVITY", "", e);
+                                        }
+                                    });
                                 }
-                            });
-
-                        } catch (IOException | JSONException e) {
-                            e.printStackTrace();
+                            } catch (IOException | JSONException e) {
+                                Log.e("BENCHMARK_ACTIVITY", "", e);
+                            }
                         }
+
                     })
                     .exceptionally(e -> {
+                        Log.e("BENCHMARK_ACTIVITY", "", e);
+
                         runOnUiThread(() -> {
                             throw new RuntimeException(e);
                         });

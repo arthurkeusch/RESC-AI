@@ -1,14 +1,16 @@
 package com.example.anhilyx.rescai.benchmark;
 
 import android.content.Context;
+import android.util.Log;
 
+import com.example.anhilyx.rescai.rag.Config;
 import com.example.anhilyx.rescai.rag.RAG;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.InputStream;
+import java.io.ByteArrayInputStream;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -24,15 +26,18 @@ public class Benchmark {
     public static class ModelBenchmark {
 
         public final String repository;
+        public final int maxTokens;
         public final DocumentBenchmark[] documents;
 
         /**
          * Constructor for the ModelBenchmark class.
          * @param repository The name of the HuggingFace repository to be used for the benchmark.
+         * @param maxTokens The maximum number of tokens for this model.
          * @param documents An array of DocumentBenchmark objects that are associated with the model.
          */
-        public ModelBenchmark(String repository, DocumentBenchmark[] documents) {
+        public ModelBenchmark(String repository, int maxTokens, DocumentBenchmark[] documents) {
             this.repository = repository;
+            this.maxTokens = maxTokens;
             this.documents = documents;
         }
     }
@@ -43,18 +48,18 @@ public class Benchmark {
     public static class DocumentBenchmark {
 
         public final String name;
-        public final InputStream inputStream;
+        public final byte[] data;
         public final PromptBenchmark[] prompts;
 
         /**
          * Constructor for the DocumentBenchmark class.
          * @param name The name of the document to be used for the benchmark.
-         * @param inputStream The path to the PDF document to be used for the benchmark.
+         * @param data The byte array of the document data to be used for the benchmark.
          * @param prompts An array of PromptBenchmark objects that are associated with the document.
          */
-        public DocumentBenchmark(String name, InputStream inputStream, PromptBenchmark[] prompts) {
+        public DocumentBenchmark(String name, byte[] data, PromptBenchmark[] prompts) {
             this.name = name;
-            this.inputStream = inputStream;
+            this.data = data;
             this.prompts = prompts;
         }
     }
@@ -169,33 +174,6 @@ public class Benchmark {
     }
 
     /**
-     * Constructor for the Benchmark class.
-     * Takes raw arguments and constructs the necessary data classes for the benchmark.
-     * @param repositories An array of HuggingFace repository names to be used for the benchmark.
-     * @param documents An array of input streams to PDF documents to be used for the benchmark.
-     * @param prompts An array of prompts to be used for the benchmark.
-     */
-    public Benchmark(String[] repositories, InputStream[] documents, String[] prompts) {
-
-        PromptBenchmark[] promptBenchmarks = new PromptBenchmark[prompts.length];
-        for (int i = 0; i < prompts.length; i++) {
-            promptBenchmarks[i] = new PromptBenchmark(prompts[i]);
-        }
-
-        DocumentBenchmark[] documentBenchmarks = new DocumentBenchmark[documents.length];
-        for (int i = 0; i < documents.length; i++) {
-            documentBenchmarks[i] = new DocumentBenchmark("document_" + (i + 1), documents[i], promptBenchmarks);
-        }
-
-        ModelBenchmark[] modelBenchmarks = new ModelBenchmark[repositories.length];
-        for (int i = 0; i < repositories.length; i++) {
-            modelBenchmarks[i] = new ModelBenchmark(repositories[i], documentBenchmarks);
-        }
-
-        this.models = modelBenchmarks;
-    }
-
-    /**
      * Runs the benchmark with the specified context and progress callback.
      * @param context The Android context, used to access the app's file directory for loading the tokenizer and model files.
      * @param callback A callback interface to report progress during the benchmark.
@@ -230,6 +208,7 @@ public class Benchmark {
         ModelBenchmark model = models[state.modelIdx];
         AtomicLong startTime = new AtomicLong();
         startTime.set(System.currentTimeMillis());
+        Config.N_TOKENS = model.maxTokens;  // Update the global max tokens to match the current model
         RAG.init(state.context, new RAG.RAGCallback() {
             @Override
             public void onSuccess() {
@@ -249,16 +228,16 @@ public class Benchmark {
                                             .put("documents", new JSONObject())
                             );
                 } catch (JSONException e) {
-                    e.printStackTrace();
+                    Log.e("BENCHMARK", "", e);
                 }
 
                 // Move on to the first document for the current model
-                state.documentIdx = -1;  // Reset document index for the new model
                 benchmarkDocument(state);
             }
 
             @Override
             public void onError(Exception error, int step) {
+                Log.w("BENCHMARK", "", error);
 
                 // On error, record the failure for the current model
                 try {
@@ -270,8 +249,8 @@ public class Benchmark {
                                         .put("error", error.getMessage())
                             );
                 } catch (JSONException e) {
-                    error.printStackTrace();
-                    e.printStackTrace();
+                    Log.e("BENCHMARK", "", error);
+                    Log.e("BENCHMARK", "", e);
                 }
 
                 // Move on to the next model even if there was an error
@@ -286,7 +265,7 @@ public class Benchmark {
                         new BenchmarkProgress(state)
                 );
             }
-        });
+        }, model.repository);
     }
 
     /**
@@ -299,6 +278,7 @@ public class Benchmark {
             state.documentIdx++;
             ModelBenchmark model = models[state.modelIdx];
             if (state.documentIdx >= model.documents.length) {
+                state.documentIdx = -1;  // Reset document index for the next model
                 benchmarkModel(state);
                 return;
             }
@@ -308,7 +288,7 @@ public class Benchmark {
             AtomicLong startTime = new AtomicLong();
             startTime.set(System.currentTimeMillis());
             RAG.emptyRAG();
-            RAG.inflateRAG(document.inputStream, new RAG.RAGCallback() {
+            RAG.inflateRAG(new ByteArrayInputStream(document.data), new RAG.RAGCallback() {
                 @Override
                 public void onSuccess() {
 
@@ -329,16 +309,16 @@ public class Benchmark {
                                                 .put("prompts", new JSONObject())
                                 );
                     } catch (JSONException e) {
-                        e.printStackTrace();
+                        Log.e("BENCHMARK", "", e);
                     }
 
                     // Move on to the first prompt for the current document
-                    state.promptIdx = -1;  // Reset prompt index for the current document
                     benchmarkPrompt(state);
                 }
 
                 @Override
                 public void onError(Exception error, int step) {
+                    Log.w("BENCHMARK", "", error);
 
                     // On error, record the failure for the current document
                     try {
@@ -352,8 +332,8 @@ public class Benchmark {
                                                 .put("error", error.getMessage())
                                 );
                     } catch (JSONException e) {
-                        error.printStackTrace();
-                        e.printStackTrace();
+                        Log.e("BENCHMARK", "", error);
+                        Log.e("BENCHMARK", "", e);
                     }
 
                     // Move on to the next document even if there was an error
@@ -414,7 +394,7 @@ public class Benchmark {
                                         .put("retrieved_chunks", new JSONArray(retrievedChunks))
                         );
             } catch (JSONException e) {
-                e.printStackTrace();
+                Log.e("BENCHMARK", "", e);
             }
 
             // Notify progress for the current prompt
@@ -426,6 +406,7 @@ public class Benchmark {
         }
 
         // After finishing all prompts for the current document, move on to the next document
+        state.promptIdx = -1;  // Reset prompt index for the next document
         benchmarkDocument(state);
     }
 }

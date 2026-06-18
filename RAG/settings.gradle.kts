@@ -25,3 +25,4 @@ dependencyResolutionManagement {
 rootProject.name = "RESC-AI"
 include(":app")
 include(":rag")
+include(":benchmark")

@@ -17,7 +17,7 @@ public class Item {
 
     public String chunk;
 
-    @HnswIndex(dimensions = Config.EMBEDDING_DIM, distanceType = VectorDistanceType.COSINE)
+    @HnswIndex(dimensions = Config.EMBEDDING_DIM, distanceType = VectorDistanceType.EUCLIDEAN)
     public float[] embedding;
 
     public Item() {}

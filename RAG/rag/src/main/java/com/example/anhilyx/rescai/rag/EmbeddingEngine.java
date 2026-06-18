@@ -51,10 +51,18 @@ public class EmbeddingEngine {
                 OnnxTensor attentionMaskTensor = OnnxTensor.createTensor(environment, LongBuffer.wrap(attentionMask), shape);
                 OnnxTensor tokenTypeIdsTensor = OnnxTensor.createTensor(environment, LongBuffer.wrap(tokenTypeIds), shape)
         ) {
+            java.util.Set<String> expectedInputs = session.getInputNames();
+
             Map<String, OnnxTensor> inputs = new HashMap<>();
-            inputs.put("input_ids", inputIdsTensor);
-            inputs.put("attention_mask", attentionMaskTensor);
-            inputs.put("token_type_ids", tokenTypeIdsTensor);
+            if (expectedInputs.contains("input_ids")) {
+                inputs.put("input_ids", inputIdsTensor);
+            }
+            if (expectedInputs.contains("attention_mask")) {
+                inputs.put("attention_mask", attentionMaskTensor);
+            }
+            if (expectedInputs.contains("token_type_ids")) {
+                inputs.put("token_type_ids", tokenTypeIdsTensor);
+            }
 
             // Execute the ONNX model inference
             try (OrtSession.Result results = session.run(inputs)) {
@@ -63,7 +71,7 @@ public class EmbeddingEngine {
 
                 // Aggregate token embeddings using mean pooling
                 for (int i = 0; i < Config.N_TOKENS; i++) {
-                    if (attentionMask[i] == 1L) {
+                    if (attentionMask[i] == 1L || !expectedInputs.contains("attention_mask")) {
                         validTokens++;
                         for (int j = 0; j < Config.EMBEDDING_DIM; j++) {
                             embedding[j] += outputEmbeddings[0][i][j];

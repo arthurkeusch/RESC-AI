@@ -6,7 +6,6 @@ import com.tom_roush.pdfbox.android.PDFBoxResourceLoader;
 
 import java.io.File;
 import java.io.InputStream;
-import java.io.ObjectInputFilter.Config;
 
 import ai.onnxruntime.OrtException;
 
@@ -32,6 +31,8 @@ public class RAG {
         public static final int STEP_CHUNKING_PDF = 201;
         public static final int STEP_CREATING_RAG = 202;
 
+        public static final int STEP_QUERYING_RAG = 300;
+
         /**
          * Called when the operation completes successfully.
          */
@@ -56,17 +57,17 @@ public class RAG {
      * Initialize the RAG system by loading the tokenizer, embedding engine, and ObjectBox database.
      * @param context The Android context, used to access the app's file directory for loading the tokenizer and model files.
      * @param callback A callback interface to report progress and handle success or error during initialization.
-     * @param repo The repository ID to download the model from.
+     * @param repoId The repository ID on Hugging Face to download the model from. If not null, the model will be forcefully reinstalled.
      */
-    public static void init(Context context, RAGCallback callback, String repo) {
+    public static void init(Context context, RAGCallback callback, String repoId) {
 
         // Check if the model file already exists to avoid unnecessary reinstallation
         if (
                 !new File(context.getFilesDir(), Config.MODEL_FILE).exists() ||
-                repo != null
+                repoId != null
         ) {
             // Install the model
-            HFDownloader.downloadRepository(context.getFilesDir(), repo != null ? repo : Config.REPO_ID, new Downloader.DownloadCallback() {
+            HFDownloader.downloadRepository(context.getFilesDir(), repoId != null ? repoId : Config.REPO_ID, new Downloader.DownloadCallback() {
                 @Override
                 public void onSuccess() {
                     _init2(context, callback);
@@ -131,12 +132,16 @@ public class RAG {
         callback.onSuccess();
     }
 
+    public static void emptyRAG() {
+        ObjectBox.empty();
+    }
+
     /**
-     * Create a RAG index from the given PDF file.
-     * @param pdfIS The input stream of the PDF file to create the RAG index from.
-     * @param callback A callback interface to report progress and handle success or error during the RAG creation process.
+     * Inflate the RAG index from the given PDF file.
+     * @param pdfIS The input stream of the PDF file to inflate the RAG index from.
+     * @param callback A callback interface to report progress and handle success or error during the RAG inflation process.
      */
-    public static void createRAG(InputStream pdfIS, RAGCallback callback) {
+    public static void inflateRAG(InputStream pdfIS, RAGCallback callback) {
 
         PDFExtractor pdfExtractor;
 
@@ -178,6 +183,16 @@ public class RAG {
         }
 
         callback.onSuccess();
+    }
+
+    /**
+     * Inflate the RAG index from the given PDF file.
+     * This was added to support previous implementations, where the method was called `createRAG`.
+     * @param pdfIS The input stream of the PDF file to inflate the RAG index from.
+     * @param callback A callback interface to report progress and handle success or error during the RAG inflation process.
+     */
+    public static void createRAG(InputStream pdfIS, RAGCallback callback) {
+        inflateRAG(pdfIS, callback);
     }
 
     /**
