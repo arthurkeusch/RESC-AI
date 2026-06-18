@@ -1,0 +1,156 @@
+[
+  {
+    "dataset": "Gestion des substances dangereuses",
+    "description": "Évalue la compréhension des risques chimiques, biologiques, radiologiques et des matières dangereuses."
+  },
+  {
+    "prompt": "Une fuite de chlore est signalée dans une usine. Quels sont les principaux risques à identifier lors de l'arrivée sur les lieux ?"
+  },
+  {
+    "prompt": "Une victime a inhalé une quantité importante d'ammoniac. Quels signes de gravité doivent être recherchés ?"
+  },
+  {
+    "prompt": "Un camion transportant de l'acide sulfurique est impliqué dans un accident. Quels dangers doivent être pris en compte ?"
+  },
+  {
+    "prompt": "Une personne présente des symptômes après exposition à un produit chimique inconnu. Quelle démarche d'évaluation adopter ?"
+  },
+  {
+    "prompt": "Une fuite de monoxyde de carbone est suspectée dans un immeuble d'habitation. Quels éléments doivent être recherchés en priorité ?"
+  },
+  {
+    "prompt": "Une victime a reçu une projection de soude caustique sur la peau. Quels risques spécifiques doivent être évalués ?"
+  },
+  {
+    "prompt": "Un entrepôt contenant plusieurs produits chimiques est en feu. Quels risques supplémentaires doivent être envisagés ?"
+  },
+  {
+    "prompt": "Une fuite de gaz naturel est détectée dans un bâtiment. Quels dangers immédiats doivent être considérés ?"
+  },
+  {
+    "prompt": "Une personne présente une détresse respiratoire après exposition à du chlore. Quels éléments du bilan sont prioritaires ?"
+  },
+  {
+    "prompt": "Un laboratoire transporte un produit non identifié dont l'étiquette est endommagée. Quelle approche adopter face à cette incertitude ?"
+  },
+  {
+    "prompt": "Une citerne contenant de l'ammoniac est endommagée après un accident. Quels risques environnementaux et humains doivent être évalués ?"
+  },
+  {
+    "prompt": "Une victime présente des brûlures chimiques oculaires. Quels éléments doivent être pris en compte lors de l'évaluation ?"
+  },
+  {
+    "prompt": "Une fuite de propane est signalée dans un local fermé. Quels sont les principaux dangers associés ?"
+  },
+  {
+    "prompt": "Un incendie concerne un entrepôt de produits phytosanitaires. Quels risques spécifiques doivent être envisagés ?"
+  },
+  {
+    "prompt": "Une personne est retrouvée inconsciente dans un local contenant plusieurs solvants industriels. Quels dangers doivent être recherchés ?"
+  },
+  {
+    "prompt": "Un véhicule transporte des matières dangereuses identifiées par une plaque orange. Quelles informations sont utiles pour orienter l'analyse des risques ?"
+  },
+  {
+    "prompt": "Une fuite d'acide chlorhydrique est observée dans une usine. Quels risques majeurs doivent être considérés ?"
+  },
+  {
+    "prompt": "Une victime présente des symptômes neurologiques après exposition à un pesticide. Quels éléments doivent être évalués ?"
+  },
+  {
+    "prompt": "Un incendie implique un stockage de bouteilles d'acétylène. Quels risques spécifiques doivent être anticipés ?"
+  },
+  {
+    "prompt": "Une personne est exposée à une concentration inconnue de sulfure d'hydrogène. Quels signes de gravité doivent être recherchés ?"
+  },
+  {
+    "prompt": "Une fuite de gaz réfrigérant est signalée dans un entrepôt. Quels dangers potentiels doivent être pris en compte ?"
+  },
+  {
+    "prompt": "Une victime présente une brûlure chimique causée par un produit inconnu. Quelle stratégie d'évaluation adopter ?"
+  },
+  {
+    "prompt": "Un incendie concerne un laboratoire de recherche contenant de nombreux produits chimiques. Quels risques doivent être anticipés ?"
+  },
+  {
+    "prompt": "Une personne est retrouvée inconsciente dans un espace confiné où une fuite de gaz est suspectée. Quels dangers doivent être envisagés ?"
+  },
+  {
+    "prompt": "Une citerne contenant du GPL est exposée à un incendie. Quels phénomènes dangereux doivent être pris en compte ?"
+  },
+  {
+    "prompt": "Une victime présente des symptômes après manipulation d'un produit corrosif. Quels éléments doivent être recherchés lors du bilan ?"
+  },
+  {
+    "prompt": "Un accident implique un camion transportant des matières radioactives. Quels risques doivent être évalués ?"
+  },
+  {
+    "prompt": "Une fuite d'oxygène pur est détectée dans une installation industrielle. Quels dangers particuliers cela peut-il entraîner ?"
+  },
+  {
+    "prompt": "Une personne a inhalé des fumées issues de la combustion de plastiques. Quels risques spécifiques doivent être envisagés ?"
+  },
+  {
+    "prompt": "Une victime présente une exposition cutanée à de l'acide fluorhydrique. Pourquoi cette situation nécessite-t-elle une vigilance particulière ?"
+  },
+  {
+    "prompt": "Une usine signale une fuite de chlore et d'ammoniac simultanément. Quels risques supplémentaires apparaissent ?"
+  },
+  {
+    "prompt": "Une personne est retrouvée dans un local contenant plusieurs bidons sans étiquetage. Quelle approche adopter pour évaluer les risques ?"
+  },
+  {
+    "prompt": "Une fuite de gaz toxique est suspectée mais aucun capteur ne permet d'identifier le produit. Comment raisonner face à cette situation ?"
+  },
+  {
+    "prompt": "Un incendie concerne un stockage d'engrais contenant du nitrate d'ammonium. Quels dangers spécifiques doivent être considérés ?"
+  },
+  {
+    "prompt": "Une victime présente une intoxication potentielle après exposition à un produit industriel inconnu. Quels éléments du bilan sont prioritaires ?"
+  },
+  {
+    "prompt": "Une fuite importante d'hydrogène est signalée. Quels risques particuliers doivent être évalués ?"
+  },
+  {
+    "prompt": "Une personne présente des symptômes après contact avec un produit étiqueté toxique pour l'environnement. Quels éléments doivent être pris en compte ?"
+  },
+  {
+    "prompt": "Une fuite de gaz est signalée dans un tunnel routier. Quels facteurs aggravants doivent être considérés ?"
+  },
+  {
+    "prompt": "Une victime présente une exposition simultanée à plusieurs produits chimiques. Comment structurer l'évaluation des risques ?"
+  },
+  {
+    "prompt": "Un incendie implique des batteries lithium-ion en grande quantité. Quels phénomènes dangereux doivent être recherchés ?"
+  },
+  {
+    "prompt": "Une personne est retrouvée inconsciente dans une cuve industrielle. Quels dangers spécifiques doivent être envisagés ?"
+  },
+  {
+    "prompt": "Une fuite de produit chimique se déverse dans un cours d'eau. Quels risques environnementaux et opérationnels doivent être pris en compte ?"
+  },
+  {
+    "prompt": "Une victime présente une exposition potentielle à un agent biologique inconnu. Quels éléments doivent être recherchés ?"
+  },
+  {
+    "prompt": "Une installation industrielle stocke simultanément du chlore, de l'ammoniac et des hydrocarbures. Quels risques de combinaison doivent être envisagés ?"
+  },
+  {
+    "prompt": "Une personne a inhalé un mélange de fumées dont la composition exacte est inconnue. Comment raisonner sur les risques ?"
+  },
+  {
+    "prompt": "Une fuite de gaz est détectée dans un bâtiment occupé par plusieurs centaines de personnes. Quels éléments doivent être priorisés ?"
+  },
+  {
+    "prompt": "Une victime présente des symptômes compatibles avec une intoxication mais le produit impliqué n'est pas identifié. Comment présenter les hypothèses sans surinterpréter ?"
+  },
+  {
+    "prompt": "Un accident implique un véhicule transportant des matières dangereuses dont les documents de transport sont indisponibles. Quelle démarche adopter ?"
+  },
+  {
+    "prompt": "Une personne est exposée à un produit NRBC inconnu. Quels principes généraux de gestion du risque doivent être appliqués ?"
+  },
+  {
+    "prompt": "Tu es un assistant destiné à des pompiers. Une intervention concerne une substance dangereuse partiellement identifiée. Fournis une analyse prudente des risques, des incertitudes et des priorités opérationnelles sans inventer de propriétés chimiques non confirmées."
+  }
+]

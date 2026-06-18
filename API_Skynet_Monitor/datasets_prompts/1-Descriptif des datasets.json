@@ -1,0 +1,125 @@
+[
+  {
+    "dataset": "Absence de procédure correspondante",
+    "description": "Évalue la capacité à raisonner lorsqu'aucune procédure connue ne correspond exactement à la situation rencontrée."
+  },
+  {
+    "dataset": "Compréhension de jargon opérationnel",
+    "description": "Évalue la compréhension des acronymes, procédures, messages radio et terminologies métier des services de secours."
+  },
+  {
+    "dataset": "Compréhension du langage",
+    "description": "Évalue la compréhension du langage naturel, des ambiguïtés, des reformulations et du sens implicite."
+  },
+  {
+    "dataset": "Conflit entre plusieurs procédures",
+    "description": "Mesure la capacité à analyser des situations où plusieurs procédures officielles semblent applicables mais conduisent à des décisions différentes."
+  },
+  {
+    "dataset": "Connaissances générales",
+    "description": "Évalue les connaissances générales du modèle sur des sujets variés (sciences, histoire, géographie, culture générale, etc.)."
+  },
+  {
+    "dataset": "Créativité",
+    "description": "Évalue la capacité du modèle à produire des idées originales, variées et adaptées au contexte."
+  },
+  {
+    "dataset": "Détection d'hallucinations",
+    "description": "Mesure la capacité à reconnaître lorsqu'une information est inconnue, inaccessible ou insuffisante plutôt que d'inventer une réponse."
+  },
+  {
+    "dataset": "Évaluation de la factualité",
+    "description": "Mesure l'exactitude des réponses et la capacité à distinguer faits établis, mythes et incertitudes."
+  },
+  {
+    "dataset": "Gestion de l'incertitude",
+    "description": "Mesure la capacité à raisonner avec des informations incomplètes, ambiguës ou contradictoires sans conclure abusivement."
+  },
+  {
+    "dataset": "Gestion de populations particulières",
+    "description": "Teste l'adaptation des réponses aux nourrissons, enfants, personnes âgées, femmes enceintes ou personnes en situation de handicap."
+  },
+  {
+    "dataset": "Gestion des conflits de protocoles",
+    "description": "Évalue la capacité à identifier et analyser des situations où plusieurs protocoles ou contraintes opérationnelles entrent en concurrence."
+  },
+  {
+    "dataset": "Gestion des substances dangereuses",
+    "description": "Évalue la compréhension des risques chimiques, biologiques, radiologiques et des matières dangereuses."
+  },
+  {
+    "dataset": "Gestion du contexte complexe",
+    "description": "Teste la capacité à suivre simultanément plusieurs entités, événements, mises à jour et corrections.",
+    "isConversational": true
+  },
+  {
+    "dataset": "Gestion du stress et de l'urgence temporelle",
+    "description": "Teste la capacité à identifier rapidement les priorités critiques dans des situations nécessitant une réponse immédiate."
+  },
+  {
+    "dataset": "Gestion du vocabulaire médical sensible",
+    "description": "Vérifie que le modèle traite correctement les termes anatomiques ou médicaux sensibles sans les confondre avec du contenu sexuel."
+  },
+  {
+    "dataset": "Mémoire conversationnelle courte",
+    "description": "Teste la capacité à retenir et exploiter des informations fournies récemment dans la conversation.",
+    "isConversational": true
+  },
+  {
+    "dataset": "Mémoire conversationnelle longue",
+    "description": "Évalue la conservation et l'utilisation correcte d'informations fournies sur de nombreux échanges successifs.",
+    "isConversational": true
+  },
+  {
+    "dataset": "Planification et prise de décision",
+    "description": "Mesure la capacité à organiser des actions, établir des priorités et construire un plan cohérent."
+  },
+  {
+    "dataset": "Raisonnement logique",
+    "description": "Mesure la capacité du modèle à résoudre des problèmes logiques, déduire des conclusions et détecter des incohérences."
+  },
+  {
+    "dataset": "Raisonnement spatial et opérationnel",
+    "description": "Mesure la capacité à raisonner sur les accès, distances, obstacles, bâtiments, risques de propagation et contraintes géographiques."
+  },
+  {
+    "dataset": "Réponse à une urgence sans refus abusif",
+    "description": "Mesure la capacité à fournir une aide opérationnelle lors d'urgences réelles sans répondre uniquement par des recommandations génériques."
+  },
+  {
+    "dataset": "Respect des limites de compétence",
+    "description": "Évalue la capacité à reconnaître les limites de ses connaissances et à éviter les affirmations non justifiées."
+  },
+  {
+    "dataset": "Résistance aux réponses génériques inutiles",
+    "description": "Vérifie que le modèle fournit des réponses concrètes et adaptées plutôt que des recommandations vagues ou évidentes."
+  },
+  {
+    "dataset": "Robustesse",
+    "description": "Mesure la capacité à détecter les incohérences, erreurs, contradictions et informations physiologiquement impossibles."
+  },
+  {
+    "dataset": "Robustesse aux entrées dégradées",
+    "description": "Teste la compréhension de messages incomplets, bruités, mal orthographiés, abrégés ou partiellement corrompus."
+  },
+  {
+    "dataset": "Robustesse aux informations erronées de l'utilisateur",
+    "description": "Teste la capacité à détecter et corriger des informations fausses, incohérentes ou physiologiquement impossibles fournies par l'utilisateur."
+  },
+  {
+    "dataset": "Sécurité et alignement",
+    "description": "Évalue la capacité à refuser les demandes dangereuses, illégales ou nuisibles tout en répondant correctement aux demandes légitimes."
+  },
+  {
+    "dataset": "Situations choquantes ou graphiques",
+    "description": "Évalue la capacité à analyser professionnellement des blessures graves ou des situations traumatiques sans refus injustifié."
+  },
+  {
+    "dataset": "Suivi d'instructions",
+    "description": "Évalue le respect précis des consignes de format, de style, de longueur ou de contenu."
+  },
+  {
+    "dataset": "Triage et priorisation",
+    "description": "Mesure la capacité à hiérarchiser les victimes, les ressources et les actions lors d'événements impliquant plusieurs urgences simultanées."
+  }
+]

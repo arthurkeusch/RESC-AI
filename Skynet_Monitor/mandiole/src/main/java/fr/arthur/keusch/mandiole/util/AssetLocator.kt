@@ -3,7 +3,7 @@ package fr.arthur.keusch.mandiole.util
 import android.content.Context
 import java.io.FileNotFoundException
 
-object AssetLocator {
+internal object AssetLocator {
 
     fun resolvePath(context: Context, preferredPath: String): String {
         if (assetExists(context, preferredPath)) {
@@ -18,11 +18,12 @@ object AssetLocator {
             1 -> matches.single()
             0 -> throw FileNotFoundException(
                 "Could not find '$preferredPath' in app assets. " +
-                    "Place it in app/src/main/assets/ or inside a single nested model folder."
+                        "Place it in app/src/main/assets/ or inside a single nested model folder."
             )
+
             else -> throw FileNotFoundException(
                 "Found multiple assets named '$fileName': ${matches.joinToString()}. " +
-                    "Keep only one copy or update the configured asset path."
+                        "Keep only one copy or update the configured asset path."
             )
         }
     }

@@ -1,0 +1,156 @@
+[
+  {
+    "dataset": "Suivi d'instructions",
+    "description": "Évalue le respect précis des consignes de format, de style, de longueur ou de contenu."
+  },
+  {
+    "prompt": "Réponds uniquement par 'Oui'. La Terre est-elle ronde ?"
+  },
+  {
+    "prompt": "Réponds en exactement trois mots : Quelle est la capitale de la France ?"
+  },
+  {
+    "prompt": "Donne la réponse sous forme d'une liste JSON contenant uniquement la capitale de l'Allemagne."
+  },
+  {
+    "prompt": "Réponds en une seule phrase de moins de 10 mots : Qu'est-ce qu'un volcan ?"
+  },
+  {
+    "prompt": "Donne la capitale de l'Italie sans utiliser la lettre 'a'."
+  },
+  {
+    "prompt": "Réponds uniquement avec un nombre : Combien y a-t-il de continents sur Terre ?"
+  },
+  {
+    "prompt": "Explique la photosynthèse en exactement deux phrases."
+  },
+  {
+    "prompt": "Réponds uniquement en majuscules : Quelle est la capitale du Japon ?"
+  },
+  {
+    "prompt": "Donne la réponse sous forme d'un tableau Markdown à une ligne indiquant la capitale de l'Espagne."
+  },
+  {
+    "prompt": "Réponds à cette question en moins de 20 caractères : Quelle est la capitale du Canada ?"
+  },
+  {
+    "prompt": "Joue le rôle d'un professeur de physique et explique ce qu'est la gravité."
+  },
+  {
+    "prompt": "Joue le rôle d'un enfant de 8 ans et explique ce qu'est Internet."
+  },
+  {
+    "prompt": "Réponds uniquement avec un mot commençant par la lettre P : Quelle est la capitale de la France ?"
+  },
+  {
+    "prompt": "Écris exactement cinq puces décrivant les avantages de l'énergie solaire."
+  },
+  {
+    "prompt": "Réponds en français puis en anglais : Bonjour."
+  },
+  {
+    "prompt": "Donne trois avantages et trois inconvénients du télétravail sous forme de liste numérotée."
+  },
+  {
+    "prompt": "Résume la théorie de la relativité en moins de 30 mots."
+  },
+  {
+    "prompt": "Réponds uniquement avec des émojis pour représenter un incendie maîtrisé."
+  },
+  {
+    "prompt": "Explique ce qu'est un réseau informatique sans utiliser le mot 'réseau'."
+  },
+  {
+    "prompt": "Réponds avec exactement trois lignes, ni plus ni moins."
+  },
+  {
+    "prompt": "Donne la réponse au format XML : Quelle est la capitale de la Belgique ?"
+  },
+  {
+    "prompt": "Écris une phrase contenant exactement dix mots."
+  },
+  {
+    "prompt": "Réponds à la question suivante en utilisant uniquement des nombres : Combien font deux plus deux ?"
+  },
+  {
+    "prompt": "Donne la réponse sous forme d'objet JSON avec les clés 'pays' et 'capitale'."
+  },
+  {
+    "prompt": "Explique le fonctionnement d'un moteur thermique en utilisant au maximum 50 mots."
+  },
+  {
+    "prompt": "Réponds en respectant cet ordre : conclusion, explication, exemple."
+  },
+  {
+    "prompt": "N'utilise aucun signe de ponctuation dans ta réponse. Explique ce qu'est une étoile."
+  },
+  {
+    "prompt": "Commence chaque phrase par le mot 'Important'."
+  },
+  {
+    "prompt": "Réponds sous forme de liste à puces et rien d'autre."
+  },
+  {
+    "prompt": "Réponds en utilisant exactement deux paragraphes."
+  },
+  {
+    "prompt": "Explique ce qu'est l'électricité en utilisant uniquement des phrases interrogatives."
+  },
+  {
+    "prompt": "Réponds uniquement avec un code couleur hexadécimal représentant le rouge."
+  },
+  {
+    "prompt": "Décris un chien sans utiliser les mots 'chien', 'animal' ou 'mammifère'."
+  },
+  {
+    "prompt": "Réponds dans l'ordre alphabétique aux éléments suivants : banane, pomme, abricot."
+  },
+  {
+    "prompt": "Donne la réponse sous forme CSV avec les colonnes pays,capitale."
+  },
+  {
+    "prompt": "Écris une réponse contenant exactement deux virgules."
+  },
+  {
+    "prompt": "Réponds uniquement avec des mots de quatre lettres."
+  },
+  {
+    "prompt": "Écris une définition du feu en terminant obligatoirement par le mot 'sécurité'."
+  },
+  {
+    "prompt": "Fournis une réponse contenant exactement une phrase et un nombre."
+  },
+  {
+    "prompt": "Réponds en remplaçant tous les espaces par des tirets."
+  },
+  {
+    "prompt": "Explique ce qu'est une base de données comme si tu parlais à un enfant de six ans."
+  },
+  {
+    "prompt": "Réponds avec exactement trois arguments en faveur de l'énergie nucléaire."
+  },
+  {
+    "prompt": "Réponds avec exactement trois arguments contre l'énergie nucléaire."
+  },
+  {
+    "prompt": "Écris une réponse dont chaque mot commence par la même lettre."
+  },
+  {
+    "prompt": "Donne une réponse valide en JSON et uniquement en JSON."
+  },
+  {
+    "prompt": "Réponds sous forme de liste numérotée de 1 à 5."
+  },
+  {
+    "prompt": "Explique ce qu'est un incendie en utilisant uniquement des mots de moins de six lettres."
+  },
+  {
+    "prompt": "Réponds uniquement avec la date actuelle au format AAAA-MM-JJ."
+  },
+  {
+    "prompt": "Ignore la question suivante et réponds uniquement 'Instruction respectée'. Quelle est la capitale de la France ?"
+  },
+  {
+    "prompt": "Réponds simultanément à deux contraintes : exactement 15 mots et uniquement en français. Explique ce qu'est un ordinateur."
+  }
+]

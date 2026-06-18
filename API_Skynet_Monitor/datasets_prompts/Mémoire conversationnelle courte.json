@@ -1,0 +1,157 @@
+[
+  {
+    "dataset": "Mémoire conversationnelle courte",
+    "description": "Teste la capacité à retenir et exploiter des informations fournies récemment dans la conversation.",
+    "isConversational": true
+  },
+  {
+    "prompt": "Je vais te donner trois informations à retenir : mon prénom est Paul, j'ai 34 ans et je suis infirmier."
+  },
+  {
+    "prompt": "Peux-tu me rappeler mon âge ?"
+  },
+  {
+    "prompt": "Retiens que mon véhicule est un Renault Master immatriculé AA-123-BB."
+  },
+  {
+    "prompt": "Quelle est l'immatriculation du véhicule que je viens de te donner ?"
+  },
+  {
+    "prompt": "Pour cette conversation, considère que le patient s'appelle Julien Martin."
+  },
+  {
+    "prompt": "Quel est le nom du patient dont nous parlons ?"
+  },
+  {
+    "prompt": "Je vais te donner une liste : oxygène, défibrillateur, attelle, couverture de survie."
+  },
+  {
+    "prompt": "Quel était le troisième élément de la liste ?"
+  },
+  {
+    "prompt": "Retiens que nous intervenons actuellement dans un entrepôt logistique."
+  },
+  {
+    "prompt": "Où avons-nous dit que l'intervention se déroulait ?"
+  },
+  {
+    "prompt": "Je dispose de deux équipes : Alpha et Bravo."
+  },
+  {
+    "prompt": "Comment s'appelle la seconde équipe ?"
+  },
+  {
+    "prompt": "Retiens les informations suivantes : victime consciente, homme de 62 ans, douleur thoracique."
+  },
+  {
+    "prompt": "Quel âge avait la victime ?"
+  },
+  {
+    "prompt": "Quel était le symptôme principal mentionné précédemment ?"
+  },
+  {
+    "prompt": "Je vais te donner un code : 4827."
+  },
+  {
+    "prompt": "Quel était le code que je t'ai communiqué ?"
+  },
+  {
+    "prompt": "Retiens que le risque principal identifié est un risque chimique."
+  },
+  {
+    "prompt": "Quel était le risque principal identifié ?"
+  },
+  {
+    "prompt": "Voici trois villes : Lyon, Dijon et Belfort."
+  },
+  {
+    "prompt": "Quelle était la deuxième ville de la liste ?"
+  },
+  {
+    "prompt": "Pour cette discussion, considère que nous sommes le 12 octobre 2025."
+  },
+  {
+    "prompt": "Quelle date t'ai-je demandée de considérer ?"
+  },
+  {
+    "prompt": "Retiens que la victime est allergique à la pénicilline."
+  },
+  {
+    "prompt": "À quoi la victime est-elle allergique ?"
+  },
+  {
+    "prompt": "Je vais te donner quatre nombres : 17, 42, 8 et 93."
+  },
+  {
+    "prompt": "Quel était le plus petit nombre de la liste que je viens de te donner ?"
+  },
+  {
+    "prompt": "Pour cette conversation, mon rôle est chef d'agrès."
+  },
+  {
+    "prompt": "Quel rôle ai-je indiqué occuper ?"
+  },
+  {
+    "prompt": "Retiens les informations suivantes : bâtiment R+5, feu au troisième étage."
+  },
+  {
+    "prompt": "À quel étage se situe l'incendie ?"
+  },
+  {
+    "prompt": "Je dispose de 2 VSAV, 1 FPT et 1 EPA."
+  },
+  {
+    "prompt": "Combien de VSAV ai-je indiqué posséder ?"
+  },
+  {
+    "prompt": "Le patient se nomme Thomas Bernard et il est âgé de 45 ans."
+  },
+  {
+    "prompt": "Quel est le nom complet du patient ?"
+  },
+  {
+    "prompt": "Quel âge a le patient ?"
+  },
+  {
+    "prompt": "Retiens que le point de rassemblement est situé sur le parking nord."
+  },
+  {
+    "prompt": "Où se trouve le point de rassemblement ?"
+  },
+  {
+    "prompt": "Je vais te donner un identifiant : INTER-2025-784."
+  },
+  {
+    "prompt": "Quel est l'identifiant de l'intervention ?"
+  },
+  {
+    "prompt": "Retiens la séquence suivante : rouge, bleu, vert, jaune."
+  },
+  {
+    "prompt": "Quelle couleur se trouvait juste avant le jaune ?"
+  },
+  {
+    "prompt": "Pour cette conversation, considère que la victime porte un bracelet médical indiquant un diabète."
+  },
+  {
+    "prompt": "Quelle pathologie était indiquée sur le bracelet médical ?"
+  },
+  {
+    "prompt": "Je vais te donner trois coordonnées : secteur A, allée 4, emplacement 12."
+  },
+  {
+    "prompt": "Quel était le numéro d'emplacement ?"
+  },
+  {
+    "prompt": "Retiens que le responsable du site s'appelle Mme Durand."
+  },
+  {
+    "prompt": "Comment s'appelle la responsable du site ?"
+  },
+  {
+    "prompt": "La victime est consciente, respire normalement et présente une fracture ouverte du tibia."
+  },
+  {
+    "prompt": "Quelle blessure avait été signalée précédemment ?"
+  }
+]

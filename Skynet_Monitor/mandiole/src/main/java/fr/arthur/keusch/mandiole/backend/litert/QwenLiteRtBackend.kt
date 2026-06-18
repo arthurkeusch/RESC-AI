@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.withContext
 import java.io.File
 
-class QwenLiteRtBackend(
+internal class QwenLiteRtBackend(
     private val context: Context,
     private val spec: QwenLiteRtSpec,
     private val modelFileResolver: ModelFileResolver
@@ -53,13 +53,16 @@ class QwenLiteRtBackend(
 
         // Détection plus large pour inclure Samsung, Mali, Exynos et Mediatek (mt)
         val isSamsung = android.os.Build.MANUFACTURER.contains("samsung", ignoreCase = true)
-        val isMaliOrExynos = android.os.Build.HARDWARE.contains("mali", ignoreCase = true) || 
-                             android.os.Build.BOARD.contains("exynos", ignoreCase = true) ||
-                             android.os.Build.HARDWARE.contains("mt", ignoreCase = true) // Mediatek
+        val isMaliOrExynos = android.os.Build.HARDWARE.contains("mali", ignoreCase = true) ||
+                android.os.Build.BOARD.contains("exynos", ignoreCase = true) ||
+                android.os.Build.HARDWARE.contains("mt", ignoreCase = true) // Mediatek
 
         val useGpu = isOpenClAvailable && !isMaliOrExynos && !isSamsung
 
-        Log.d("LLM", "Init: isOpenCl=$isOpenClAvailable, isMali=$isMaliOrExynos, isSamsung=$isSamsung, useGpu=$useGpu")
+        Log.d(
+            "LLM",
+            "Init: isOpenCl=$isOpenClAvailable, isMali=$isMaliOrExynos, isSamsung=$isSamsung, useGpu=$useGpu"
+        )
 
         val gpuResult = if (useGpu) {
             Log.i("LLM", "Attempting GPU initialization...")

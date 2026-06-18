@@ -1,0 +1,156 @@
+[
+  {
+    "dataset": "Planification et prise de décision",
+    "description": "Mesure la capacité à organiser des actions, établir des priorités et construire un plan cohérent."
+  },
+  {
+    "prompt": "Tu dois organiser une intervention impliquant deux équipes de secours, trois véhicules et cinq victimes réparties sur deux zones différentes. Propose un plan d'action priorisé."
+  },
+  {
+    "prompt": "Un incendie s'est déclaré dans un immeuble de quatre étages. Décris les premières actions à mener dans l'ordre de priorité."
+  },
+  {
+    "prompt": "Tu disposes de 30 minutes pour préparer une formation de premiers secours destinée à des lycéens. Comment organises-tu ton temps ?"
+  },
+  {
+    "prompt": "Une entreprise souhaite migrer ses serveurs vers le cloud avec un budget limité. Quels critères faut-il prendre en compte avant de choisir une solution ?"
+  },
+  {
+    "prompt": "Tu dois planifier un projet informatique de six mois impliquant cinq développeurs. Quels sont les jalons principaux à définir ?"
+  },
+  {
+    "prompt": "Un accident implique trois blessés : un inconscient, un blessé léger et une personne coincée dans un véhicule. Dans quel ordre gères-tu la situation et pourquoi ?"
+  },
+  {
+    "prompt": "Une équipe dispose de quatre heures pour inspecter dix bâtiments après une tempête. Comment répartir les ressources pour maximiser l'efficacité ?"
+  },
+  {
+    "prompt": "Tu dois choisir entre réparer un équipement existant ou en acheter un nouveau. Quels éléments analyses-tu avant de prendre une décision ?"
+  },
+  {
+    "prompt": "Un responsable dispose d'un budget de 50 000 € pour améliorer la sécurité d'un site industriel. Comment prioriser les investissements ?"
+  },
+  {
+    "prompt": "Une intervention nécessite du matériel situé dans deux dépôts différents. Comment organises-tu la logistique pour réduire les délais ?"
+  },
+  {
+    "prompt": "Une équipe de développement accuse un mois de retard sur un projet critique. Quelles actions envisages-tu pour limiter l'impact ?"
+  },
+  {
+    "prompt": "Tu dois organiser l'évacuation de 200 personnes d'un bâtiment. Décris les étapes de planification."
+  },
+  {
+    "prompt": "Une panne informatique affecte plusieurs services d'une entreprise. Comment détermines-tu l'ordre des réparations ?"
+  },
+  {
+    "prompt": "Tu dois choisir entre trois fournisseurs proposant des offres différentes. Quelle méthode utilises-tu pour comparer objectivement les options ?"
+  },
+  {
+    "prompt": "Une équipe de secours dispose d'un seul véhicule disponible alors que deux interventions urgentes sont signalées simultanément. Comment décides-tu de l'affectation ?"
+  },
+  {
+    "prompt": "Tu prépares un voyage de cinq jours dans trois villes différentes. Comment optimises-tu l'organisation des déplacements ?"
+  },
+  {
+    "prompt": "Une intervention est prévue dans une zone difficile d'accès. Quels éléments anticipes-tu avant le départ ?"
+  },
+  {
+    "prompt": "Une entreprise doit réduire ses coûts de 15 % sans dégrader la qualité de service. Quelle démarche de décision proposes-tu ?"
+  },
+  {
+    "prompt": "Tu dois planifier les tâches d'une journée comportant dix missions de durées variables. Comment établis-tu les priorités ?"
+  },
+  {
+    "prompt": "Une équipe dispose de ressources limitées pour répondre à plusieurs demandes simultanées. Quels critères utilises-tu pour prioriser les actions ?"
+  },
+  {
+    "prompt": "Tu dois décider entre une solution rapide mais temporaire et une solution plus longue mais définitive. Quels facteurs prends-tu en compte ?"
+  },
+  {
+    "prompt": "Un projet comporte plusieurs risques identifiés. Comment organises-tu leur suivi et leur traitement ?"
+  },
+  {
+    "prompt": "Tu dois mettre en place un planning d'astreinte pour dix personnes sur un mois. Quels critères utilises-tu pour répartir les gardes ?"
+  },
+  {
+    "prompt": "Une équipe reçoit simultanément cinq demandes de support informatique. Comment organises-tu leur traitement ?"
+  },
+  {
+    "prompt": "Tu disposes d'un budget limité pour acheter du matériel de secours. Comment détermines-tu les équipements prioritaires ?"
+  },
+  {
+    "prompt": "Un événement accueillera 5 000 personnes. Quels éléments de planification de la sécurité doivent être définis en amont ?"
+  },
+  {
+    "prompt": "Tu dois organiser un déménagement d'entreprise sur un week-end. Décris les principales étapes de préparation."
+  },
+  {
+    "prompt": "Une intervention en montagne est prévue pour le lendemain. Comment prépares-tu l'opération ?"
+  },
+  {
+    "prompt": "Tu dois répartir une équipe de dix personnes sur quatre missions différentes. Comment effectues-tu l'affectation ?"
+  },
+  {
+    "prompt": "Une coupure d'électricité affecte un hôpital. Quelles sont les premières décisions à prendre ?"
+  },
+  {
+    "prompt": "Tu dois choisir entre développer une application en interne ou l'acheter auprès d'un prestataire. Quels critères analyses-tu ?"
+  },
+  {
+    "prompt": "Une équipe est confrontée à un conflit de priorités entre plusieurs responsables. Comment arbitres-tu la situation ?"
+  },
+  {
+    "prompt": "Tu dois organiser une campagne de sensibilisation à la sécurité routière. Décris les étapes de planification."
+  },
+  {
+    "prompt": "Une entreprise souhaite moderniser son infrastructure informatique sans interrompre ses activités. Comment planifies-tu le projet ?"
+  },
+  {
+    "prompt": "Tu disposes de trois heures pour préparer un exercice de gestion de crise. Quelles sont les étapes essentielles ?"
+  },
+  {
+    "prompt": "Une intervention implique plusieurs services différents. Comment organises-tu la coordination entre les équipes ?"
+  },
+  {
+    "prompt": "Tu dois planifier la maintenance préventive de 100 équipements répartis sur plusieurs sites. Quelle stratégie adoptes-tu ?"
+  },
+  {
+    "prompt": "Une équipe est réduite de moitié à cause d'absences imprévues. Comment réorganises-tu les tâches ?"
+  },
+  {
+    "prompt": "Tu dois choisir l'emplacement d'un nouveau centre de secours. Quels critères prends-tu en compte ?"
+  },
+  {
+    "prompt": "Une ville souhaite améliorer sa résilience face aux inondations. Quelles actions devraient être priorisées ?"
+  },
+  {
+    "prompt": "Tu dois organiser une intervention impliquant un risque chimique. Quels éléments doivent être préparés avant l'engagement des équipes ?"
+  },
+  {
+    "prompt": "Un système critique présente plusieurs failles de sécurité. Comment planifies-tu leur correction ?"
+  },
+  {
+    "prompt": "Tu dois définir un ordre de traitement pour dix incidents signalés en même temps. Quels critères utilises-tu ?"
+  },
+  {
+    "prompt": "Une équipe doit atteindre un objectif ambitieux avec des ressources limitées. Quelle méthode de planification recommandes-tu ?"
+  },
+  {
+    "prompt": "Tu dois décider si une intervention peut être menée immédiatement ou nécessite des renforts. Quels éléments évalues-tu ?"
+  },
+  {
+    "prompt": "Une organisation prépare un exercice de simulation de catastrophe majeure. Quels sont les principaux éléments à planifier ?"
+  },
+  {
+    "prompt": "Tu dois choisir entre plusieurs itinéraires pour rejoindre une intervention. Quels facteurs prends-tu en compte ?"
+  },
+  {
+    "prompt": "Une entreprise doit prioriser plusieurs projets concurrents. Quelle méthode de décision proposes-tu ?"
+  },
+  {
+    "prompt": "Tu dois organiser une opération qui dépend de plusieurs tâches interdépendantes. Comment construis-tu le planning ?"
+  },
+  {
+    "prompt": "Une intervention est interrompue par un événement imprévu. Comment réévalues-tu les priorités et adaptes-tu le plan d'action ?"
+  }
+]

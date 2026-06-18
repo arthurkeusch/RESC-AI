@@ -1,6 +1,6 @@
 package resc.ai.skynetmonitor.ui.components
 
-import fr.arthur.keusch.mandiole.model.ModelDescriptor
+import fr.arthur.keusch.mandiole.Mandiole
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -25,9 +25,9 @@ import resc.ai.skynetmonitor.service.ModelService
 
 @Composable
 fun ModelCard(
-    model: ModelDescriptor,
+    model: Mandiole.ModelDescriptor,
     isLocal: Boolean,
-    onClick: (ModelDescriptor) -> Unit
+    onClick: (Mandiole.ModelDescriptor) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -62,7 +62,7 @@ fun ModelCard(
             }
 
             Text(
-                text = "${model.backendLabel} • ${model.deviceRecommendation}",
+                text = "${model.backendLabel} • ${model.contextSize} ctx • ${model.deviceRecommendation}",
                 fontSize = 13.sp,
                 color = Color.White,
                 maxLines = 2,

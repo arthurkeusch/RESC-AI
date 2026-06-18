@@ -1,0 +1,156 @@
+[
+  {
+    "dataset": "Connaissances générales",
+    "description": "Évalue les connaissances générales du modèle sur des sujets variés (sciences, histoire, géographie, culture générale, etc.)."
+  },
+  {
+    "prompt": "Explique le principe de la photosynthèse de manière simple à un élève de collège."
+  },
+  {
+    "prompt": "Quelle est la différence entre une planète, une étoile et un satellite naturel ?"
+  },
+  {
+    "prompt": "Pourquoi les saisons sont-elles inversées entre l'hémisphère nord et l'hémisphère sud ?"
+  },
+  {
+    "prompt": "Résume les principales causes de la Première Guerre mondiale."
+  },
+  {
+    "prompt": "Explique le fonctionnement général d'Internet à une personne n'ayant aucune connaissance technique."
+  },
+  {
+    "prompt": "Qu'est-ce que l'effet de serre et pourquoi est-il important pour la Terre ?"
+  },
+  {
+    "prompt": "Quelle est la différence entre l'ADN et l'ARN ?"
+  },
+  {
+    "prompt": "Explique ce qu'est l'inflation et comment elle affecte le pouvoir d'achat."
+  },
+  {
+    "prompt": "Pourquoi le ciel apparaît-il bleu pendant la journée ?"
+  },
+  {
+    "prompt": "Décris les principales étapes du cycle de l'eau."
+  },
+  {
+    "prompt": "Explique la théorie de l'évolution de Charles Darwin en quelques paragraphes."
+  },
+  {
+    "prompt": "Quelle est la différence entre un virus et une bactérie ?"
+  },
+  {
+    "prompt": "Présente les trois pouvoirs dans une démocratie moderne."
+  },
+  {
+    "prompt": "Pourquoi la Lune présente-t-elle toujours la même face à la Terre ?"
+  },
+  {
+    "prompt": "Quelles sont les principales sources d'énergie renouvelable utilisées aujourd'hui ?"
+  },
+  {
+    "prompt": "Explique ce qu'est une réaction chimique avec un exemple concret."
+  },
+  {
+    "prompt": "Décris les grandes étapes de la Révolution française."
+  },
+  {
+    "prompt": "Comment fonctionne un moteur à combustion interne dans une voiture ?"
+  },
+  {
+    "prompt": "Explique la différence entre la météo et le climat."
+  },
+  {
+    "prompt": "Qu'est-ce qu'un trou noir et comment se forme-t-il ?"
+  },
+  {
+    "prompt": "Pourquoi les océans sont-ils salés ?"
+  },
+  {
+    "prompt": "Explique le rôle des vaccins dans la prévention des maladies."
+  },
+  {
+    "prompt": "Quelle est la différence entre une monarchie, une république et une dictature ?"
+  },
+  {
+    "prompt": "Décris le cycle de vie d'une étoile similaire au Soleil."
+  },
+  {
+    "prompt": "Qu'est-ce que l'intelligence artificielle et dans quels domaines est-elle utilisée aujourd'hui ?"
+  },
+  {
+    "prompt": "Explique comment fonctionne une centrale nucléaire."
+  },
+  {
+    "prompt": "Pourquoi les plaques tectoniques provoquent-elles des séismes ?"
+  },
+  {
+    "prompt": "Présente les principales causes et conséquences de la déforestation."
+  },
+  {
+    "prompt": "Qu'est-ce qu'un écosystème et quels sont ses principaux composants ?"
+  },
+  {
+    "prompt": "Explique comment fonctionne le système immunitaire humain."
+  },
+  {
+    "prompt": "Pourquoi les avions peuvent-ils voler malgré leur poids ?"
+  },
+  {
+    "prompt": "Décris les principales différences entre le système solaire et une galaxie."
+  },
+  {
+    "prompt": "Quelles sont les étapes principales de la formation d'un volcan ?"
+  },
+  {
+    "prompt": "Explique ce qu'est la blockchain sans utiliser de jargon technique."
+  },
+  {
+    "prompt": "Comment fonctionne le processus de recyclage des déchets ménagers ?"
+  },
+  {
+    "prompt": "Présente les principales causes de la pollution de l'air."
+  },
+  {
+    "prompt": "Explique le principe de la gravitation universelle."
+  },
+  {
+    "prompt": "Quelle est la différence entre la mémoire vive (RAM) et le stockage sur un ordinateur ?"
+  },
+  {
+    "prompt": "Pourquoi les éclipses solaires ne se produisent-elles pas tous les mois ?"
+  },
+  {
+    "prompt": "Décris les principaux organes du système respiratoire et leur rôle."
+  },
+  {
+    "prompt": "Explique les causes principales de l'extinction des dinosaures."
+  },
+  {
+    "prompt": "Qu'est-ce que la biodiversité et pourquoi est-elle importante ?"
+  },
+  {
+    "prompt": "Présente les grandes étapes de la conquête spatiale."
+  },
+  {
+    "prompt": "Explique comment les banques créent de la monnaie."
+  },
+  {
+    "prompt": "Pourquoi les métaux conduisent-ils généralement bien l'électricité ?"
+  },
+  {
+    "prompt": "Décris le fonctionnement général du système digestif humain."
+  },
+  {
+    "prompt": "Qu'est-ce que la mondialisation et quels sont ses principaux effets ?"
+  },
+  {
+    "prompt": "Explique la différence entre une étoile filante, une météorite et un astéroïde."
+  },
+  {
+    "prompt": "Comment fonctionne le GPS pour déterminer une position sur Terre ?"
+  },
+  {
+    "prompt": "Présente les principales caractéristiques des civilisations de l'Égypte antique."
+  }
+]

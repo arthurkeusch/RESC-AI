@@ -1,16 +1,12 @@
 package resc.ai.skynetmonitor.ui.screens
 
-import fr.arthur.keusch.mandiole.model.ModelDescriptor
+import fr.arthur.keusch.mandiole.Mandiole
 import android.annotation.SuppressLint
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
@@ -20,42 +16,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlinx.coroutines.launch
 import resc.ai.skynetmonitor.service.DownloadState
 import resc.ai.skynetmonitor.service.ModelService
-import resc.ai.skynetmonitor.service.RemoteModel
 import resc.ai.skynetmonitor.ui.components.ModelCard
 import resc.ai.skynetmonitor.ui.theme.SkynetMonitorTheme
 import resc.ai.skynetmonitor.viewmodel.DeviceInfoViewModel
 
 @Composable
 fun ModelScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = viewModel()) {
-    val scope = rememberCoroutineScope()
-
     val models by viewModel.remoteModels.collectAsState()
     val downloadState by viewModel.downloadState.collectAsState()
     val isDeleting by viewModel.isDeleting.collectAsState()
     val lastDeleteCompleted by viewModel.lastDeleteCompleted.collectAsState()
 
-    var actionModel by remember { mutableStateOf<ModelDescriptor?>(null) }
+    var actionModel by remember { mutableStateOf<Mandiole.ModelDescriptor?>(null) }
     var showMenu by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
-
-    var showAddDialog by remember { mutableStateOf(false) }
-    var newName by remember { mutableStateOf("") }
-    var newParams by remember { mutableStateOf("") }
-    var newFileUri by remember { mutableStateOf<Uri?>(null) }
-    var newFileLabel by remember { mutableStateOf("No file selected") }
-    var uploadState by remember { mutableStateOf<ModelService.UploadState?>(null) }
-
-    val pickFile =
-        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-            if (uri != null) {
-                newFileUri = uri
-                newFileLabel = ModelService.resolveDisplayName(viewModel.ctx, uri)
-                    ?: uri.lastPathSegment ?: "selected.file"
-            }
-        }
 
     LaunchedEffect(Unit) {
         viewModel.loadModelsRemote()
@@ -106,22 +82,6 @@ fun ModelScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vi
                     )
                 }
             }
-        }
-
-        FloatingActionButton(
-            onClick = {
-                newName = ""
-                newParams = ""
-                newFileUri = null
-                newFileLabel = "No file selected"
-                uploadState = null
-                showAddDialog = true
-            },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(20.dp)
-        ) {
-            Icon(Icons.Filled.Add, contentDescription = null)
         }
     }
 
@@ -216,7 +176,7 @@ fun ModelScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vi
         )
     }
 
-    val st: DownloadState? = downloadState
+    val st = downloadState
     if (st != null && st.progress < 100) {
         val progress = (st.progress / 100f).coerceIn(0f, 1f)
         AlertDialog(
@@ -240,105 +200,6 @@ fun ModelScreen(innerPadding: PaddingValues, viewModel: DeviceInfoViewModel = vi
             },
             confirmButton = {
                 TextButton(onClick = { viewModel.cancelDownload() }) { Text("Close") }
-            }
-        )
-    }
-
-    if (showAddDialog) {
-        val ust = uploadState
-        AlertDialog(
-            onDismissRequest = { if (ust == null) showAddDialog = false },
-            title = { Text(if (ust == null) "Add a model" else "Uploading ${ust.name}") },
-            text = {
-                if (ust == null) {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        OutlinedTextField(
-                            value = newName,
-                            onValueChange = { newName = it },
-                            singleLine = true,
-                            label = { Text("Model name") },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        OutlinedTextField(
-                            value = newParams,
-                            onValueChange = { newParams = it },
-                            singleLine = true,
-                            label = { Text("Model parameters") },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(newFileLabel, modifier = Modifier.weight(1f))
-                            Spacer(Modifier.width(12.dp))
-                            OutlinedButton(onClick = { pickFile.launch(arrayOf("*/*")) }) {
-                                Text("Choose file")
-                            }
-                        }
-                    }
-                } else {
-                    val progress = (ust.progress / 100f).coerceIn(0f, 1f)
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        LinearProgressIndicator(
-                            progress = { progress },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        val totalStr = ModelService.formatSize(ust.totalBytes)
-                        val sentStr = ModelService.formatSize(ust.bytesSent)
-                        val speedStr =
-                            if (ust.speedBytesPerSec > 0) "${ModelService.formatSize(ust.speedBytesPerSec)}/s" else "—"
-                        val etaStr = if (ust.etaSeconds >= 0) formatEta(ust.etaSeconds) else "—"
-                        Text("$sentStr / $totalStr")
-                        Text("Speed: $speedStr")
-                        Text("ETA: $etaStr")
-                    }
-                }
-            },
-            confirmButton = {
-                if (ust == null) {
-                    val canSend =
-                        newName.isNotBlank() && newParams.isNotBlank() && newFileUri != null
-                    TextButton(
-                        onClick = {
-                            val uri = newFileUri ?: return@TextButton
-                            uploadState = ModelService.UploadState(
-                                name = newName,
-                                bytesSent = 0L,
-                                totalBytes = 0L,
-                                speedBytesPerSec = 0L,
-                                etaSeconds = -1L,
-                                progress = 0
-                            )
-                            scope.launch {
-                                try {
-                                    ModelService.uploadModel(
-                                        context = viewModel.ctx,
-                                        name = newName,
-                                        params = newParams,
-                                        fileUri = uri
-                                    ) { us ->
-                                        uploadState = us
-                                    }
-                                    uploadState = null
-                                    showAddDialog = false
-                                    viewModel.loadModelsRemote()
-                                } catch (_: Exception) {
-                                    uploadState = null
-                                }
-                            }
-                        },
-                        enabled = canSend
-                    ) { Text("Upload") }
-                } else {
-                    Button(onClick = {}, enabled = false) { Text("Uploading…") }
-                }
-            },
-            dismissButton = {
-                if (ust == null) {
-                    TextButton(onClick = { showAddDialog = false }) { Text("Cancel") }
-                }
             }
         )
     }

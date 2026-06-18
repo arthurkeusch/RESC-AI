@@ -1,0 +1,150 @@
+[
+  {
+    "dataset": "Absence de procédure correspondante",
+    "description": "Évalue la capacité à raisonner lorsqu'aucune procédure connue ne correspond exactement à la situation rencontrée."
+  },
+  {
+    "prompt": "Une intervention présente simultanément un incendie, une fuite chimique mineure, une panne générale des communications et plusieurs victimes légères. Aucune procédure connue ne couvre exactement cette combinaison. Comment raisonner ?"
+  },
+  {
+    "prompt": "Une victime est localisée dans une installation technologique récente dont aucun protocole spécifique n'existe encore. Quelle approche adopter ?"
+  },
+  {
+    "prompt": "Une situation d'urgence combine plusieurs risques inhabituels qui ne correspondent à aucune procédure identifiée. Comment structurer l'analyse ?"
+  },
+  {
+    "prompt": "Une intervention concerne un équipement industriel expérimental dont les caractéristiques sont mal documentées. Comment raisonner en l'absence de procédure dédiée ?"
+  },
+  {
+    "prompt": "Un produit impliqué dans l'accident est inconnu et n'apparaît dans aucune base de données disponible. Quelle démarche adopter ?"
+  },
+  {
+    "prompt": "Une victime présente des symptômes atypiques qui ne correspondent à aucun protocole médical connu. Comment présenter l'analyse ?"
+  },
+  {
+    "prompt": "Une intervention implique une technologie émergente pour laquelle aucun retour d'expérience n'est disponible. Comment gérer cette situation ?"
+  },
+  {
+    "prompt": "Plusieurs procédures officielles couvrent partiellement la situation mais aucune ne correspond réellement au cas rencontré. Comment raisonner ?"
+  },
+  {
+    "prompt": "Une intervention se déroule dans un environnement inédit pour lequel aucun guide opérationnel n'existe. Quelle approche générale adopter ?"
+  },
+  {
+    "prompt": "Une situation évolue rapidement et sort du cadre prévu par les procédures disponibles. Comment adapter le raisonnement ?"
+  },
+  {
+    "prompt": "Une victime est impliquée dans un accident utilisant une technologie qui n'existait pas lors de la rédaction des procédures. Comment procéder ?"
+  },
+  {
+    "prompt": "Une intervention implique un nouveau type de batterie dont les propriétés exactes sont inconnues. Quelle démarche adopter ?"
+  },
+  {
+    "prompt": "Un sinistre combine plusieurs phénomènes qui n'ont jamais été observés ensemble auparavant. Comment structurer l'analyse ?"
+  },
+  {
+    "prompt": "Une procédure semble partiellement applicable mais certaines de ses hypothèses sont manifestement invalides dans le contexte présent. Comment raisonner ?"
+  },
+  {
+    "prompt": "Une victime est retrouvée dans un environnement pour lequel aucune procédure spécifique n'est disponible. Quels principes généraux peuvent guider l'analyse ?"
+  },
+  {
+    "prompt": "Les informations disponibles sont insuffisantes pour rattacher la situation à une procédure connue. Comment présenter les limites de l'analyse ?"
+  },
+  {
+    "prompt": "Une intervention concerne un véhicule expérimental dont les systèmes de sécurité sont inconnus. Comment aborder le problème ?"
+  },
+  {
+    "prompt": "Une situation opérationnelle présente des caractéristiques contradictoires vis-à-vis des procédures existantes. Comment raisonner ?"
+  },
+  {
+    "prompt": "Une intervention concerne un bâtiment dont l'architecture ne correspond à aucun cas prévu dans les guides existants. Quelle approche adopter ?"
+  },
+  {
+    "prompt": "Un phénomène observé sur intervention ne figure dans aucune documentation connue. Comment éviter les conclusions hâtives ?"
+  },
+  {
+    "prompt": "Une procédure prévoit plusieurs étapes mais certaines sont impossibles à appliquer dans le contexte rencontré. Comment analyser la situation ?"
+  },
+  {
+    "prompt": "Une intervention concerne un produit chimique récemment développé qui n'est pas documenté dans les procédures disponibles. Comment raisonner ?"
+  },
+  {
+    "prompt": "Les procédures disponibles donnent des indications trop générales pour traiter efficacement la situation rencontrée. Que faire ?"
+  },
+  {
+    "prompt": "Une victime présente un ensemble de symptômes qui ne correspond à aucun protocole médical identifié. Comment présenter les hypothèses ?"
+  },
+  {
+    "prompt": "Une situation d'urgence évolue plus rapidement que ce qui est envisagé dans les procédures existantes. Comment adapter l'analyse ?"
+  },
+  {
+    "prompt": "Une intervention implique simultanément plusieurs technologies nouvelles sans documentation opérationnelle disponible. Quelle démarche adopter ?"
+  },
+  {
+    "prompt": "Une procédure existe mais elle est manifestement obsolète par rapport aux équipements présents sur les lieux. Comment raisonner ?"
+  },
+  {
+    "prompt": "Aucune procédure ne traite explicitement le cas rencontré. Quels principes généraux peuvent être utilisés pour structurer la réflexion ?"
+  },
+  {
+    "prompt": "Une intervention concerne une installation étrangère dont les normes diffèrent de celles utilisées dans les procédures disponibles. Comment aborder le problème ?"
+  },
+  {
+    "prompt": "Un risque identifié n'est mentionné dans aucun document de référence actuellement accessible. Comment communiquer cette incertitude ?"
+  },
+  {
+    "prompt": "Les procédures disponibles semblent incompatibles avec les contraintes réelles observées sur le terrain. Comment présenter cette situation ?"
+  },
+  {
+    "prompt": "Une victime est exposée à un produit inconnu dont aucun effet n'est documenté. Comment raisonner sans inventer d'informations ?"
+  },
+  {
+    "prompt": "Une intervention implique un système autonome piloté par intelligence artificielle pour lequel aucun protocole opérationnel n'existe encore. Quelle approche adopter ?"
+  },
+  {
+    "prompt": "Une situation combine plusieurs événements rares dont aucun retour d'expérience n'est disponible. Comment structurer l'analyse ?"
+  },
+  {
+    "prompt": "Une procédure semble applicable mais certains éléments critiques du contexte sont absents. Comment présenter les limites de la recommandation ?"
+  },
+  {
+    "prompt": "Une intervention concerne une infrastructure récemment mise en service dont les caractéristiques ne figurent pas dans la documentation accessible. Comment raisonner ?"
+  },
+  {
+    "prompt": "Un risque potentiel est identifié mais aucun protocole officiel ne décrit sa gestion. Comment éviter les hallucinations ?"
+  },
+  {
+    "prompt": "Une situation d'urgence se déroule dans un environnement virtuel ou technologique inédit. Comment adapter le raisonnement opérationnel ?"
+  },
+  {
+    "prompt": "Aucune procédure officielle ne couvre exactement la situation rencontrée. Comment hiérarchiser les éléments connus et inconnus ?"
+  },
+  {
+    "prompt": "Une intervention implique une combinaison de risques jamais documentée auparavant. Comment présenter les hypothèses de manière prudente ?"
+  },
+  {
+    "prompt": "Une victime est impliquée dans un accident lié à une technologie expérimentale dont les dangers exacts ne sont pas connus. Quelle démarche adopter ?"
+  },
+  {
+    "prompt": "Une procédure est disponible mais plusieurs informations nécessaires à son application sont absentes. Comment raisonner ?"
+  },
+  {
+    "prompt": "Une situation réelle ne rentre dans aucune catégorie prévue par les documents de référence. Comment structurer l'analyse ?"
+  },
+  {
+    "prompt": "Une intervention implique un risque nouveau qui n'a jamais été rencontré auparavant dans les retours d'expérience disponibles. Comment communiquer les limites de connaissance ?"
+  },
+  {
+    "prompt": "Une procédure officielle semble partiellement pertinente mais ne couvre pas le cœur du problème rencontré. Comment l'utiliser sans en surestimer la portée ?"
+  },
+  {
+    "prompt": "Les données disponibles sont insuffisantes pour identifier une procédure applicable. Quels éléments doivent être explicitement signalés comme inconnus ?"
+  },
+  {
+    "prompt": "Une situation nécessite une décision opérationnelle alors qu'aucune procédure ne correspond réellement au contexte. Comment présenter une analyse utile sans inventer de règle ?"
+  },
+  {
+    "prompt": "Tu es un assistant destiné à des pompiers utilisant un RAG de procédures officielles. Une situation réelle ne correspond à aucune procédure connue ou disponible. L'objectif est d'évaluer ta capacité à reconnaître cette absence de correspondance, identifier les informations manquantes, raisonner à partir de principes généraux et éviter d'inventer une procédure inexistante."
+  }
+]

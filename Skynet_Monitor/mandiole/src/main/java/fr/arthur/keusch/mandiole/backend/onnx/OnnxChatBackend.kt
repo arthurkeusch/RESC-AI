@@ -16,7 +16,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicBoolean
 
-class OnnxChatBackend(
+internal class OnnxChatBackend(
     private val context: Context,
     private val spec: OnnxQwenSpec,
     private val modelFileResolver: ModelFileResolver
@@ -27,6 +27,7 @@ class OnnxChatBackend(
     private lateinit var promptBuilder: PromptBuilder
     private lateinit var onnxModel: OnnxModel
     private val cancelRequested = AtomicBoolean(false)
+    private val isClosed = AtomicBoolean(false)
 
     override val executionUnit: String
         get() = if (::onnxModel.isInitialized) onnxModel.executionUnit else "CPU"
@@ -86,8 +87,10 @@ class OnnxChatBackend(
     }
 
     override fun close() {
-        if (::onnxModel.isInitialized) {
-            onnxModel.close()
+        if (isClosed.compareAndSet(false, true)) {
+            if (::onnxModel.isInitialized) {
+                onnxModel.close()
+            }
         }
     }
 
@@ -98,7 +101,6 @@ class OnnxChatBackend(
         }
 
         return when {
-            // Mode manuel : On donne une indication claire mais on laisse le LLM maitre
             !thinkingEnabled -> "${spec.defaultSystemPrompt} /no_think"
             else -> "${spec.defaultSystemPrompt} /think"
         }

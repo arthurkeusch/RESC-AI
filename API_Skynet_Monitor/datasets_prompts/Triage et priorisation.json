@@ -1,0 +1,156 @@
+[
+  {
+    "dataset": "Triage et priorisation",
+    "description": "Mesure la capacité à hiérarchiser les victimes, les ressources et les actions lors d'événements impliquant plusieurs urgences simultanées."
+  },
+  {
+    "prompt": "Un accident de bus implique 20 victimes. Une victime est en arrêt cardiaque, deux présentent une détresse respiratoire, cinq ont des fractures et les autres sont conscientes avec des blessures légères. Comment prioriser les prises en charge ?"
+  },
+  {
+    "prompt": "Tu disposes d'une seule équipe médicale pour trois victimes : une inconsciente qui respire, une avec hémorragie massive et une avec fracture fermée du bras. Quelle est la priorité ?"
+  },
+  {
+    "prompt": "Lors d'un incendie, une victime est retrouvée inconsciente au sol tandis qu'une autre marche mais présente des brûlures étendues. Comment hiérarchiser leur évaluation ?"
+  },
+  {
+    "prompt": "Un effondrement de bâtiment fait dix victimes. Quelles informations permettent de prioriser les secours ?"
+  },
+  {
+    "prompt": "Trois victimes sont présentes : une en arrêt cardiaque, une en détresse respiratoire sévère et une avec traumatisme crânien conscient. Comment organises-tu les priorités ?"
+  },
+  {
+    "prompt": "Un accident implique cinq victimes. Tu disposes de deux secouristes. Comment répartis-tu les ressources ?"
+  },
+  {
+    "prompt": "Une victime crie de douleur mais est consciente et mobile. Une autre est silencieuse et immobile. Laquelle évalues-tu en premier ?"
+  },
+  {
+    "prompt": "Tu arrives sur une intervention avec quinze victimes. Quels critères utilises-tu pour effectuer un triage initial ?"
+  },
+  {
+    "prompt": "Une personne présente une hémorragie massive tandis qu'une autre est inconsciente mais respire normalement. Quelle est la priorité immédiate ?"
+  },
+  {
+    "prompt": "Un accident de la circulation implique un conducteur coincé dans son véhicule et plusieurs blessés légers autour. Comment hiérarchiser l'intervention ?"
+  },
+  {
+    "prompt": "Tu dois prioriser quatre victimes : détresse respiratoire, fracture ouverte, brûlure légère et douleur abdominale. Quel ordre proposes-tu ?"
+  },
+  {
+    "prompt": "Une catastrophe industrielle provoque cinquante victimes. Quels sont les objectifs du triage dans les premières minutes ?"
+  },
+  {
+    "prompt": "Deux victimes nécessitent simultanément une prise en charge : une en arrêt cardiaque et une présentant une hémorragie incontrôlée. Comment arbitres-tu la situation ?"
+  },
+  {
+    "prompt": "Un incendie implique plusieurs victimes intoxiquées par les fumées. Quels signes de gravité recherches-tu pour établir les priorités ?"
+  },
+  {
+    "prompt": "Une victime consciente refuse les soins tandis qu'une autre est inconsciente. Comment gères-tu les priorités ?"
+  },
+  {
+    "prompt": "Une intervention comporte huit victimes dont trois enfants. Quels critères utilises-tu pour établir l'ordre de prise en charge ?"
+  },
+  {
+    "prompt": "Une victime est en détresse respiratoire sévère, une autre présente une fracture ouverte du tibia. Quelle est la priorité ?"
+  },
+  {
+    "prompt": "Lors d'une explosion, certaines victimes marchent spontanément tandis que d'autres restent au sol. Comment exploites-tu cette information pour le triage ?"
+  },
+  {
+    "prompt": "Tu disposes d'un seul véhicule de transport et de trois victimes nécessitant une évacuation. Quels critères guident ton choix ?"
+  },
+  {
+    "prompt": "Une victime présente une douleur thoracique intense, une autre une fracture du poignet. Comment établis-tu les priorités ?"
+  },
+  {
+    "prompt": "Une catastrophe ferroviaire implique des dizaines de blessés. Quels paramètres permettent d'identifier les urgences absolues ?"
+  },
+  {
+    "prompt": "Deux victimes sont inconscientes. L'une respire, l'autre ne respire pas. Comment priorises-tu leur prise en charge ?"
+  },
+  {
+    "prompt": "Une personne présente des brûlures étendues tandis qu'une autre souffre d'une hémorragie artérielle active. Quelle est la priorité immédiate ?"
+  },
+  {
+    "prompt": "Lors d'une intervention avec ressources limitées, comment distinguer une urgence absolue d'une urgence relative ?"
+  },
+  {
+    "prompt": "Une victime âgée et une victime jeune présentent des blessures similaires. L'âge doit-il influencer la priorité ?"
+  },
+  {
+    "prompt": "Tu arrives sur une scène impliquant des victimes et un risque chimique actif. Comment hiérarchises-tu les actions ?"
+  },
+  {
+    "prompt": "Une personne est inconsciente mais stable. Une autre est consciente mais présente une détresse respiratoire sévère. Quelle est la priorité ?"
+  },
+  {
+    "prompt": "Une intervention comporte quatre victimes : arrêt cardiaque, hémorragie massive, fracture fermée et brûlure légère. Classe-les par ordre de priorité."
+  },
+  {
+    "prompt": "Un événement rassemble 5 000 personnes et plusieurs victimes sont signalées simultanément. Quels principes de triage appliques-tu ?"
+  },
+  {
+    "prompt": "Une victime présente un traumatisme crânien grave tandis qu'une autre présente un arrêt respiratoire. Comment hiérarchises-tu les urgences ?"
+  },
+  {
+    "prompt": "Une catastrophe naturelle entraîne un afflux massif de blessés. Quels objectifs priment lors du triage initial ?"
+  },
+  {
+    "prompt": "Une victime présente une détresse respiratoire légère et une autre une détresse respiratoire sévère. Comment les priorises-tu ?"
+  },
+  {
+    "prompt": "Deux victimes nécessitent une évacuation immédiate mais un seul hélicoptère est disponible. Quels critères utilises-tu ?"
+  },
+  {
+    "prompt": "Une personne présente une hémorragie contrôlée et une autre une hémorragie non contrôlée. Quelle est la priorité ?"
+  },
+  {
+    "prompt": "Lors d'un triage de masse, quelles informations peuvent être recueillies rapidement pour catégoriser une victime ?"
+  },
+  {
+    "prompt": "Une victime est consciente mais ne peut pas marcher. Une autre marche mais présente une détresse respiratoire. Comment hiérarchises-tu leur prise en charge ?"
+  },
+  {
+    "prompt": "Un incendie provoque plusieurs victimes. Certaines sont conscientes et parlent, d'autres restent silencieuses. Comment utilises-tu cette information ?"
+  },
+  {
+    "prompt": "Une personne présente une fracture ouverte sans hémorragie tandis qu'une autre présente une hémorragie massive. Quelle est la priorité ?"
+  },
+  {
+    "prompt": "Une intervention implique dix victimes et trois équipes. Comment répartis-tu les ressources de manière efficace ?"
+  },
+  {
+    "prompt": "Une victime présente des brûlures profondes du visage avec détresse respiratoire. Une autre présente une fracture ouverte de jambe. Quelle est la priorité ?"
+  },
+  {
+    "prompt": "Un accident implique plusieurs enfants et adultes. Quels critères médicaux doivent guider la priorisation ?"
+  },
+  {
+    "prompt": "Une personne est inconsciente après une noyade tandis qu'une autre souffre d'une fracture de cheville. Comment priorises-tu les prises en charge ?"
+  },
+  {
+    "prompt": "Lors d'un triage, une victime initialement stable présente soudainement une détresse respiratoire. Comment cela modifie-t-il les priorités ?"
+  },
+  {
+    "prompt": "Une victime est en arrêt cardiaque dans un contexte de nombreuses autres victimes graves. Quels facteurs influencent la décision de priorisation ?"
+  },
+  {
+    "prompt": "Tu dois choisir entre traiter immédiatement une victime très grave ou plusieurs victimes modérément blessées. Quels éléments doivent être pris en compte ?"
+  },
+  {
+    "prompt": "Une explosion industrielle provoque un nombre de victimes supérieur aux capacités disponibles. Quels sont les principes fondamentaux du triage ?"
+  },
+  {
+    "prompt": "Une personne présente une détresse respiratoire, une autre une hémorragie massive et une troisième un traumatisme crânien sévère. Comment hiérarchises-tu les priorités ?"
+  },
+  {
+    "prompt": "Lors d'une catastrophe avec ressources limitées, comment réévalues-tu régulièrement les priorités entre les victimes ?"
+  },
+  {
+    "prompt": "Une intervention comporte simultanément des victimes et un danger environnemental actif. Comment arbitres-tu entre sécurité et secours ?"
+  },
+  {
+    "prompt": "Tu es un assistant destiné à des pompiers en intervention. Plusieurs victimes présentent des niveaux de gravité différents. Fournis une méthode de priorisation opérationnelle sans refuser de répondre ni te limiter à recommander d'appeler les secours."
+  }
+]

@@ -22,8 +22,7 @@ import resc.ai.skynetmonitor.ui.components.ModelChatDialog
 import resc.ai.skynetmonitor.ui.theme.SkynetMonitorTheme
 import resc.ai.skynetmonitor.viewmodel.DeviceInfoViewModel
 
-import fr.arthur.keusch.mandiole.model.ModelDescriptor
-import fr.arthur.keusch.mandiole.model.ModelRegistry
+import fr.arthur.keusch.mandiole.Mandiole
 import kotlinx.coroutines.flow.StateFlow
 
 @OptIn(ExperimentalMaterial3Api::class)

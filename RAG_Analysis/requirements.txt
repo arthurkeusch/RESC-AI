@@ -1,0 +1,9 @@
+torch --index-url https://download.pytorch.org/whl/cu130
+transformers
+pandas
+matplotlib
+seaborn
+accelerate
+tqdm
+openai
+python-dotenv
