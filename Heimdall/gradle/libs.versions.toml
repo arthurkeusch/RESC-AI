@@ -1,5 +1,5 @@
 [versions]
-agp = "9.0.1"
+agp = "9.2.1"
 concurrentFuturesKtx = "1.3.0"
 healthServicesClient = "1.0.0"
 onnxruntimeAndroid = "1.24.2"
