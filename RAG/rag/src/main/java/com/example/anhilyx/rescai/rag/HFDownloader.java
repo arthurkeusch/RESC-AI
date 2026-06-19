@@ -4,6 +4,7 @@ import android.util.Pair;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -26,6 +27,10 @@ public class HFDownloader {
                 "https://huggingface.co/" + repoId + "/resolve/main/onnx/model.onnx?download=true",
                 new File(directory, "model.onnx")
         ));
+        /* args.add(new Pair<>(
+                "https://huggingface.co/" + repoId + "/resolve/main/onnx/model.onnx_data?download=true",
+                new File(directory, "model.onnx_data")
+        )); */
         args.add(new Pair<>(
                 "https://huggingface.co/" + repoId + "/resolve/main/tokenizer.json?download=true",
                 new File(directory, "tokenizer.json")
@@ -56,7 +61,35 @@ public class HFDownloader {
         // Download all files
         for (Pair<String, File> arg : args) {
             success.set(false);
-            Downloader.downloadFile(arg.first, arg.second, _callback);
+
+            // Custom callback for the 'model.onnx_data' file to handle 404 errors gracefully
+            Downloader.DownloadCallback __callback = _callback;
+            /* if (Objects.equals(arg.second.getName(), "model.onnx_data")) {
+                __callback = new Downloader.DownloadCallback() {
+                    @Override
+                    public void onSuccess() {
+                        _callback.onSuccess();
+                    }
+
+                    @Override
+                    public void onError(int code, String message) {
+                        // Skip if the error is a 404 error for the 'model.onnx_data' file, as it's only present in larger models, and the 404 error was already checked with the 'model.onnx' anyway
+                        if (code == 404) {
+                            _callback.onProgress(filesProgress.incrementAndGet() / (float) args.size());
+                            return;
+                        }
+                        _callback.onError(code, message);
+                        error.set(true);
+                    }
+
+                    @Override
+                    public void onProgress(float progress) {
+                        _callback.onProgress(progress / args.size() + (filesProgress.get() / (float) args.size()));
+                    }
+                };
+            } */
+
+            Downloader.downloadFile(arg.first, arg.second, __callback);
             while (!success.get() && !error.get()) {
                 try {
                     Thread.sleep(100);

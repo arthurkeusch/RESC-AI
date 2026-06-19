@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 # ==========================================
 load_dotenv()
 
-INPUT_FILENAME = "benchmark_results_0001.json" 
+INPUT_FILENAME = "benchmark_results.json" 
 
 # Configuration conforme à votre serveur privé (LiteLLM)
 BASE_URL_BRIDGE = "https://llm.ai.anhilyx.fr/v1"
@@ -201,11 +201,11 @@ def generate_score_chart(df_scores: pd.DataFrame, output_dir: str):
     short_doc_names = [d[:35] + "..." if len(d) > 35 else d for d in df_avg_scores.index]
     
     ax = df_avg_scores.plot(kind="bar", width=0.75, ax=plt.gca(), cmap="plasma")
-    plt.title("Score moyen de pertinence des extraits par Document (Mistral Large)", fontsize=15, fontweight="bold", pad=15)
-    plt.ylabel("Note attribuée par le modèle juge (0 à 5)", fontsize=12)
+    plt.title("Mean score of relevance for retrieved chunks by Document (Mistral Large)", fontsize=15, fontweight="bold", pad=15)
+    plt.ylabel("Note (0-5)", fontsize=12)
     plt.ylim(0, 5.5)
     ax.set_xticklabels(short_doc_names, rotation=15, ha="right", fontsize=11)
-    plt.legend(title="Modèles évalués", bbox_to_anchor=(1.02, 1), loc="upper left")
+    plt.legend(title="Evaluated Models", bbox_to_anchor=(1.02, 1), loc="upper left")
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, "scores.png"), dpi=300)
     plt.close()

@@ -14,7 +14,8 @@ from tqdm import tqdm  # Importation de la barre de progression
 # ==========================================
 INPUT_FILENAME = "benchmark_results_0001.json" 
 
-MODEL_JUDGE_NAME = "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
+MODEL_JUDGE_NAME = "Qwen/Qwen2.5-7B-Instruct"
+# MODEL_JUDGE_NAME = "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
 
 REPEAT_EVALUATIONS = 3  # Nombre d'évaluations par prompt pour la robustesse
 
@@ -213,13 +214,12 @@ def generate_score_chart(df_scores: pd.DataFrame, output_dir: str):
     short_doc_names = [d[:35] + "..." if len(d) > 35 else d for d in df_avg_scores.index]
     
     ax = df_avg_scores.plot(kind="bar", width=0.75, ax=plt.gca(), cmap="plasma")
-    plt.title("Score moyen de pertinence des extraits de contexte par Document", fontsize=15, fontweight="bold", pad=15)
-    plt.ylabel("Note attribuée par le LLM (0 à 5)", fontsize=12)
-    plt.xlabel("Documents du Benchmark", fontsize=12, labelpad=10)
+    plt.title("Mean score of relevance for retrieved chunks by Document (Mistral Large)", fontsize=15, fontweight="bold", pad=15)
+    plt.ylabel("Note (0-5)", fontsize=12)
     plt.ylim(0, 5.5)
     
     ax.set_xticklabels(short_doc_names, rotation=15, ha="right", fontsize=11)
-    plt.legend(title="Modèles évalués", bbox_to_anchor=(1.02, 1), loc="upper left", fontsize=10)
+    plt.legend(title="Evaluated Models", bbox_to_anchor=(1.02, 1), loc="upper left", fontsize=10)
     
     plt.tight_layout()
     output_path = os.path.join(output_dir, "scores.png")
