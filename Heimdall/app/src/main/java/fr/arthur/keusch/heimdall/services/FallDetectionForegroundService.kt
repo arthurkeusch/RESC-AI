@@ -30,6 +30,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import androidx.core.net.toUri
+import java.net.HttpURLConnection
+import java.net.URL
 
 class FallDetectionForegroundService : Service() {
 
@@ -92,7 +94,30 @@ class FallDetectionForegroundService : Service() {
         wakeScreen()
         showFullScreenTrigger()
 
+        pingServer()
         startEscalationTimer()
+    }
+
+    private fun pingServer() {
+        scope.launch(Dispatchers.IO) {
+            try {
+                val url = URL("https://arthur-keusch.fr")
+                val connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "GET"
+                connection.connectTimeout = 5000
+                connection.readTimeout = 5000
+
+                val responseCode = connection.responseCode
+                if (responseCode == 200) {
+                    Log.d("Heimdall", "Ping réussi: 200 OK")
+                } else {
+                    Log.e("Heimdall", "Ping échoué: Status $responseCode")
+                }
+                connection.disconnect()
+            } catch (e: Exception) {
+                Log.e("Heimdall", "Erreur réseau lors du ping: ${e.message}")
+            }
+        }
     }
 
     @SuppressLint("FullScreenIntentPolicy", "WearRecents")

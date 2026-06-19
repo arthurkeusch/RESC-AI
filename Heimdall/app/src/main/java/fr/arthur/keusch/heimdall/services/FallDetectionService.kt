@@ -168,4 +168,12 @@ object FallDetectionService {
         }
         synchronized(window) { window.clear() }
     }
+
+    fun triggerFakeFall() {
+        _prediction.value = true
+        scope.launch {
+            delay(500)
+            _prediction.value = false
+        }
+    }
 }

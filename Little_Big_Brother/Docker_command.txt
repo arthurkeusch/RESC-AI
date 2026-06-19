@@ -1,0 +1,2 @@
+docker build -t fall-web .
+docker run --rm -p 8000:8000 fall-web
