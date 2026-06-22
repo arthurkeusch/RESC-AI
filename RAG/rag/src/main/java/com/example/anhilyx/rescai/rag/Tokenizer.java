@@ -46,11 +46,6 @@ public class Tokenizer {
 
         Path path = tokenizerFile.toPath();
         tokenizer = HuggingFaceTokenizer.newInstance(path, null);
-
-        // Throw an exception if the tokenizer's max length does not match the expected value
-        if (tokenizer.getMaxLength() != Config.N_TOKENS) {
-            throw new IllegalArgumentException("Tokenizer max length does not match expected value: " + tokenizer.getMaxLength());
-        }
     }
 
     /**
@@ -67,16 +62,14 @@ public class Tokenizer {
         long[] rawTokenTypeIds = encoding.getTypeIds();
 
         // Truncate the tokenized output to the model's maximum input size
-        long[] inputIds = new long[Config.N_TOKENS];
-        long[] attentionMask = new long[Config.N_TOKENS];
-        long[] tokenTypeIds = new long[Config.N_TOKENS];
-        int lengthToCopy = Math.min(rawIds.length, Config.N_TOKENS);
-        System.arraycopy(rawIds, 0, inputIds, 0, lengthToCopy);
-        System.arraycopy(rawAttentionMask, 0, attentionMask, 0, lengthToCopy);
-        System.arraycopy(rawTokenTypeIds, 0, tokenTypeIds, 0, lengthToCopy);
-        if (rawIds.length > Config.N_TOKENS) {
-            inputIds[Config.N_TOKENS - 1] = 102L;
-        }
+        int length = Math.min(rawIds.length, tokenizer.getMaxLength());
+        long[] inputIds = new long[length];
+        long[] attentionMask = new long[length];
+        long[] tokenTypeIds = new long[length];
+        System.arraycopy(rawIds, 0, inputIds, 0, length);
+        System.arraycopy(rawAttentionMask, 0, attentionMask, 0, length);
+        System.arraycopy(rawTokenTypeIds, 0, tokenTypeIds, 0, length);
+        inputIds[length - 1] = 102L;  // We always set the last token to the EOS token (102), for cases where the input is truncated
 
         return new Tokens(inputIds, attentionMask, tokenTypeIds);
     }

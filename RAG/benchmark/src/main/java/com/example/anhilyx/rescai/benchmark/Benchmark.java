@@ -26,18 +26,15 @@ public class Benchmark {
     public static class ModelBenchmark {
 
         public final String repository;
-        public final int maxTokens;
         public final DocumentBenchmark[] documents;
 
         /**
          * Constructor for the ModelBenchmark class.
          * @param repository The name of the HuggingFace repository to be used for the benchmark.
-         * @param maxTokens The maximum number of tokens for this model.
          * @param documents An array of DocumentBenchmark objects that are associated with the model.
          */
-        public ModelBenchmark(String repository, int maxTokens, DocumentBenchmark[] documents) {
+        public ModelBenchmark(String repository, DocumentBenchmark[] documents) {
             this.repository = repository;
-            this.maxTokens = maxTokens;
             this.documents = documents;
         }
     }
@@ -208,7 +205,6 @@ public class Benchmark {
         ModelBenchmark model = models[state.modelIdx];
         AtomicLong startTime = new AtomicLong();
         startTime.set(System.currentTimeMillis());
-        Config.N_TOKENS = model.maxTokens;  // Update the global max tokens to match the current model
         RAG.init(state.context, new RAG.RAGCallback() {
             @Override
             public void onSuccess() {

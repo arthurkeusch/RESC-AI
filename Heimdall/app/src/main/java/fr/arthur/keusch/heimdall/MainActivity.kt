@@ -235,15 +235,24 @@ fun MonitoringScreen() {
                 }
             }
             item {
-                Text(
-                    "Surveillance active",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.Green,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
-                    textAlign = TextAlign.Center
-                )
+                Column(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
+                    Text(
+                        "Surveillance active",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.Green,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                    Button(
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                        onClick = {
+                            FallDetectionService.triggerFakeFall()
+                        }
+                    ) {
+                        Text("TEST CHUTE")
+                    }
+                }
             }
         }
     }

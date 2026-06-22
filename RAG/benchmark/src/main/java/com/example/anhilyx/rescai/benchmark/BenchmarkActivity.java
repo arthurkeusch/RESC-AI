@@ -118,11 +118,19 @@ public class BenchmarkActivity extends AppCompatActivity {
 
             // Define the models for the benchmark
             Benchmark.ModelBenchmark[] models = new Benchmark.ModelBenchmark[]{
-                    new Benchmark.ModelBenchmark("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", 128, documents),
-                    new Benchmark.ModelBenchmark("intfloat/multilingual-e5-small",                              512, documents),
-                    new Benchmark.ModelBenchmark("ibm-granite/granite-embedding-97m-multilingual-r2",           512, documents),
-                    new Benchmark.ModelBenchmark("sentence-transformers/all-MiniLM-L6-v2",                      128, documents),
-                    new Benchmark.ModelBenchmark("Lajavaness/bilingual-embedding-small",                        1,   documents)
+                    // new Benchmark.ModelBenchmark("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", documents),
+                    // new Benchmark.ModelBenchmark("intfloat/multilingual-e5-small",                              documents),
+                    // new Benchmark.ModelBenchmark("ibm-granite/granite-embedding-97m-multilingual-r2",           documents),
+                    // new Benchmark.ModelBenchmark("sentence-transformers/all-MiniLM-L6-v2",                      documents),
+
+                    // new Benchmark.ModelBenchmark("intfloat/multilingual-e5-base",                documents),
+                    // new Benchmark.ModelBenchmark("onnx-community/gte-multilingual-base",         documents),
+                    // new Benchmark.ModelBenchmark("Xenova/paraphrase-multilingual-mpnet-base-v2", documents),
+
+                    new Benchmark.ModelBenchmark("edertef/french-bge-m3",          documents),
+                    // new Benchmark.ModelBenchmark("intfloat/multilingual-e5-large", documents),
+                    // new Benchmark.ModelBenchmark("Xenova/multilingual-e5-large",   documents),
+                    // new Benchmark.ModelBenchmark("Xenova/bge-m3",                  documents),
             };
 
             // Run the benchmark and update the UI with progress

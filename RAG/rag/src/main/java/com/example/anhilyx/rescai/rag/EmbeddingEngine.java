@@ -42,8 +42,8 @@ public class EmbeddingEngine {
     public float[] getEmbedding(long[] inputIds, long[] attentionMask, long[] tokenTypeIds) throws OrtException {
 
         // Initialize empty embedding
-        float[] embedding = new float[Config.EMBEDDING_DIM];
-        long[] shape = new long[]{1, Config.N_TOKENS};
+        float[] embedding;
+        long[] shape = new long[]{1, inputIds.length};
 
         // Prepare input tensors for the ONNX model
         try (
@@ -67,13 +67,14 @@ public class EmbeddingEngine {
             // Execute the ONNX model inference
             try (OrtSession.Result results = session.run(inputs)) {
                 float[][][] outputEmbeddings = (float[][][]) results.get(0).getValue();
+                embedding = new float[outputEmbeddings[0][0].length];
                 int validTokens = 0;
 
                 // Aggregate token embeddings using mean pooling
-                for (int i = 0; i < Config.N_TOKENS; i++) {
+                for (int i = 0; i < inputIds.length; i++) {
                     if (attentionMask[i] == 1L || !expectedInputs.contains("attention_mask")) {
                         validTokens++;
-                        for (int j = 0; j < Config.EMBEDDING_DIM; j++) {
+                        for (int j = 0; j < embedding.length; j++) {
                             embedding[j] += outputEmbeddings[0][i][j];
                         }
                     }
@@ -81,7 +82,7 @@ public class EmbeddingEngine {
 
                 // Average the token embeddings to get a single embedding for the entire input
                 if (validTokens > 0) {
-                    for (int j = 0; j < Config.EMBEDDING_DIM; j++) {
+                    for (int j = 0; j < embedding.length; j++) {
                         embedding[j] /= validTokens;
                     }
                 }
@@ -91,7 +92,7 @@ public class EmbeddingEngine {
                 for (float v : embedding) sum += v * v;
                 float norm = (float) Math.sqrt(sum);
                 if (norm > 0) {
-                    for (int i = 0; i < Config.EMBEDDING_DIM; i++) {
+                    for (int i = 0; i < embedding.length; i++) {
                         embedding[i] /= norm;
                     }
                 }

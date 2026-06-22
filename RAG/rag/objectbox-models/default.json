@@ -4,25 +4,77 @@
   "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
   "entities": [
     {
-      "id": "1:7783618319298235895",
-      "lastPropertyId": "3:378449155722860771",
-      "name": "Item",
+      "id": "2:3781080291384503283",
+      "lastPropertyId": "3:1771509975527066594",
+      "name": "Item1024",
       "properties": [
         {
-          "id": "1:8518684183412895795",
+          "id": "1:6158499059362565051",
           "name": "id",
           "type": 6,
           "flags": 1
         },
         {
-          "id": "2:5889126063552664266",
+          "id": "2:6568877620689036390",
           "name": "chunk",
           "type": 9
         },
         {
-          "id": "3:378449155722860771",
+          "id": "3:1771509975527066594",
           "name": "embedding",
-          "indexId": "1:7509118003547193155",
+          "indexId": "2:6653858148482553724",
+          "type": 28,
+          "flags": 8
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "3:7995928948252246451",
+      "lastPropertyId": "3:7209746815366780628",
+      "name": "Item384",
+      "properties": [
+        {
+          "id": "1:677034590515490297",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7397428704820386184",
+          "name": "chunk",
+          "type": 9
+        },
+        {
+          "id": "3:7209746815366780628",
+          "name": "embedding",
+          "indexId": "3:5479466499979117257",
+          "type": 28,
+          "flags": 8
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "4:3137533408598441079",
+      "lastPropertyId": "3:6906652603619201399",
+      "name": "Item768",
+      "properties": [
+        {
+          "id": "1:1480904724885283987",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:4790227550003345613",
+          "name": "chunk",
+          "type": 9
+        },
+        {
+          "id": "3:6906652603619201399",
+          "name": "embedding",
+          "indexId": "4:4274204212840005027",
           "type": 28,
           "flags": 8
         }
@@ -30,15 +82,23 @@
       "relations": []
     }
   ],
-  "lastEntityId": "1:7783618319298235895",
-  "lastIndexId": "1:7509118003547193155",
+  "lastEntityId": "4:3137533408598441079",
+  "lastIndexId": "4:4274204212840005027",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
-  "retiredEntityUids": [],
-  "retiredIndexUids": [],
-  "retiredPropertyUids": [],
+  "retiredEntityUids": [
+    7783618319298235895
+  ],
+  "retiredIndexUids": [
+    7509118003547193155
+  ],
+  "retiredPropertyUids": [
+    8518684183412895795,
+    5889126063552664266,
+    378449155722860771
+  ],
   "retiredRelationUids": [],
   "version": 1
 }
