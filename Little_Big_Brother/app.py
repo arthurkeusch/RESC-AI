@@ -30,6 +30,8 @@ model = None
 
 CURRENT_MODEL = "yolov8n-pose.pt"
 
+DETECTION_ACTIVE = False
+
 AVAILABLE_MODELS = {
     "YOLOv8 Nano": "yolov8n-pose.pt",
     "YOLOv8 Small": "yolov8s-pose.pt",
@@ -107,12 +109,48 @@ async def home(request: Request):
         {"request": request}
     )
 
+
 @app.get("/models")
 async def get_models():
 
     return {
         "current": CURRENT_MODEL,
         "models": AVAILABLE_MODELS
+    }
+
+
+@app.get("/status")
+async def status():
+
+    return {
+        "active": DETECTION_ACTIVE,
+        "current_model": CURRENT_MODEL
+    }
+
+
+@app.get("/alert")
+async def alert():
+
+    global DETECTION_ACTIVE
+
+    DETECTION_ACTIVE = True
+
+    return {
+        "success": True,
+        "message": "Detection activated"
+    }
+
+
+@app.get("/reset")
+async def reset():
+
+    global DETECTION_ACTIVE
+
+    DETECTION_ACTIVE = False
+
+    return {
+        "success": True,
+        "message": "Detection stopped"
     }
 
 
@@ -146,8 +184,18 @@ async def change_model(request: Request):
         "current": CURRENT_MODEL
     }
 
+
 @app.post("/detect")
 async def detect(file: UploadFile = File(...)):
+
+    if not DETECTION_ACTIVE:
+
+        return JSONResponse({
+            "active": False,
+            "persons": [],
+            "image": None,
+            "inference_ms": 0
+        })
 
     contents = await file.read()
 
@@ -199,6 +247,7 @@ async def detect(file: UploadFile = File(...)):
                 stability = "N/A"
 
                 if posture == "STANDING":
+
                     stability = analyze_upright_stability(
                         person_kpts
                     )
@@ -220,6 +269,7 @@ async def detect(file: UploadFile = File(...)):
     ).decode("utf-8")
 
     return JSONResponse({
+        "active": True,
         "persons": persons,
         "image": image_base64,
         "inference_ms": float(inference_time)
